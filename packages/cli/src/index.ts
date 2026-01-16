@@ -95,9 +95,10 @@ program
     });
   });
 
-// Dep add command
-program
-  .command('dep add <from> <to>')
+// Dep command
+const depCmd = program.command('dep');
+depCmd
+  .command('add <from> <to>')
   .description('Add dependency')
   .option('-t, --type <type>', 'Type: blocks, related, parent-child, discovered-from', 'blocks')
   .action(async (from, to, options) => {
