@@ -9,95 +9,198 @@
     body {
       font-family: var(--vscode-font-family);
       font-size: var(--vscode-font-size);
-      background-color: var(--vscode-editor-background);
-      color: var(--vscode-editor-foreground);
+      background-color: var(--vscode-sideBar-background);
+      color: var(--vscode-foreground);
       margin: 0;
       padding: 20px;
     }
 
     h1 {
-      color: var(--vscode-textLink-foreground);
+      color: #D4A556;
+      font-size: 24px;
+      margin: 0 0 20px 0;
+    }
+
+    .header {
+      margin-bottom: 20px;
     }
 
     .controls {
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
-    .filters {
-      margin-bottom: 20px;
+    .controls label {
+      font-weight: normal;
+      margin-right: 10px;
     }
 
-    .filters label {
-      margin-right: 15px;
-    }
-
-    .task-list {
-      list-style: none;
-      padding: 0;
-    }
-
-    .task-item {
-      background-color: var(--vscode-input-background);
-      border: 1px solid var(--vscode-input-border);
-      border-radius: 4px;
-      margin-bottom: 10px;
-      padding: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .task-grid {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .task-grid th,
-    .task-grid td {
-      border: 1px solid var(--vscode-input-border);
-      padding: 8px;
-      text-align: left;
-    }
-
-    .task-grid th {
-      background-color: var(--vscode-titleBar-activeBackground);
-      color: var(--vscode-titleBar-activeForeground);
-    }
-
-    .task-actions {
-      display: flex;
-      gap: 5px;
-    }
-
-    button {
-      background-color: var(--vscode-button-background);
-      color: var(--vscode-button-foreground);
-      border: 1px solid var(--vscode-button-border);
+    .controls select {
+      background-color: var(--vscode-dropdown-background);
+      color: var(--vscode-dropdown-foreground);
+      border: 1px solid var(--vscode-dropdown-border);
       padding: 4px 8px;
       border-radius: 3px;
       cursor: pointer;
     }
 
-    .task-description {
-      font-size: 0.9em;
-      opacity: 0.8;
-      margin-top: 5px;
+    .filters {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 20px;
     }
 
-    .task-title {
-      font-weight: bold;
+    .filters label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .filters input[type="checkbox"] {
+      cursor: pointer;
+    }
+
+    .task-grid {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--vscode-editor-background);
+    }
+
+    .task-grid th {
+      background-color: var(--vscode-editor-background);
+      color: var(--vscode-foreground);
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--vscode-panel-border);
+      position: sticky;
+      top: 0;
+    }
+
+    .task-grid th:first-child {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .header-btn {
+      background: none;
+      border: none;
+      color: var(--vscode-foreground);
+      cursor: pointer;
+      padding: 4px 8px;
+      opacity: 0.7;
+      font-size: 12px;
+    }
+
+    .header-btn:hover {
+      opacity: 1;
+    }
+
+    .task-grid td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--vscode-panel-border);
+      vertical-align: middle;
+    }
+
+    .task-row {
+      transition: background-color 0.1s;
+    }
+
+    .task-row:hover {
+      background-color: var(--vscode-list-hoverBackground);
+    }
+
+    .title-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .expand-icon {
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--vscode-foreground);
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+
+    .expand-icon:hover {
+      opacity: 1;
+    }
+
+    .expand-icon.collapsed::before {
+      content: '▶';
+      font-size: 10px;
+    }
+
+    .expand-icon.expanded::before {
+      content: '▼';
+      font-size: 10px;
+    }
+
+    .expand-icon.empty {
+      opacity: 0;
+      cursor: default;
+    }
+
+    .type-badge {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .type-badge.epic {
+      background-color: rgba(138, 98, 255, 0.2);
+      color: #8A62FF;
+    }
+
+    .type-badge.epic::before {
+      content: '⚡';
+    }
+
+    .type-badge.task {
+      background-color: rgba(68, 131, 255, 0.2);
+      color: #4483FF;
+    }
+
+    .type-badge.task::before {
+      content: '•';
+      font-size: 16px;
+    }
+
+    .task-title-text {
+      color: var(--vscode-foreground);
     }
 
     .pill {
-      padding: 2px 6px;
+      padding: 6px 12px;
       border-radius: 12px;
-      font-size: 0.8em;
+      font-size: 12px;
+      font-weight: 500;
       display: inline-block;
       text-transform: capitalize;
     }
 
     .status-open {
-      background-color: var(--vscode-charts-green);
+      background-color: #2ea043;
       color: white;
     }
 
@@ -107,48 +210,92 @@
     }
 
     .status-closed {
-      background-color: var(--vscode-charts-gray);
+      background-color: #8b949e;
       color: white;
     }
 
     .status-blocked {
-      background-color: var(--vscode-charts-red);
+      background-color: #da3633;
       color: white;
     }
 
     .priority-low {
-      background-color: var(--vscode-charts-green);
+      background-color: #2ea043;
       color: white;
     }
 
     .priority-medium {
-      background-color: var(--vscode-charts-yellow);
-      color: black;
+      background-color: #d4a556;
+      color: #1f2328;
     }
 
     .priority-high {
-      background-color: var(--vscode-charts-orange);
+      background-color: #fb8500;
       color: white;
     }
 
     .priority-urgent {
-      background-color: var(--vscode-charts-red);
+      background-color: #da3633;
       color: white;
     }
 
-    .type-task {
-      background-color: var(--vscode-charts-blue);
+    .task-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-start;
+    }
+
+    .start-btn {
+      background-color: #0969da;
       color: white;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .start-btn:hover {
+      background-color: #0860ca;
+    }
+
+    .complete-btn {
+      background-color: #2ea043;
+      color: white;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .complete-btn:hover {
+      background-color: #2c974b;
+    }
+
+    .child-row {
+      background-color: var(--vscode-editor-background);
+    }
+
+    .indent-line {
+      width: 2px;
+      background-color: var(--vscode-panel-border);
+      margin-left: 8px;
+      margin-right: 8px;
     }
   </style>
 </head>
 
 <body>
-  <h1>Horizon Task List</h1>
+  <div class="header">
+    <h1>Horizon Task List</h1>
+  </div>
   <div class="controls">
     <label>View: <select id="view-selector">
+        <option value="grid" selected>Grid</option>
         <option value="list">List</option>
-        <option value="grid">Grid</option>
       </select></label>
   </div>
   <div class="filters">
@@ -163,6 +310,8 @@
   </div>
 
   <script>
+    const expandedTasks = new Set();
+
     // Function to check if a task is ready (no blocking dependencies)
     function isReady(task, allTasks) {
       if (!task.dependencies) return true;
@@ -174,13 +323,22 @@
       });
     }
 
+    function toggleExpand(taskId) {
+      if (expandedTasks.has(taskId)) {
+        expandedTasks.delete(taskId);
+      } else {
+        expandedTasks.add(taskId);
+      }
+      renderTasks(allTasks);
+    }
+
     // Function to render tasks
     function renderTasks(allTasks) {
       const view = document.getElementById('view-selector').value;
       const selectedStatuses = Array.from(document.querySelectorAll('.filters input:checked')).map(cb => cb.id.replace('filter-', ''));
       const filteredTasks = allTasks.filter(task => selectedStatuses.includes(task.status) || (selectedStatuses.includes('ready') && task.status === 'open' && isReady(task, allTasks)));
-      const expandedTasks = getExpandedTasks(allTasks, filteredTasks);
-      const taskTree = buildTaskTree(expandedTasks);
+      const expandedTaskList = getExpandedTasks(allTasks, filteredTasks);
+      const taskTree = buildTaskTree(expandedTaskList);
 
       const container = document.getElementById('task-container');
       container.innerHTML = '';
@@ -188,28 +346,86 @@
       if (view === 'list') {
         const ul = document.createElement('ul');
         ul.className = 'task-list';
+        ul.style.listStyle = 'none';
+        ul.style.padding = '0';
         renderTaskTreeList(taskTree, ul);
         container.appendChild(ul);
       } else if (view === 'grid') {
         const table = document.createElement('table');
         table.className = 'task-grid';
-        table.innerHTML = `
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Parent</th>
-                            <th>Type</th>
-                            <th>Title</th>
-                            <th>Status</th>
-                            <th>Priority</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                `;
-        const tbody = table.querySelector('tbody');
-        renderTaskTree(taskTree, tbody);
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const titleHeader = document.createElement('th');
+        titleHeader.style.display = 'flex';
+        titleHeader.style.alignItems = 'center';
+        titleHeader.style.justifyContent = 'space-between';
+        
+        const titleSection = document.createElement('div');
+        titleSection.style.display = 'flex';
+        titleSection.style.alignItems = 'center';
+        titleSection.style.gap = '10px';
+        
+        const filterIcon = document.createElement('span');
+        filterIcon.innerHTML = '▼';
+        filterIcon.style.fontSize = '10px';
+        
+        const titleText = document.createElement('span');
+        titleText.textContent = 'Title';
+        
+        titleSection.appendChild(filterIcon);
+        titleSection.appendChild(titleText);
+        
+        const controlsSection = document.createElement('div');
+        controlsSection.className = 'header-controls';
+        
+        const expandAllBtn = document.createElement('button');
+        expandAllBtn.className = 'header-btn';
+        expandAllBtn.textContent = 'Expand All';
+        expandAllBtn.onclick = () => {
+          expandedTasks.clear();
+          allTasks.forEach(t => expandedTasks.add(t.id));
+          renderTasks(allTasks);
+        };
+        
+        const collapseAllBtn = document.createElement('button');
+        collapseAllBtn.className = 'header-btn';
+        collapseAllBtn.textContent = 'Collapse All';
+        collapseAllBtn.onclick = () => {
+          expandedTasks.clear();
+          renderTasks(allTasks);
+        };
+        
+        const upBtn = document.createElement('button');
+        upBtn.className = 'header-btn';
+        upBtn.innerHTML = '↑';
+        
+        const downBtn = document.createElement('button');
+        downBtn.className = 'header-btn';
+        downBtn.innerHTML = '↓';
+        
+        controlsSection.appendChild(expandAllBtn);
+        controlsSection.appendChild(collapseAllBtn);
+        controlsSection.appendChild(upBtn);
+        controlsSection.appendChild(downBtn);
+        
+        titleHeader.appendChild(titleSection);
+        titleHeader.appendChild(controlsSection);
+        
+        headerRow.appendChild(titleHeader);
+        
+        ['Status', 'Priority', 'Actions'].forEach(text => {
+          const th = document.createElement('th');
+          th.textContent = text;
+          headerRow.appendChild(th);
+        });
+        
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        
+        const tbody = document.createElement('tbody');
+        renderTaskTreeGrid(taskTree, tbody, allTasks);
+        table.appendChild(tbody);
+        
         container.appendChild(table);
       }
     }
@@ -263,25 +479,99 @@
       return roots;
     }
 
-    // Function to render task row
-    function renderTaskRow(task, level = 0) {
-      const indent = 10 + level * 40;
-      const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
-      const parentId = parentDep ? parentDep.id : '';
+    // Function to render task row for grid
+    function renderTaskRowGrid(task, level = 0, allTasks) {
+      const hasChildren = task.children && task.children.length > 0;
+      const isExpanded = expandedTasks.has(task.id);
+      
       const tr = document.createElement('tr');
-      tr.innerHTML = `
-                    <td style="padding-left: ${indent}px;">${task.id}</td>
-                    <td style="padding-left: ${indent}px;">${parentId}</td>
-                    <td style="padding-left: ${indent}px;"><span class="pill type-${task.type || 'task'}">${task.type || 'task'}</span></td>
-                    <td style="padding-left: ${indent}px;">${task.title}</td>
-                    <td style="padding-left: ${indent}px;"><span class="pill status-${task.status}">${task.status}</span></td>
-                    <td style="padding-left: ${indent}px;"><span class="pill priority-${task.priority}">${task.priority}</span></td>
-                    <td class="task-actions">
-                        ${task.status === 'open' ? '<button onclick="startTask(\'' + task.id + '\')">Start</button>' : ''}
-                        ${task.status === 'in_progress' ? '<button onclick="completeTask(\'' + task.id + '\')">Complete</button>' : ''}
-                    </td>
-                `;
+      tr.className = 'task-row';
+      if (level > 0) tr.classList.add('child-row');
+      
+      // Title cell with expand/collapse
+      const titleCell = document.createElement('td');
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'title-cell';
+      titleDiv.style.paddingLeft = `${level * 30}px`;
+      
+      // Add indent lines for children
+      for (let i = 0; i < level; i++) {
+        const indentLine = document.createElement('div');
+        indentLine.className = 'indent-line';
+        indentLine.style.height = '1px';
+        indentLine.style.width = '20px';
+        indentLine.style.display = 'inline-block';
+      }
+      
+      // Expand/collapse icon
+      const expandIcon = document.createElement('span');
+      expandIcon.className = hasChildren ? (isExpanded ? 'expand-icon expanded' : 'expand-icon collapsed') : 'expand-icon empty';
+      if (hasChildren) {
+        expandIcon.onclick = () => toggleExpand(task.id);
+      }
+      titleDiv.appendChild(expandIcon);
+      
+      // Type badge
+      const typeBadge = document.createElement('span');
+      typeBadge.className = `type-badge ${task.type || 'task'}`;
+      typeBadge.textContent = task.type || 'Task';
+      titleDiv.appendChild(typeBadge);
+      
+      // Title text
+      const titleText = document.createElement('span');
+      titleText.className = 'task-title-text';
+      titleText.textContent = task.title;
+      titleDiv.appendChild(titleText);
+      
+      titleCell.appendChild(titleDiv);
+      tr.appendChild(titleCell);
+      
+      // Status cell
+      const statusCell = document.createElement('td');
+      const statusPill = document.createElement('span');
+      statusPill.className = `pill status-${task.status}`;
+      statusPill.textContent = task.status === 'in_progress' ? 'Open' : (task.status.charAt(0).toUpperCase() + task.status.slice(1));
+      statusCell.appendChild(statusPill);
+      tr.appendChild(statusCell);
+      
+      // Priority cell
+      const priorityCell = document.createElement('td');
+      const priorityPill = document.createElement('span');
+      priorityPill.className = `pill priority-${task.priority}`;
+      priorityPill.textContent = task.priority.charAt(0).toUpperCase() + task.priority.slice(1);
+      priorityCell.appendChild(priorityPill);
+      tr.appendChild(priorityCell);
+      
+      // Actions cell
+      const actionsCell = document.createElement('td');
+      actionsCell.className = 'task-actions';
+      if (task.status === 'open') {
+        const startBtn = document.createElement('button');
+        startBtn.className = 'start-btn';
+        startBtn.textContent = 'Start';
+        startBtn.onclick = () => startTask(task.id);
+        actionsCell.appendChild(startBtn);
+      } else if (task.status === 'in_progress') {
+        const completeBtn = document.createElement('button');
+        completeBtn.className = 'complete-btn';
+        completeBtn.textContent = 'Complete';
+        completeBtn.onclick = () => completeTask(task.id);
+        actionsCell.appendChild(completeBtn);
+      }
+      tr.appendChild(actionsCell);
+      
       return tr;
+    }
+
+    // Function to render task tree for grid
+    function renderTaskTreeGrid(tree, tbody, allTasks, level = 0) {
+      tree.forEach(node => {
+        const tr = renderTaskRowGrid(node, level, allTasks);
+        tbody.appendChild(tr);
+        if (node.children && node.children.length > 0 && expandedTasks.has(node.id)) {
+          renderTaskTreeGrid(node.children, tbody, allTasks, level + 1);
+        }
+      });
     }
 
     // Function to render task item for list
@@ -289,20 +579,27 @@
       const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
       const parentId = parentDep ? parentDep.id : '';
       const li = document.createElement('li');
-      li.className = 'task-item';
+      li.style.backgroundColor = 'var(--vscode-input-background)';
+      li.style.border = '1px solid var(--vscode-input-border)';
+      li.style.borderRadius = '4px';
+      li.style.marginBottom = '10px';
+      li.style.padding = '10px';
+      li.style.display = 'flex';
+      li.style.justifyContent = 'space-between';
+      li.style.alignItems = 'center';
       li.style.paddingLeft = level * 40 + 'px';
       li.innerHTML = `
                     <div>
-                        <span class="task-title">${task.title}</span>
-                        ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                        <span style="font-weight: bold;">${task.title}</span>
+                        ${task.description ? `<div style="font-size: 0.9em; opacity: 0.8; margin-top: 5px;">${task.description}</div>` : ''}
                         <span class="pill type-${task.type || 'task'}">${task.type || 'task'}</span>
                         <span class="pill status-${task.status}">${task.status}</span>
                         <span class="pill priority-${task.priority}">${task.priority}</span>
                         ${parentId ? `<span class="pill">Parent: ${parentId}</span>` : ''}
                     </div>
                     <div class="task-actions">
-                        ${task.status === 'open' ? '<button onclick="startTask(\'' + task.id + '\')">Start</button>' : ''}
-                        ${task.status === 'in_progress' ? '<button onclick="completeTask(\'' + task.id + '\')">Complete</button>' : ''}
+                        ${task.status === 'open' ? '<button class="start-btn" onclick="startTask(\'' + task.id + '\')">Start</button>' : ''}
+                        ${task.status === 'in_progress' ? '<button class="complete-btn" onclick="completeTask(\'' + task.id + '\')">Complete</button>' : ''}
                     </div>
                 `;
       return li;
@@ -319,23 +616,14 @@
       });
     }
 
-    // Function to render task tree
-    function renderTaskTree(tree, tbody, level = 0) {
-      tree.forEach(node => {
-        const tr = renderTaskRow(node, level);
-        tbody.appendChild(tr);
-        if (node.children.length > 0) {
-          renderTaskTree(node.children, tbody, level + 1);
-        }
-      });
-    }
-
     // Task interaction functions
     function startTask(id) {
+      window.vscode = window.vscode || acquireVsCodeApi();
       vscode.postMessage({ type: 'startTask', id });
     }
 
     function completeTask(id) {
+      window.vscode = window.vscode || acquireVsCodeApi();
       vscode.postMessage({ type: 'completeTask', id });
     }
 
