@@ -7,6 +7,10 @@ export interface IGraphService {
   getBlockedIssues(issues: Issue[]): Issue[];
   addDependency(fromId: string, toId: string, type: DependencyType, issues: Issue[]): Issue[];
   removeDependency(fromId: string, toId: string, issues: Issue[]): Issue[];
+  getEpicSubtasks(epicId: string, issues: Issue[]): Issue[];
+  getSubtaskEpic(subtaskId: string, issues: Issue[]): Issue | null;
+  calculateEpicProgress(epicId: string, issues: Issue[]): { completed: number; total: number; percentage: number };
+  shouldCloseEpic(epicId: string, issues: Issue[]): boolean;
 }
 
 @injectable()
@@ -92,5 +96,35 @@ export class GraphService implements IGraphService {
       }
       return issue;
     });
+  }
+
+  getEpicSubtasks(epicId: string, issues: Issue[]): Issue[] {
+    return issues.filter(issue =>
+      issue.dependencies?.some(dep => dep.id === epicId && dep.type === 'parent-child')
+    );
+  }
+
+  getSubtaskEpic(subtaskId: string, issues: Issue[]): Issue | null {
+    const subtask = issues.find(issue => issue.id === subtaskId);
+    if (!subtask?.dependencies) return null;
+
+    const epicDep = subtask.dependencies.find(dep => dep.type === 'parent-child');
+    if (!epicDep) return null;
+
+    return issues.find(issue => issue.id === epicDep.id) || null;
+  }
+
+  calculateEpicProgress(epicId: string, issues: Issue[]): { completed: number; total: number; percentage: number } {
+    const subtasks = this.getEpicSubtasks(epicId, issues);
+    const completed = subtasks.filter(subtask => subtask.status === 'closed').length;
+    const total = subtasks.length;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return { completed, total, percentage };
+  }
+
+  shouldCloseEpic(epicId: string, issues: Issue[]): boolean {
+    const subtasks = this.getEpicSubtasks(epicId, issues);
+    return subtasks.length > 0 && subtasks.every(subtask => subtask.status === 'closed');
   }
 }

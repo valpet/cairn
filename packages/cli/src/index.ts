@@ -185,8 +185,10 @@ program
   .option('-t, --type <type>', 'Filter by type: epic, feature, task, bug')
   .option('-r, --ready', 'Show only ready work')
   .action(async (options) => {
-    let issues = await storage.loadIssues();
-    issues = compaction.compactIssues(issues);
+    let allIssues = await storage.loadIssues();
+    allIssues = compaction.compactIssues(allIssues);
+    let issues = allIssues;
+
     if (options.ready) {
       issues = graph.getReadyWork(issues);
     } else {
@@ -199,7 +201,14 @@ program
     }
     issues.forEach(issue => {
       const typeStr = issue.type ? `[${issue.type}]` : '';
-      console.log(`${issue.id}: ${issue.title} [${issue.status}] ${typeStr}`);
+      let progressStr = '';
+      if (issue.type === 'epic') {
+        const progress = graph.calculateEpicProgress(issue.id, allIssues);
+        if (progress.total > 0) {
+          progressStr = ` (${progress.completed}/${progress.total} ${progress.percentage}%)`;
+        }
+      }
+      console.log(`${issue.id}: ${issue.title} [${issue.status}] ${typeStr}${progressStr}`);
     });
   });
 
@@ -215,6 +224,81 @@ depCmd
     });
     console.log(`Added ${options.type} dependency from ${from} to ${to}`);
     await git.commitChanges(`Add dependency ${from} -> ${to}`);
+  });
+
+// Epic command
+const epicCmd = program.command('epic');
+epicCmd
+  .command('subtasks <epicId>')
+  .description('List all subtasks of an epic')
+  .action(async (epicId) => {
+    const issues = await storage.loadIssues();
+    const subtasks = graph.getEpicSubtasks(epicId, issues);
+    if (subtasks.length === 0) {
+      console.log(`No subtasks found for epic ${epicId}`);
+      return;
+    }
+    console.log(`Subtasks for epic ${epicId}:`);
+    subtasks.forEach(subtask => {
+      console.log(`  ${subtask.id}: ${subtask.title} [${subtask.status}]`);
+    });
+  });
+
+epicCmd
+  .command('progress <epicId>')
+  .description('Show progress of an epic')
+  .action(async (epicId) => {
+    const issues = await storage.loadIssues();
+    const progress = graph.calculateEpicProgress(epicId, issues);
+    const epic = issues.find(i => i.id === epicId);
+    if (!epic) {
+      console.error(`Epic ${epicId} not found`);
+      return;
+    }
+    console.log(`Epic: ${epic.title}`);
+    console.log(`Progress: ${progress.completed}/${progress.total} subtasks completed (${progress.percentage}%)`);
+
+    if (graph.shouldCloseEpic(epicId, issues) && epic.status !== 'closed') {
+      console.log('💡 All subtasks are completed. Consider closing this epic.');
+    }
+  });
+
+epicCmd
+  .command('add-subtask <epicId> <title>')
+  .description('Create a new subtask for an epic')
+  .option('-d, --description <desc>', 'Description')
+  .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
+  .action(async (epicId, title, options) => {
+    const issues = await storage.loadIssues();
+    const epic = issues.find(i => i.id === epicId);
+    if (!epic) {
+      console.error(`Epic ${epicId} not found`);
+      return;
+    }
+    if (epic.type !== 'epic') {
+      console.error(`Issue ${epicId} is not an epic (type: ${epic.type})`);
+      return;
+    }
+
+    const subtaskId = generateId(issues);
+    const subtask = {
+      id: subtaskId,
+      title,
+      description: options.description,
+      type: 'task' as const,
+      status: 'open' as const,
+      priority: options.priority as any,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    await storage.saveIssue(subtask);
+    await storage.updateIssues(issues => {
+      return graph.addDependency(subtaskId, epicId, 'parent-child', issues);
+    });
+
+    console.log(`Created subtask ${subtaskId} for epic ${epicId}: ${title}`);
+    await git.commitChanges(`Create subtask ${subtaskId} for epic ${epicId}`);
   });
 
 // Review command
