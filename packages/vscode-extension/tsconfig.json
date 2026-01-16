@@ -22,7 +22,8 @@
       "@horizon/core": [
         "../core/dist"
       ]
-    }
+    },
+    "composite": true
   },
   "include": [
     "src/**/*"
