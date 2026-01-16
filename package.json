@@ -1,7 +1,9 @@
 {
   "name": "horizon-monorepo",
   "version": "1.0.0",
-  "private": true,
+  "bin": {
+    "horizon": "packages/cli/dist/index.js"
+  },
   "workspaces": [
     "packages/*"
   ],
@@ -9,7 +11,8 @@
     "build": "tsc",
     "test": "npm run test --workspaces",
     "lint": "eslint . --ext .ts",
-    "clean": "rimraf packages/*/dist"
+    "clean": "rimraf packages/*/dist",
+    "horizon": "node packages/cli/dist/index.js"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

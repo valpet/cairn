@@ -1,5 +1,5 @@
 {
-  "name": "@horizon/cli",
+  "name": "horizon",
   "version": "1.0.0",
   "description": "CLI wrapper for Horizon task management",
   "bin": {

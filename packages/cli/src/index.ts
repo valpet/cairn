@@ -14,14 +14,19 @@ program
   .version('1.0.0');
 
 const cwd = process.cwd();
-const horizonDir = path.join(cwd, '.horizon');
+const { horizonDir, repoRoot } = findHorizonDir(cwd);
+
+console.log('CWD:', cwd);
+console.log('Horizon dir:', horizonDir);
+console.log('Repo root:', repoRoot);
 
 // Ensure .horizon exists
 if (!fs.existsSync(horizonDir)) {
-  fs.mkdirSync(horizonDir, { recursive: true });
+  console.error('No .horizon directory found. Run `npx horizon init` in your project root.');
+  process.exit(1);
 }
 
-const container = createContainer(horizonDir, cwd);
+const container = createContainer(horizonDir, repoRoot);
 const storage = container.get<IStorageService>(TYPES.IStorageService);
 const graph = container.get<IGraphService>(TYPES.IGraphService);
 const compaction = container.get<ICompactionService>(TYPES.ICompactionService);
@@ -69,7 +74,65 @@ program
         console.log('Added .horizon to .gitignore for stealth mode');
       }
     }
-    console.log('Horizon initialized. Start by creating your first task with `horizon create <title>`');
+
+    // Copy copilot instructions
+    const githubDir = path.join(cwd, '.github');
+    if (!fs.existsSync(githubDir)) {
+      fs.mkdirSync(githubDir, { recursive: true });
+    }
+    const instructionsPath = path.join(githubDir, 'copilot-instructions.md');
+    const horizonInstructions = `
+## Horizon Task Management Instructions
+As a GitHub Copilot agent, you MUST work task-based using Horizon tools for all development work. This ensures long-horizon memory and prevents context overflow.
+
+### Initialization
+- Horizon has been initialized in this project. Use \`horizon list --ready\` to see available tasks.
+
+### Task Management
+- **Always start by checking ready work**: Run \`horizon list --ready\` to see unblocked tasks.
+- **Break down large tasks**: Use \`horizon dep add <subtask> <parent> --type parent-child\` to create hierarchical subtasks.
+- **Create new tasks**: Use \`horizon create <title> -d <description> -p <priority>\` for any work discovered.
+- **Track discoveries**: When finding new work, use \`horizon dep add <newtask> <current> --type discovered-from\`.
+- **Update progress**: Regularly update task status with \`horizon update <id> -s <status> -n <notes>\`.
+- **Document implementation details**: Add detailed notes on decisions, challenges, and solutions.
+- **Mark completion**: Set status to 'closed' when done, include acceptance criteria with \`horizon update <id> -c <criteria>\`.
+
+### Self-Review Process
+- After implementing any feature, perform a brutal self-review:
+  - Run \`horizon review <id>\` for checklist prompts.
+  - Check code quality, edge cases, error handling.
+  - Update acceptance criteria if not met.
+  - Add notes on what was learned or improved.
+  - If issues found, create subtasks for fixes.
+- Review task dependencies: Ensure no blockers remain.
+
+### Subtasks Support
+- Horizon supports subtasks via 'parent-child' dependency type.
+- Create parent epics, then subtasks linked with \`dep add <sub> <parent> --type parent-child\`.
+- Use \`list --ready\` to find next actionable subtasks.
+
+### Memory Management
+- Compaction automatically summarizes old closed tasks to save context.
+- Git integration preserves history across sessions.
+- Always document progress to recover context later.
+
+By following this workflow, you maintain coherent, persistent task memory without losing track of complex, multi-session work.`;
+
+    if (fs.existsSync(instructionsPath)) {
+      const existing = await fs.promises.readFile(instructionsPath, 'utf-8');
+      if (!existing.includes('Horizon Task Management Instructions')) {
+        await fs.promises.appendFile(instructionsPath, '\n' + horizonInstructions);
+        console.log('Appended Horizon workflow guidelines to existing .github/copilot-instructions.md');
+      } else {
+        console.log('Horizon instructions already present in .github/copilot-instructions.md');
+      }
+    } else {
+      await fs.promises.writeFile(instructionsPath, '<!-- Horizon Task Management Instructions for GitHub Copilot Agents -->\n' + horizonInstructions);
+      console.log('Created .github/copilot-instructions.md with Horizon workflow guidelines');
+    }
+
+    console.log('Horizon initialized. Start by creating your first task with \`horizon create <title>\`');
+    console.log('For advanced integrations, consider setting up an MCP server to expose Horizon tools programmatically.');
     await git.initIfNeeded();
     await git.commitChanges('Initialize Horizon');
   });
@@ -179,4 +242,22 @@ async function rewriteIssues(issues: any[]) {
   const filePath = storage.getIssuesFilePath();
   const content = issues.map(i => JSON.stringify(i)).join('\n') + '\n';
   await fs.promises.writeFile(filePath, content);
+}
+
+function findHorizonDir(startDir: string): { horizonDir: string; repoRoot: string } {
+  let currentDir = startDir;
+  while (true) {
+    const horizonPath = path.join(currentDir, '.horizon');
+    const issuesPath = path.join(horizonPath, 'issues.jsonl');
+    if (fs.existsSync(horizonPath) && fs.existsSync(issuesPath)) {
+      return { horizonDir: horizonPath, repoRoot: currentDir };
+    }
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) {
+      // Reached root
+      const fallbackHorizon = path.join(startDir, '.horizon');
+      return { horizonDir: fallbackHorizon, repoRoot: startDir };
+    }
+    currentDir = parentDir;
+  }
 }
