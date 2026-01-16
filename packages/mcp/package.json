@@ -11,9 +11,10 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.4.0",
     "@horizon/core": "*",
+    "@modelcontextprotocol/sdk": "^0.4.0",
     "inversify": "^6.0.1",
+    "nanoid": "^5.1.6",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {

@@ -14,14 +14,15 @@
     "@horizon/core": "*",
     "commander": "^11.0.0",
     "inversify": "^6.0.1",
+    "nanoid": "^5.1.6",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0",
-    "vitest": "^1.6.1",
-    "eslint": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0"
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.6.1"
   }
 }

@@ -6,6 +6,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { Container } from 'inversify';
 import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService, IGitService, Issue } from '@horizon/core';
+import { nanoid } from 'nanoid';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -13,14 +14,20 @@ export class HorizonMCPServer {
   private server: Server;
   private container: Container;
   private horizonDir: string;
+  private repoRoot: string;
 
   constructor() {
-    this.horizonDir = path.join(process.cwd(), '.horizon');
+    const cwd = process.cwd();
+    const { horizonDir, repoRoot } = this.findHorizonDir(cwd);
+    this.horizonDir = horizonDir;
+    this.repoRoot = repoRoot;
+
+    // Ensure .horizon exists
     if (!fs.existsSync(this.horizonDir)) {
       fs.mkdirSync(this.horizonDir, { recursive: true });
     }
 
-    this.container = createContainer(this.horizonDir, process.cwd());
+    this.container = createContainer(this.horizonDir, this.repoRoot);
     this.server = new Server({
       name: 'horizon-mcp',
       version: '1.0.0',
@@ -163,25 +170,25 @@ export class HorizonMCPServer {
     const storage = this.container.get<IStorageService>(TYPES.IStorageService);
     const git = this.container.get<IGitService>(TYPES.IGitService);
 
-    let issues = await storage.loadIssues();
-    issues = issues.map((issue: Issue) => {
-      if (issue.id === args.id) {
-        const updated = { ...issue, updated_at: new Date().toISOString() };
-        if (args.status) updated.status = args.status;
-        if (args.title) updated.title = args.title;
-        if (args.description) updated.description = args.description;
-        if (args.notes) updated.notes = args.notes;
-        if (args.priority) updated.priority = args.priority;
-        if (args.assignee) updated.assignee = args.assignee;
-        if (args.labels) updated.labels = args.labels;
-        if (args.acceptance_criteria) updated.acceptance_criteria = args.acceptance_criteria;
-        if (args.status === 'closed') updated.closed_at = new Date().toISOString();
-        return updated;
-      }
-      return issue;
+    await storage.updateIssues((issues) => {
+      return issues.map((issue: Issue) => {
+        if (issue.id === args.id) {
+          const updated = { ...issue, updated_at: new Date().toISOString() };
+          if (args.status) updated.status = args.status;
+          if (args.title) updated.title = args.title;
+          if (args.description) updated.description = args.description;
+          if (args.notes) updated.notes = args.notes;
+          if (args.priority) updated.priority = args.priority;
+          if (args.assignee) updated.assignee = args.assignee;
+          if (args.labels) updated.labels = args.labels;
+          if (args.acceptance_criteria) updated.acceptance_criteria = args.acceptance_criteria;
+          if (args.status === 'closed') updated.closed_at = new Date().toISOString();
+          return updated;
+        }
+        return issue;
+      });
     });
 
-    await this.rewriteIssues(issues);
     await git.commitChanges(`Update issue ${args.id}`);
 
     return {
@@ -219,9 +226,10 @@ export class HorizonMCPServer {
     const graph = this.container.get<IGraphService>(TYPES.IGraphService);
     const git = this.container.get<IGitService>(TYPES.IGitService);
 
-    let issues = await storage.loadIssues();
-    issues = graph.addDependency(args.from_id, args.to_id, args.type, issues);
-    await this.rewriteIssues(issues);
+    await storage.updateIssues((issues) => {
+      return graph.addDependency(args.from_id, args.to_id, args.type, issues);
+    });
+
     await git.commitChanges(`Add dependency ${args.from_id} -> ${args.to_id}`);
 
     return {
@@ -253,16 +261,27 @@ export class HorizonMCPServer {
     const existingIds = new Set(issues.map(i => i.id));
     let id;
     do {
-      id = 'bd-' + Math.random().toString(36).substr(2, 6);
+      id = nanoid(8); // Generate 8-character unique ID
     } while (existingIds.has(id));
     return id;
   }
 
-  private async rewriteIssues(issues: any[]) {
-    const storage = this.container.get<IStorageService>(TYPES.IStorageService);
-    const filePath = storage.getIssuesFilePath();
-    const content = issues.map(i => JSON.stringify(i)).join('\n') + '\n';
-    await fs.promises.writeFile(filePath, content);
+  private findHorizonDir(startDir: string): { horizonDir: string; repoRoot: string } {
+    let currentDir = startDir;
+    while (true) {
+      const horizonPath = path.join(currentDir, '.horizon');
+      const issuesPath = path.join(horizonPath, 'issues.jsonl');
+      if (fs.existsSync(horizonPath) && fs.existsSync(issuesPath)) {
+        return { horizonDir: horizonPath, repoRoot: currentDir };
+      }
+      const parentDir = path.dirname(currentDir);
+      if (parentDir === currentDir) {
+        // Reached root
+        const fallbackHorizon = path.join(startDir, '.horizon');
+        return { horizonDir: fallbackHorizon, repoRoot: startDir };
+      }
+      currentDir = parentDir;
+    }
   }
 
   async start() {

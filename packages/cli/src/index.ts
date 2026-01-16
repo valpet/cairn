@@ -3,6 +3,7 @@
 import 'reflect-metadata';
 import { Command } from 'commander';
 import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService, IGitService } from '@horizon/core';
+import { nanoid } from 'nanoid';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -153,26 +154,25 @@ program
   .option('-l, --labels <labels>', 'Labels (comma-separated)')
   .option('-c, --acceptance-criteria <criteria>', 'Acceptance criteria (comma-separated)')
   .action(async (id, options) => {
-    let issues = await storage.loadIssues();
-    issues = issues.map(issue => {
-      if (issue.id === id) {
-        const updated = { ...issue, updated_at: new Date().toISOString() };
-        if (options.status) updated.status = options.status;
-        if (options.title) updated.title = options.title;
-        if (options.description) updated.description = options.description;
-        if (options.type) updated.type = options.type;
-        if (options.notes) updated.notes = options.notes;
-        if (options.priority) updated.priority = options.priority;
-        if (options.assignee) updated.assignee = options.assignee;
-        if (options.labels) updated.labels = options.labels.split(',');
-        if (options.acceptanceCriteria) updated.acceptance_criteria = options.acceptanceCriteria.split(',');
-        if (options.status === 'closed') updated.closed_at = new Date().toISOString();
-        return updated;
-      }
-      return issue;
+    await storage.updateIssues(issues => {
+      return issues.map(issue => {
+        if (issue.id === id) {
+          const updated = { ...issue, updated_at: new Date().toISOString() };
+          if (options.status) updated.status = options.status;
+          if (options.title) updated.title = options.title;
+          if (options.description) updated.description = options.description;
+          if (options.type) updated.type = options.type;
+          if (options.notes) updated.notes = options.notes;
+          if (options.priority) updated.priority = options.priority;
+          if (options.assignee) updated.assignee = options.assignee;
+          if (options.labels) updated.labels = options.labels.split(',');
+          if (options.acceptanceCriteria) updated.acceptance_criteria = options.acceptanceCriteria.split(',');
+          if (options.status === 'closed') updated.closed_at = new Date().toISOString();
+          return updated;
+        }
+        return issue;
+      });
     });
-    // Rewrite file
-    await rewriteIssues(issues);
     console.log(`Updated issue ${id}`);
     await git.commitChanges(`Update issue ${id}`);
   });
@@ -210,9 +210,9 @@ depCmd
   .description('Add dependency')
   .option('-t, --type <type>', 'Type: blocks, related, parent-child, discovered-from', 'blocks')
   .action(async (from, to, options) => {
-    let issues = await storage.loadIssues();
-    issues = graph.addDependency(from, to, options.type, issues);
-    await rewriteIssues(issues);
+    await storage.updateIssues(issues => {
+      return graph.addDependency(from, to, options.type, issues);
+    });
     console.log(`Added ${options.type} dependency from ${from} to ${to}`);
     await git.commitChanges(`Add dependency ${from} -> ${to}`);
   });
@@ -244,15 +244,9 @@ function generateId(issues: any[]): string {
   const existingIds = new Set(issues.map(i => i.id));
   let id;
   do {
-    id = 'bd-' + Math.random().toString(36).substr(2, 6);
+    id = nanoid(8); // Generate 8-character unique ID
   } while (existingIds.has(id));
   return id;
-}
-
-async function rewriteIssues(issues: any[]) {
-  const filePath = storage.getIssuesFilePath();
-  const content = issues.map(i => JSON.stringify(i)).join('\n') + '\n';
-  await fs.promises.writeFile(filePath, content);
 }
 
 function findHorizonDir(startDir: string): { horizonDir: string; repoRoot: string } {
