@@ -35,34 +35,7 @@ program
   .command('init')
   .description('Initialize Horizon in the project')
   .option('-s, --stealth', 'Enable stealth mode (add .horizon to .gitignore)')
-  .option('-m, --mcp', 'Set up MCP server configuration in .vscode/mcp.json (only)')
   .action(async (options) => {
-    if (options.mcp) {
-      // Create only MCP config
-      const vscodeDir = path.join(cwd, '.vscode');
-      if (!fs.existsSync(vscodeDir)) {
-        fs.mkdirSync(vscodeDir, { recursive: true });
-      }
-      const mcpConfigPath = path.join(vscodeDir, 'mcp.json');
-      const mcpConfig = {
-        servers: {
-          horizon: {
-            command: 'npx',
-            args: ['horizon-mcp'],
-            cwd: '${workspaceFolder}',
-            env: {}
-          }
-        }
-      };
-      if (!fs.existsSync(mcpConfigPath)) {
-        await fs.promises.writeFile(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
-        console.log('Created .vscode/mcp.json with Horizon MCP server configuration');
-      } else {
-        console.log('.vscode/mcp.json already exists');
-      }
-      console.log('MCP server configured. Restart VS Code for the configuration to take effect.');
-      return;
-    }
 
     // Full initialization
     const horizonDir = path.join(cwd, '.horizon');
@@ -147,32 +120,7 @@ By following this workflow, you maintain coherent, persistent task memory withou
       console.log('Created .github/copilot-instructions.md with Horizon workflow guidelines');
     }
 
-    // Always create MCP config in full init
-    const vscodeDir = path.join(cwd, '.vscode');
-    if (!fs.existsSync(vscodeDir)) {
-      fs.mkdirSync(vscodeDir, { recursive: true });
-    }
-    const mcpConfigPath = path.join(vscodeDir, 'mcp.json');
-    const mcpConfig = {
-      servers: {
-        horizon: {
-          command: 'npx',
-          args: ['horizon-mcp'],
-          cwd: '${workspaceFolder}',
-          env: {}
-        }
-      }
-    };
-    if (!fs.existsSync(mcpConfigPath)) {
-      await fs.promises.writeFile(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
-      console.log('Created .vscode/mcp.json with Horizon MCP server configuration');
-    } else {
-      console.log('.vscode/mcp.json already exists');
-    }
-
     console.log('Horizon initialized. Start by creating your first task with \`horizon create <title>\`');
-    console.log('MCP server configured. Restart VS Code for the configuration to take effect.');
-    console.log('For programmatic access, configure your MCP client to use the Horizon MCP server for seamless task management.');
 
     // Initialize git if needed
     const git = createContainer(horizonDir, cwd).get<IGitService>(TYPES.IGitService);
