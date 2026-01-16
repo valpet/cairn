@@ -6,6 +6,12 @@
 - Core library handles JSONL storage, dependency graphs, compaction.
 - CLI provides commands: create, update, list, dep add.
 
+## MCP Server Setup (Preferred)
+- Horizon provides an MCP server as the primary method for programmatic task management.
+- Configure your MCP client to use `@horizon/mcp` for direct tool integration.
+- Available tools: `horizon_create_issue`, `horizon_update_issue`, `horizon_list_issues`, `horizon_add_dependency`, `horizon_get_ready_work`.
+- This is the preferred approach for autonomous task management; CLI commands are available as backup.
+
 ## Agent Workflow Instructions
 As a GitHub Copilot agent, you MUST work task-based using Horizon tools for all development work. This ensures long-horizon memory and prevents context overflow.
 
@@ -14,13 +20,13 @@ As a GitHub Copilot agent, you MUST work task-based using Horizon tools for all 
 - For stealth mode on shared projects, add .horizon to .gitignore.
 
 ### Task Management
-- **Always start by checking ready work**: Run `horizon list --ready` to see unblocked tasks.
-- **Break down large tasks**: Use `horizon dep add <subtask> <parent> --type parent-child` to create hierarchical subtasks.
-- **Create new tasks**: Use `horizon create <title> -d <description> -p <priority>` for any work discovered.
-- **Track discoveries**: When finding new work, use `horizon dep add <newtask> <current> --type discovered-from`.
-- **Update progress**: Regularly update task status with `horizon update <id> -s <status> -n <notes>`.
+- **Always start by checking ready work**: Use `horizon_get_ready_work` MCP tool (or `horizon list --ready` as backup) to see unblocked tasks.
+- **Break down large tasks**: Use `horizon_add_dependency` MCP tool with 'parent-child' type (or `horizon dep add <subtask> <parent> --type parent-child` as backup) to create hierarchical subtasks.
+- **Create new tasks**: Use `horizon_create_issue` MCP tool (or `horizon create <title> -d <description> -p <priority>` as backup) for any work discovered.
+- **Track discoveries**: When finding new work, use `horizon_add_dependency` MCP tool with 'discovered-from' type (or `horizon dep add <newtask> <current> --type discovered-from` as backup).
+- **Update progress**: Regularly update task status with `horizon_update_issue` MCP tool (or `horizon update <id> -s <status> -n <notes>` as backup).
 - **Document implementation details**: Add detailed notes on decisions, challenges, and solutions.
-- **Mark completion**: Set status to 'closed' when done, include acceptance criteria with `horizon update <id> -c <criteria>`.
+- **Mark completion**: Set status to 'closed' when done, include acceptance criteria with `horizon_update_issue` MCP tool (or `horizon update <id> -c <criteria>` as backup).
 
 ### Self-Review Process
 - After implementing any feature, perform a brutal self-review:
@@ -33,8 +39,8 @@ As a GitHub Copilot agent, you MUST work task-based using Horizon tools for all 
 
 ### Subtasks Support
 - Horizon supports subtasks via 'parent-child' dependency type.
-- Create parent epics, then subtasks linked with `dep add <sub> <parent> --type parent-child`.
-- Use `list --ready` to find next actionable subtasks.
+- Create parent epics, then subtasks linked with `horizon_add_dependency` MCP tool (or `dep add <sub> <parent> --type parent-child` as backup).
+- Use `horizon_get_ready_work` MCP tool (or `list --ready` as backup) to find next actionable subtasks.
 
 ### Memory Management
 - Compaction automatically summarizes old closed tasks to save context.

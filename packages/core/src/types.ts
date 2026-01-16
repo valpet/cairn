@@ -2,6 +2,7 @@ export interface Issue {
   id: string;
   title: string;
   description?: string;
+  type?: IssueType;
   status: IssueStatus;
   priority?: Priority;
   assignee?: string;
@@ -19,6 +20,8 @@ export interface Issue {
 export type IssueStatus = 'open' | 'in_progress' | 'closed' | 'blocked';
 
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
+
+export type IssueType = 'epic' | 'feature' | 'task' | 'bug';
 
 export interface Dependency {
   id: string;

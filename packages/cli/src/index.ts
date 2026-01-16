@@ -37,6 +37,7 @@ program
   .command('create <title>')
   .description('Create a new issue')
   .option('-d, --description <desc>', 'Description')
+  .option('-t, --type <type>', 'Type: epic, feature, task, bug')
   .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
   .action(async (title, options) => {
     const issues = await storage.loadIssues();
@@ -45,6 +46,7 @@ program
       id,
       title,
       description: options.description,
+      type: options.type as any,
       status: 'open' as const,
       priority: options.priority as any,
       created_at: new Date().toISOString(),
@@ -86,16 +88,16 @@ program
 As a GitHub Copilot agent, you MUST work task-based using Horizon tools for all development work. This ensures long-horizon memory and prevents context overflow.
 
 ### Initialization
-- Horizon has been initialized in this project. Use \`horizon list --ready\` to see available tasks.
+- Horizon has been initialized in this project. Use \`horizon_get_ready_work\` MCP tool (or \`horizon list --ready\` as backup) to see available tasks.
 
 ### Task Management
-- **Always start by checking ready work**: Run \`horizon list --ready\` to see unblocked tasks.
-- **Break down large tasks**: Use \`horizon dep add <subtask> <parent> --type parent-child\` to create hierarchical subtasks.
-- **Create new tasks**: Use \`horizon create <title> -d <description> -p <priority>\` for any work discovered.
-- **Track discoveries**: When finding new work, use \`horizon dep add <newtask> <current> --type discovered-from\`.
-- **Update progress**: Regularly update task status with \`horizon update <id> -s <status> -n <notes>\`.
+- **Always start by checking ready work**: Use \`horizon_get_ready_work\` MCP tool (or \`horizon list --ready\` as backup) to see unblocked tasks.
+- **Break down large tasks**: Use \`horizon_add_dependency\` MCP tool with 'parent-child' type (or \`horizon dep add <subtask> <parent> --type parent-child\` as backup) to create hierarchical subtasks.
+- **Create new tasks**: Use \`horizon_create_issue\` MCP tool (or \`horizon create <title> -d <description> -p <priority>\` as backup) for any work discovered.
+- **Track discoveries**: When finding new work, use \`horizon_add_dependency\` MCP tool with 'discovered-from' type (or \`horizon dep add <newtask> <current> --type discovered-from\` as backup).
+- **Update progress**: Regularly update task status with \`horizon_update_issue\` MCP tool (or \`horizon update <id> -s <status> -n <notes>\` as backup).
 - **Document implementation details**: Add detailed notes on decisions, challenges, and solutions.
-- **Mark completion**: Set status to 'closed' when done, include acceptance criteria with \`horizon update <id> -c <criteria>\`.
+- **Mark completion**: Set status to 'closed' when done, include acceptance criteria with \`horizon_update_issue\` MCP tool (or \`horizon update <id> -c <criteria>\` as backup).
 
 ### Self-Review Process
 - After implementing any feature, perform a brutal self-review:
@@ -108,8 +110,8 @@ As a GitHub Copilot agent, you MUST work task-based using Horizon tools for all 
 
 ### Subtasks Support
 - Horizon supports subtasks via 'parent-child' dependency type.
-- Create parent epics, then subtasks linked with \`dep add <sub> <parent> --type parent-child\`.
-- Use \`list --ready\` to find next actionable subtasks.
+- Create parent epics, then subtasks linked with \`horizon_add_dependency\` MCP tool (or \`dep add <sub> <parent> --type parent-child\` as backup).
+- Use \`horizon_get_ready_work\` MCP tool (or \`list --ready\` as backup) to find next actionable subtasks.
 
 ### Memory Management
 - Compaction automatically summarizes old closed tasks to save context.
@@ -132,7 +134,7 @@ By following this workflow, you maintain coherent, persistent task memory withou
     }
 
     console.log('Horizon initialized. Start by creating your first task with \`horizon create <title>\`');
-    console.log('For advanced integrations, consider setting up an MCP server to expose Horizon tools programmatically.');
+    console.log('For programmatic access, configure your MCP client to use the Horizon MCP server for seamless task management.');
     await git.initIfNeeded();
     await git.commitChanges('Initialize Horizon');
   });
@@ -144,6 +146,7 @@ program
   .option('-s, --status <status>', 'Status: open, in_progress, closed, blocked')
   .option('-t, --title <title>', 'Title')
   .option('-d, --description <desc>', 'Description')
+  .option('-y, --type <type>', 'Type: epic, feature, task, bug')
   .option('-n, --notes <notes>', 'Notes')
   .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
   .option('-a, --assignee <assignee>', 'Assignee')
@@ -157,6 +160,7 @@ program
         if (options.status) updated.status = options.status;
         if (options.title) updated.title = options.title;
         if (options.description) updated.description = options.description;
+        if (options.type) updated.type = options.type;
         if (options.notes) updated.notes = options.notes;
         if (options.priority) updated.priority = options.priority;
         if (options.assignee) updated.assignee = options.assignee;
@@ -178,17 +182,24 @@ program
   .command('list')
   .description('List issues')
   .option('-s, --status <status>', 'Filter by status')
+  .option('-t, --type <type>', 'Filter by type: epic, feature, task, bug')
   .option('-r, --ready', 'Show only ready work')
   .action(async (options) => {
     let issues = await storage.loadIssues();
     issues = compaction.compactIssues(issues);
     if (options.ready) {
       issues = graph.getReadyWork(issues);
-    } else if (options.status) {
-      issues = issues.filter(i => i.status === options.status);
+    } else {
+      if (options.status) {
+        issues = issues.filter(i => i.status === options.status);
+      }
+      if (options.type) {
+        issues = issues.filter(i => i.type === options.type);
+      }
     }
     issues.forEach(issue => {
-      console.log(`${issue.id}: ${issue.title} [${issue.status}]`);
+      const typeStr = issue.type ? `[${issue.type}]` : '';
+      console.log(`${issue.id}: ${issue.title} [${issue.status}] ${typeStr}`);
     });
   });
 
