@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'; import { CompactionService } from './compaction';
-import { Issue } from '../types';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { CompactionService } from './compaction';
+import { Issue } from './types';
 
 describe('CompactionService', () => {
   let compactionService: CompactionService;
