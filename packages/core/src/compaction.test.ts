@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';import { CompactionService } from './compaction';
+import { describe, it, expect, beforeEach } from 'vitest'; import { CompactionService } from './compaction';
 import { Issue } from '../types';
 
 describe('CompactionService', () => {

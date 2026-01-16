@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';import { GraphService } from './graph';
+import { describe, it, expect, beforeEach } from 'vitest'; import { GraphService } from './graph';
 import { Issue } from '../types';
 
 describe('GraphService', () => {
