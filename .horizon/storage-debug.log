@@ -1,0 +1,4 @@
+2026-01-16T18:50:25.477Z: saveIssue called for issue: nE_hxhHH title: Deduplication test
+2026-01-16T18:50:25.481Z: saveIssue inside lock, checking for duplicates: nE_hxhHH
+2026-01-16T18:50:25.483Z: saveIssue saving new issue: nE_hxhHH
+2026-01-16T18:50:25.484Z: saveIssue completed: nE_hxhHH
