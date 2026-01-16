@@ -7,6 +7,7 @@ export default defineConfig({
       reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
         'coverage/**',
+        '**/coverage/**',
         'dist/**',
         '**/[.]**',
         'packages/*/test?(s)/**',

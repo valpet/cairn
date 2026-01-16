@@ -1,9 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock all dependencies
-vi.mock('@modelcontextprotocol/sdk/server/index.js');
-vi.mock('@modelcontextprotocol/sdk/server/stdio.js');
-vi.mock('@modelcontextprotocol/sdk/types.js');
+// Mock all dependencies using vi.mock (hoisted)
+vi.mock('@modelcontextprotocol/sdk/server/index.js', () => {
+  const mockServer = {
+    setRequestHandler: vi.fn(),
+    connect: vi.fn(),
+  };
+  return {
+    Server: vi.fn(() => mockServer),
+    // Export mock server for testing
+    mockServerInstance: mockServer,
+  };
+});
+vi.mock('@modelcontextprotocol/sdk/server/stdio.js', () => ({
+  StdioServerTransport: vi.fn(),
+}));
+vi.mock('@modelcontextprotocol/sdk/types.js', () => ({
+  ListToolsRequestSchema: { name: 'ListToolsRequestSchema' },
+  CallToolRequestSchema: { name: 'CallToolRequestSchema' },
+}));
 vi.mock('@horizon/core', () => ({
   createContainer: vi.fn(),
   TYPES: {
@@ -16,12 +31,20 @@ vi.mock('@horizon/core', () => ({
 vi.mock('nanoid', () => ({
   nanoid: vi.fn(() => 'test-id'),
 }));
-vi.mock('fs');
-vi.mock('path');
+vi.mock('fs', () => ({
+  existsSync: vi.fn(),
+  mkdirSync: vi.fn(),
+}));
+vi.mock('path', () => ({
+  join: vi.fn((...args) => args.join('/')),
+  dirname: vi.fn(),
+}));
 
 // Import after mocking
+import { Server, mockServerInstance as mockServer } from '@modelcontextprotocol/sdk/server/index.js';
 import { createContainer, TYPES } from '@horizon/core';
 import * as fs from 'fs';
+import { HorizonMCPServer } from './index';
 
 describe('MCP Tool Handlers', () => {
   let mockStorage: any;
@@ -73,6 +96,90 @@ describe('MCP Tool Handlers', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  describe('HorizonMCPServer instantiation', () => {
+    it('should create server and setup handlers', () => {
+      const server = new HorizonMCPServer();
+
+      expect(Server).toHaveBeenCalledWith({
+        name: 'horizon-mcp',
+        version: '1.0.0',
+      });
+      expect(mockServer.setRequestHandler).toHaveBeenCalledTimes(2); // ListTools and CallTool
+      expect(createContainer).toHaveBeenCalled();
+    });
+
+    it('should handle create issue tool calls', async () => {
+      const server = new HorizonMCPServer();
+
+      // Get the call tool handler
+      const callToolHandler = mockServer.setRequestHandler.mock.calls.find(
+        call => call[0].name === 'CallToolRequestSchema'
+      )[1];
+
+      mockStorage.loadIssues.mockResolvedValue([]);
+      mockStorage.saveIssue.mockResolvedValue(undefined);
+      mockGit.commitChanges.mockResolvedValue(undefined);
+
+      const result = await callToolHandler({
+        params: {
+          name: 'horizon_create_issue',
+          arguments: {
+            title: 'Test Issue',
+            description: 'Test description',
+            priority: 'high',
+          },
+        },
+      });
+
+      expect(mockStorage.saveIssue).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'test-id',
+          title: 'Test Issue',
+          description: 'Test description',
+          priority: 'high',
+          status: 'open',
+        })
+      );
+      expect(result.content[0].text).toBe('Created issue test-id: Test Issue');
+    });
+
+    it('should handle update issue tool calls', async () => {
+      const server = new HorizonMCPServer();
+
+      const callToolHandler = mockServer.setRequestHandler.mock.calls.find(
+        call => call[0].name === 'CallToolRequestSchema'
+      )[1];
+
+      const mockIssues = [{
+        id: 'test-id',
+        title: 'Test Issue',
+        status: 'open',
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+      }];
+
+      mockStorage.updateIssues.mockImplementation(async (updater: any) => {
+        const updated = updater(mockIssues);
+        return updated;
+      });
+      mockGit.commitChanges.mockResolvedValue(undefined);
+
+      const result = await callToolHandler({
+        params: {
+          name: 'horizon_update_issue',
+          arguments: {
+            id: 'test-id',
+            status: 'closed',
+            notes: 'Completed successfully',
+          },
+        },
+      });
+
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(result.content[0].text).toBe('Updated issue test-id');
+    });
   });
 
   describe('tool definitions', () => {
