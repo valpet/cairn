@@ -7,6 +7,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "engines": {
+    "vscode": "^1.90.0"
+  },
   "scripts": {
     "build": "tsc",
     "test": "npm run test --workspaces",

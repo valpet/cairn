@@ -1,0 +1,142 @@
+{
+  "name": "horizon-vscode-extension",
+  "version": "1.0.0",
+  "description": "VS Code extension for Horizon task management tools",
+  "main": "dist/extension.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest --run --passWithNoTests",
+    "lint": "eslint src --ext .ts",
+    "package": "vsce package"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "activationEvents": [
+    "onLanguageModelTool:*"
+  ],
+  "contributes": {
+    "languageModelTools": [
+      {
+        "id": "horizon_create",
+        "modelDescription": "Create a new task in Horizon",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "The title of the task"
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional description of the task"
+            },
+            "priority": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "urgent"
+              ],
+              "description": "Priority level"
+            }
+          },
+          "required": [
+            "title"
+          ]
+        }
+      },
+      {
+        "id": "horizon_list_ready",
+        "modelDescription": "List all ready (unblocked) tasks in Horizon",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      {
+        "id": "horizon_update",
+        "modelDescription": "Update an existing task in Horizon",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The ID of the task to update"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "open",
+                "in_progress",
+                "closed",
+                "blocked"
+              ],
+              "description": "New status for the task"
+            },
+            "notes": {
+              "type": "string",
+              "description": "Optional notes to add"
+            },
+            "acceptance_criteria": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Acceptance criteria as array of strings"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        }
+      },
+      {
+        "id": "horizon_dep_add",
+        "modelDescription": "Add a dependency between tasks in Horizon",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string",
+              "description": "The ID of the dependent task"
+            },
+            "to": {
+              "type": "string",
+              "description": "The ID of the task it depends on"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "blocks",
+                "related",
+                "parent-child",
+                "discovered-from"
+              ],
+              "description": "Type of dependency"
+            }
+          },
+          "required": [
+            "from",
+            "to",
+            "type"
+          ]
+        }
+      }
+    ]
+  },
+  "vsce": {
+    "dependencies": false
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.6.1",
+    "@vscode/vsce": "^2.24.0"
+  }
+}
