@@ -48,3 +48,11 @@ As a GitHub Copilot agent, you MUST work task-based using Horizon tools for all 
 - Always document progress to recover context later.
 
 By following this workflow, you maintain coherent, persistent task memory without losing track of complex, multi-session work.
+
+## Horizon Task Management Instructions
+As a GitHub Copilot agent, you MUST work task-based using Horizon tools for all development work. This ensures long-horizon memory and prevents context overflow.
+
+### Initialization
+- Horizon has been initialized in this project. Use `horizon_get_ready_work` MCP tool (or `horizon list --ready` as backup) to see available tasks.
+
+
