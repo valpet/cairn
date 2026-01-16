@@ -1,7 +1,9 @@
 {
-  "name": "horizon-vscode-extension",
+  "name": "horizon-extension",
   "version": "1.0.0",
+  "publisher": "local",
   "description": "VS Code extension for Horizon task management tools",
+  "repository": "https://github.com/valpet/horizon",
   "main": "dist/extension.js",
   "scripts": {
     "build": "tsc",
@@ -9,16 +11,31 @@
     "lint": "eslint src --ext .ts",
     "package": "vsce package"
   },
+  "dependencies": {
+    "@horizon/core": "file:../core",
+    "nanoid": "^5.0.0"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
   "activationEvents": [
-    "onLanguageModelTool:*"
+    "onCommand:horizon.openTaskList",
+    "onLanguageModelTool:horizon_create",
+    "onLanguageModelTool:horizon_list_ready",
+    "onLanguageModelTool:horizon_update",
+    "onLanguageModelTool:horizon_dep_add"
   ],
   "contributes": {
+    "commands": [
+      {
+        "command": "horizon.openTaskList",
+        "title": "Open Horizon Task List"
+      }
+    ],
     "languageModelTools": [
       {
-        "id": "horizon_create",
+        "name": "horizon_create",
+        "displayName": "Create Task",
         "modelDescription": "Create a new task in Horizon",
         "inputSchema": {
           "type": "object",
@@ -48,7 +65,8 @@
         }
       },
       {
-        "id": "horizon_list_ready",
+        "name": "horizon_list_ready",
+        "displayName": "List Ready Tasks",
         "modelDescription": "List all ready (unblocked) tasks in Horizon",
         "inputSchema": {
           "type": "object",
@@ -56,7 +74,8 @@
         }
       },
       {
-        "id": "horizon_update",
+        "name": "horizon_update",
+        "displayName": "Update Task",
         "modelDescription": "Update an existing task in Horizon",
         "inputSchema": {
           "type": "object",
@@ -93,7 +112,8 @@
         }
       },
       {
-        "id": "horizon_dep_add",
+        "name": "horizon_dep_add",
+        "displayName": "Add Dependency",
         "modelDescription": "Add a dependency between tasks in Horizon",
         "inputSchema": {
           "type": "object",

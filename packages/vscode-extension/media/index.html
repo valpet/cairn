@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horizon Task List</title>
+  <style>
+    body {
+      font-family: var(--vscode-font-family);
+      font-size: var(--vscode-font-size);
+      background-color: var(--vscode-editor-background);
+      color: var(--vscode-editor-foreground);
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: var(--vscode-textLink-foreground);
+    }
+
+    .filters {
+      margin-bottom: 20px;
+    }
+
+    .filters label {
+      margin-right: 15px;
+    }
+
+    .task-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .task-item {
+      background-color: var(--vscode-input-background);
+      border: 1px solid var(--vscode-input-border);
+      border-radius: 4px;
+      margin-bottom: 10px;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    button {
+      background-color: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+      border: 1px solid var(--vscode-button-border);
+      padding: 4px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .task-description {
+      font-size: 0.9em;
+      opacity: 0.8;
+      margin-top: 5px;
+    }
+
+    .task-title {
+      font-weight: bold;
+    }
+
+    .task-status {
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.8em;
+    }
+
+    .status-open {
+      background-color: var(--vscode-charts-green);
+      color: white;
+    }
+
+    .status-in_progress {
+      background-color: var(--vscode-charts-blue);
+      color: white;
+    }
+
+    .status-closed {
+      background-color: var(--vscode-charts-gray);
+      color: white;
+    }
+
+    .status-blocked {
+      background-color: var(--vscode-charts-red);
+      color: white;
+    }
+
+    .task-priority {
+      font-size: 0.8em;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Horizon Task List</h1>
+  <div class="filters">
+    <label><input type="checkbox" id="filter-ready" checked> Ready Tasks</label>
+    <label><input type="checkbox" id="filter-open"> Open</label>
+    <label><input type="checkbox" id="filter-in_progress"> In Progress</label>
+    <label><input type="checkbox" id="filter-closed"> Closed</label>
+    <label><input type="checkbox" id="filter-blocked"> Blocked</label>
+  </div>
+  <ul id="task-list" class="task-list">
+    <!-- Tasks will be populated here -->
+  </ul>
+
+  <script>
+    const vscode = acquireVsCodeApi();
+
+    // Function to render tasks
+    function renderTasks(allTasks) {
+      const selectedStatuses = Array.from(document.querySelectorAll('.filters input:checked')).map(cb => cb.id.replace('filter-', ''));
+      const filteredTasks = allTasks.filter(task => selectedStatuses.includes(task.status) || (selectedStatuses.includes('ready') && task.status === 'open' && isReady(task))); // Assuming isReady logic, but for simplicity, just filter by status
+
+      const taskList = document.getElementById('task-list');
+      taskList.innerHTML = '';
+      filteredTasks.forEach(task => {
+        const li = document.createElement('li');
+        li.className = 'task-item';
+        li.innerHTML = `
+                    <div>
+                        <span class="task-title">${task.title}</span>
+                        ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                        <span class="task-priority">(${task.priority})</span>
+                    </div>
+                    <div class="task-actions">
+                        <span class="task-status status-${task.status}">${task.status}</span>
+                        ${task.status === 'open' ? '<button onclick="startTask(\'' + task.id + '\')">Start</button>' : ''}
+                        ${task.status === 'in_progress' ? '<button onclick="completeTask(\'' + task.id + '\')">Complete</button>' : ''}
+                    </div>
+                `;
+        taskList.appendChild(li);
+      });
+    }
+
+    // For simplicity, assume ready is open, but in reality, need to check dependencies
+    function isReady(task) {
+      return task.status === 'open'; // Placeholder
+    }
+
+    // Task interaction functions
+    function startTask(id) {
+      vscode.postMessage({ type: 'startTask', id });
+    }
+
+    function completeTask(id) {
+      vscode.postMessage({ type: 'completeTask', id });
+    }
+
+    // Initial render (will be updated via message)
+    let allTasks = [];
+    renderTasks([]);
+
+    // Listen for messages from extension
+    window.addEventListener('message', event => {
+      const message = event.data;
+      if (message.type === 'updateTasks') {
+        allTasks = message.tasks;
+        renderTasks(allTasks);
+      }
+    });
+
+    // Add event listeners for filters
+    document.querySelectorAll('.filters input').forEach(cb => {
+      cb.addEventListener('change', () => renderTasks(allTasks));
+    });
+  </script>
+</body>
+
+</html>

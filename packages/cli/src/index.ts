@@ -349,7 +349,7 @@ function generateId(issues: any[]): string {
   const existingIds = new Set(issues.map(i => i.id));
   let id;
   do {
-    id = nanoid(8); // Generate 8-character unique ID
+    id = 't' + nanoid(7); // Prefix with 't' and use 7 chars to keep total 8
   } while (existingIds.has(id));
   return id;
 }

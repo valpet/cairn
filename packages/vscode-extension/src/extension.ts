@@ -10,6 +10,7 @@ let graph: IGraphService;
 let git: IGitService;
 
 export function activate(context: vscode.ExtensionContext) {
+  console.log('Horizon extension activated');
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
     vscode.window.showErrorMessage('No workspace folder found');
@@ -123,6 +124,86 @@ export function activate(context: vscode.ExtensionContext) {
       }
     })
   );
+
+  // Register command to open task list webview
+  context.subscriptions.push(
+    vscode.commands.registerCommand('horizon.openTaskList', async () => {
+      const panel = vscode.window.createWebviewPanel(
+        'horizonTaskList',
+        'Horizon Task List',
+        vscode.ViewColumn.One,
+        {
+          enableScripts: true,
+          localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
+        }
+      );
+
+      // Load HTML
+      const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'index.html'));
+      const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
+      panel.webview.html = htmlContent;
+
+      // Function to update tasks
+      const updateTasks = async () => {
+        try {
+          const issues = await storage.loadIssues();
+          const allTasks = issues.map(task => ({
+            id: task.id,
+            title: task.title,
+            status: task.status,
+            priority: task.priority,
+            description: task.description
+          }));
+          panel.webview.postMessage({
+            type: 'updateTasks',
+            tasks: allTasks
+          });
+        } catch (error) {
+          console.error('Error updating tasks:', error);
+        }
+      };
+
+      // Initial update
+      await updateTasks();
+
+      // Watch for file changes
+      const issuesPath = path.join(horizonDir, 'issues.jsonl');
+      const watcher = fs.watch(issuesPath, async (eventType) => {
+        if (eventType === 'change') {
+          await updateTasks();
+        }
+      });
+
+      // Handle messages from webview
+      panel.webview.onDidReceiveMessage(async (message) => {
+        try {
+          if (message.type === 'startTask') {
+            await storage.updateIssues(issues => {
+              return issues.map(issue => {
+                if (issue.id === message.id) {
+                  return { ...issue, status: 'in_progress', updated_at: new Date().toISOString() };
+                }
+                return issue;
+              });
+            });
+            await git.commitChanges(`Start task ${message.id}`);
+          } else if (message.type === 'completeTask') {
+            await storage.updateIssues(issues => {
+              return issues.map(issue => {
+                if (issue.id === message.id) {
+                  return { ...issue, status: 'closed', updated_at: new Date().toISOString(), closed_at: new Date().toISOString() };
+                }
+                return issue;
+              });
+            });
+            await git.commitChanges(`Complete task ${message.id}`);
+          }
+        } catch (error) {
+          console.error('Error handling webview message:', error);
+        }
+      });
+    })
+  );
 }
 
 export function deactivate() { }
@@ -131,7 +212,7 @@ function generateId(issues: any[]): string {
   const existingIds = new Set(issues.map(i => i.id));
   let id;
   do {
-    id = nanoid(8);
+    id = 't' + nanoid(7);
   } while (existingIds.has(id));
   return id;
 }
