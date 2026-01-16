@@ -50,6 +50,30 @@ program
     await git.commitChanges(`Create issue ${id}`);
   });
 
+// Init command
+program
+  .command('init')
+  .description('Initialize Horizon in the project')
+  .option('-s, --stealth', 'Enable stealth mode (add .horizon to .gitignore)')
+  .action(async (options) => {
+    // .horizon already created above
+    if (options.stealth) {
+      const gitignorePath = path.join(cwd, '.gitignore');
+      let gitignore = '';
+      if (fs.existsSync(gitignorePath)) {
+        gitignore = await fs.promises.readFile(gitignorePath, 'utf-8');
+      }
+      if (!gitignore.includes('.horizon')) {
+        gitignore += '\n.horizon\n';
+        await fs.promises.writeFile(gitignorePath, gitignore);
+        console.log('Added .horizon to .gitignore for stealth mode');
+      }
+    }
+    console.log('Horizon initialized. Start by creating your first task with `horizon create <title>`');
+    await git.initIfNeeded();
+    await git.commitChanges('Initialize Horizon');
+  });
+
 // Update command
 program
   .command('update <id>')
@@ -117,6 +141,27 @@ depCmd
     await rewriteIssues(issues);
     console.log(`Added ${options.type} dependency from ${from} to ${to}`);
     await git.commitChanges(`Add dependency ${from} -> ${to}`);
+  });
+
+// Review command
+program
+  .command('review <id>')
+  .description('Perform self-review on a task')
+  .action(async (id) => {
+    const issues = await storage.loadIssues();
+    const issue = issues.find(i => i.id === id);
+    if (!issue) {
+      console.error(`Issue ${id} not found`);
+      return;
+    }
+    console.log(`Reviewing issue ${id}: ${issue.title}`);
+    console.log('Checklist:');
+    console.log('- Code quality: Check for best practices, readability, performance');
+    console.log('- Edge cases: Ensure all scenarios handled');
+    console.log('- Error handling: Proper error management');
+    console.log('- Tests: Adequate test coverage');
+    console.log('- Dependencies: No blockers remain');
+    console.log('Update with: horizon update <id> -n "Review notes" -c "Criteria met"');
   });
 
 program.parse();
