@@ -1,3 +1,5 @@
 node_modules/
 dist/
+coverage/
+!coverage/lcov.info
 # .horizon/  # Uncomment for stealth mode
