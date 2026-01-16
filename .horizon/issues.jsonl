@@ -1,2 +1,2 @@
 {"id":"nE_hxhHH","title":"Deduplication test","description":"Testing ID-based deduplication in storage","status":"open","created_at":"2026-01-16T18:50:25.476Z","updated_at":"2026-01-16T18:50:25.477Z"}
-{"id":"uelhmT5R","title":"Test direct tool usage","status":"open","created_at":"2026-01-16T18:57:20.678Z","updated_at":"2026-01-16T18:57:20.680Z"}
+{"id":"uelhmT5R","title":"Test direct tool usage","status":"in_progress","created_at":"2026-01-16T18:57:20.678Z","updated_at":"2026-01-16T18:57:31.192Z","notes":"Updated via CLI for demo"}
