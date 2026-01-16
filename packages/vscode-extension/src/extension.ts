@@ -151,8 +151,10 @@ export function activate(context: vscode.ExtensionContext) {
             id: task.id,
             title: task.title,
             status: task.status,
-            priority: task.priority,
-            description: task.description
+            priority: task.priority || 'medium',
+            description: task.description || '',
+            type: task.type || 'task',
+            dependencies: task.dependencies || []
           }));
           panel.webview.postMessage({
             type: 'updateTasks',
@@ -212,7 +214,7 @@ function generateId(issues: any[]): string {
   const existingIds = new Set(issues.map(i => i.id));
   let id;
   do {
-    id = 't' + nanoid(7);
+    id = 'h-' + nanoid(8);
   } while (existingIds.has(id));
   return id;
 }

@@ -19,6 +19,10 @@
       color: var(--vscode-textLink-foreground);
     }
 
+    .controls {
+      margin-bottom: 20px;
+    }
+
     .filters {
       margin-bottom: 20px;
     }
@@ -41,6 +45,23 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+    }
+
+    .task-grid {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .task-grid th,
+    .task-grid td {
+      border: 1px solid var(--vscode-input-border);
+      padding: 8px;
+      text-align: left;
+    }
+
+    .task-grid th {
+      background-color: var(--vscode-titleBar-activeBackground);
+      color: var(--vscode-titleBar-activeForeground);
     }
 
     .task-actions {
@@ -67,10 +88,12 @@
       font-weight: bold;
     }
 
-    .task-status {
+    .pill {
       padding: 2px 6px;
-      border-radius: 3px;
+      border-radius: 12px;
       font-size: 0.8em;
+      display: inline-block;
+      text-transform: capitalize;
     }
 
     .status-open {
@@ -93,15 +116,41 @@
       color: white;
     }
 
-    .task-priority {
-      font-size: 0.8em;
-      opacity: 0.7;
+    .priority-low {
+      background-color: var(--vscode-charts-green);
+      color: white;
+    }
+
+    .priority-medium {
+      background-color: var(--vscode-charts-yellow);
+      color: black;
+    }
+
+    .priority-high {
+      background-color: var(--vscode-charts-orange);
+      color: white;
+    }
+
+    .priority-urgent {
+      background-color: var(--vscode-charts-red);
+      color: white;
+    }
+
+    .type-task {
+      background-color: var(--vscode-charts-blue);
+      color: white;
     }
   </style>
 </head>
 
 <body>
   <h1>Horizon Task List</h1>
+  <div class="controls">
+    <label>View: <select id="view-selector">
+        <option value="list">List</option>
+        <option value="grid">Grid</option>
+      </select></label>
+  </div>
   <div class="filters">
     <label><input type="checkbox" id="filter-ready" checked> Ready Tasks</label>
     <label><input type="checkbox" id="filter-open"> Open</label>
@@ -109,42 +158,176 @@
     <label><input type="checkbox" id="filter-closed"> Closed</label>
     <label><input type="checkbox" id="filter-blocked"> Blocked</label>
   </div>
-  <ul id="task-list" class="task-list">
+  <div id="task-container">
     <!-- Tasks will be populated here -->
-  </ul>
+  </div>
 
   <script>
-    const vscode = acquireVsCodeApi();
+    // Function to check if a task is ready (no blocking dependencies)
+    function isReady(task, allTasks) {
+      if (!task.dependencies) return true;
+      const taskMap = new Map(allTasks.map(t => [t.id, t]));
+      return task.dependencies.every(dep => {
+        if (dep.type !== 'blocks') return true;
+        const depTask = taskMap.get(dep.id);
+        return depTask && depTask.status === 'closed';
+      });
+    }
 
     // Function to render tasks
     function renderTasks(allTasks) {
+      const view = document.getElementById('view-selector').value;
       const selectedStatuses = Array.from(document.querySelectorAll('.filters input:checked')).map(cb => cb.id.replace('filter-', ''));
-      const filteredTasks = allTasks.filter(task => selectedStatuses.includes(task.status) || (selectedStatuses.includes('ready') && task.status === 'open' && isReady(task))); // Assuming isReady logic, but for simplicity, just filter by status
+      const filteredTasks = allTasks.filter(task => selectedStatuses.includes(task.status) || (selectedStatuses.includes('ready') && task.status === 'open' && isReady(task, allTasks)));
+      const expandedTasks = getExpandedTasks(allTasks, filteredTasks);
+      const taskTree = buildTaskTree(expandedTasks);
 
-      const taskList = document.getElementById('task-list');
-      taskList.innerHTML = '';
-      filteredTasks.forEach(task => {
-        const li = document.createElement('li');
-        li.className = 'task-item';
-        li.innerHTML = `
+      const container = document.getElementById('task-container');
+      container.innerHTML = '';
+
+      if (view === 'list') {
+        const ul = document.createElement('ul');
+        ul.className = 'task-list';
+        renderTaskTreeList(taskTree, ul);
+        container.appendChild(ul);
+      } else if (view === 'grid') {
+        const table = document.createElement('table');
+        table.className = 'task-grid';
+        table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Parent</th>
+                            <th>Type</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                `;
+        const tbody = table.querySelector('tbody');
+        renderTaskTree(taskTree, tbody);
+        container.appendChild(table);
+      }
+    }
+
+    // Function to get expanded tasks including ancestors
+    function getExpandedTasks(allTasks, filteredTasks) {
+      const taskMap = new Map(allTasks.map(t => [t.id, t]));
+      const expanded = new Set(filteredTasks.map(t => t.id));
+      const toProcess = [...filteredTasks];
+
+      while (toProcess.length > 0) {
+        const task = toProcess.pop();
+        (task.dependencies || []).forEach(dep => {
+          if (dep.type === 'parent-child') {
+            if (!expanded.has(dep.id)) {
+              expanded.add(dep.id);
+              const parent = taskMap.get(dep.id);
+              if (parent) toProcess.push(parent);
+            }
+          }
+        });
+      }
+
+      return allTasks.filter(t => expanded.has(t.id));
+    }
+
+    // Function to build task hierarchy
+    function buildTaskTree(tasks) {
+      const taskMap = new Map();
+      const roots = [];
+
+      tasks.forEach(task => {
+        taskMap.set(task.id, { ...task, children: [] });
+      });
+
+      tasks.forEach(task => {
+        const node = taskMap.get(task.id);
+        const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
+        if (parentDep) {
+          const parent = taskMap.get(parentDep.id);
+          if (parent) {
+            parent.children.push(node);
+          } else {
+            roots.push(node);
+          }
+        } else {
+          roots.push(node);
+        }
+      });
+
+      return roots;
+    }
+
+    // Function to render task row
+    function renderTaskRow(task, level = 0) {
+      const indent = 10 + level * 40;
+      const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
+      const parentId = parentDep ? parentDep.id : '';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+                    <td style="padding-left: ${indent}px;">${task.id}</td>
+                    <td style="padding-left: ${indent}px;">${parentId}</td>
+                    <td style="padding-left: ${indent}px;"><span class="pill type-${task.type || 'task'}">${task.type || 'task'}</span></td>
+                    <td style="padding-left: ${indent}px;">${task.title}</td>
+                    <td style="padding-left: ${indent}px;"><span class="pill status-${task.status}">${task.status}</span></td>
+                    <td style="padding-left: ${indent}px;"><span class="pill priority-${task.priority}">${task.priority}</span></td>
+                    <td class="task-actions">
+                        ${task.status === 'open' ? '<button onclick="startTask(\'' + task.id + '\')">Start</button>' : ''}
+                        ${task.status === 'in_progress' ? '<button onclick="completeTask(\'' + task.id + '\')">Complete</button>' : ''}
+                    </td>
+                `;
+      return tr;
+    }
+
+    // Function to render task item for list
+    function renderTaskItem(task, level = 0) {
+      const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
+      const parentId = parentDep ? parentDep.id : '';
+      const li = document.createElement('li');
+      li.className = 'task-item';
+      li.style.paddingLeft = level * 40 + 'px';
+      li.innerHTML = `
                     <div>
                         <span class="task-title">${task.title}</span>
                         ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
-                        <span class="task-priority">(${task.priority})</span>
+                        <span class="pill type-${task.type || 'task'}">${task.type || 'task'}</span>
+                        <span class="pill status-${task.status}">${task.status}</span>
+                        <span class="pill priority-${task.priority}">${task.priority}</span>
+                        ${parentId ? `<span class="pill">Parent: ${parentId}</span>` : ''}
                     </div>
                     <div class="task-actions">
-                        <span class="task-status status-${task.status}">${task.status}</span>
                         ${task.status === 'open' ? '<button onclick="startTask(\'' + task.id + '\')">Start</button>' : ''}
                         ${task.status === 'in_progress' ? '<button onclick="completeTask(\'' + task.id + '\')">Complete</button>' : ''}
                     </div>
                 `;
-        taskList.appendChild(li);
+      return li;
+    }
+
+    // Function to render task tree for list
+    function renderTaskTreeList(tree, ul, level = 0) {
+      tree.forEach(node => {
+        const li = renderTaskItem(node, level);
+        ul.appendChild(li);
+        if (node.children.length > 0) {
+          renderTaskTreeList(node.children, ul, level + 1);
+        }
       });
     }
 
-    // For simplicity, assume ready is open, but in reality, need to check dependencies
-    function isReady(task) {
-      return task.status === 'open'; // Placeholder
+    // Function to render task tree
+    function renderTaskTree(tree, tbody, level = 0) {
+      tree.forEach(node => {
+        const tr = renderTaskRow(node, level);
+        tbody.appendChild(tr);
+        if (node.children.length > 0) {
+          renderTaskTree(node.children, tbody, level + 1);
+        }
+      });
     }
 
     // Task interaction functions
@@ -173,6 +356,9 @@
     document.querySelectorAll('.filters input').forEach(cb => {
       cb.addEventListener('change', () => renderTasks(allTasks));
     });
+
+    // Add event listener for view selector
+    document.getElementById('view-selector').addEventListener('change', () => renderTasks(allTasks));
   </script>
 </body>
 

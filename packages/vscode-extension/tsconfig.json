@@ -20,7 +20,7 @@
     "baseUrl": ".",
     "paths": {
       "@horizon/core": [
-        "../core/src"
+        "../core/dist"
       ]
     }
   },
