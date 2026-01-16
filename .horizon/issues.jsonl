@@ -2,3 +2,4 @@
 {"id":"h-ckURa8Zo","title":"Implement New Feature","description":"Epic for implementing a new feature with multiple subtasks","type":"epic","status":"open","created_at":"2026-01-16T22:55:16.840Z","updated_at":"2026-01-16T22:55:16.840Z"}
 {"id":"h--WxPTvRo","title":"Design the Feature","description":"Create design specifications for the new feature","status":"open","created_at":"2026-01-16T22:55:21.265Z","updated_at":"2026-01-16T22:55:21.266Z"}
 {"id":"h-9LrAeyE2","title":"Implement Backend Logic","description":"Write the backend code for the feature","status":"open","created_at":"2026-01-16T22:55:26.047Z","updated_at":"2026-01-16T22:55:26.048Z"}
+{"id":"h-ObE2SVA2","title":"Add Frontend UI","description":"Create the user interface components","status":"open","created_at":"2026-01-16T22:55:30.987Z","updated_at":"2026-01-16T22:55:30.988Z"}
