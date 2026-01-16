@@ -25,24 +25,6 @@
       margin-bottom: 20px;
     }
 
-    .controls {
-      margin-bottom: 15px;
-    }
-
-    .controls label {
-      font-weight: normal;
-      margin-right: 10px;
-    }
-
-    .controls select {
-      background-color: var(--vscode-dropdown-background);
-      color: var(--vscode-dropdown-foreground);
-      border: 1px solid var(--vscode-dropdown-border);
-      padding: 4px 8px;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-
     .filters {
       margin-bottom: 20px;
       display: flex;
@@ -292,12 +274,6 @@
   <div class="header">
     <h1>Horizon Task List</h1>
   </div>
-  <div class="controls">
-    <label>View: <select id="view-selector">
-        <option value="grid" selected>Grid</option>
-        <option value="list">List</option>
-      </select></label>
-  </div>
   <div class="filters">
     <label><input type="checkbox" id="filter-ready" checked> Ready Tasks</label>
     <label><input type="checkbox" id="filter-open"> Open</label>
@@ -334,7 +310,6 @@
 
     // Function to render tasks
     function renderTasks(allTasks) {
-      const view = document.getElementById('view-selector').value;
       const selectedStatuses = Array.from(document.querySelectorAll('.filters input:checked')).map(cb => cb.id.replace('filter-', ''));
       const filteredTasks = allTasks.filter(task => selectedStatuses.includes(task.status) || (selectedStatuses.includes('ready') && task.status === 'open' && isReady(task, allTasks)));
       const expandedTaskList = getExpandedTasks(allTasks, filteredTasks);
@@ -343,91 +318,82 @@
       const container = document.getElementById('task-container');
       container.innerHTML = '';
 
-      if (view === 'list') {
-        const ul = document.createElement('ul');
-        ul.className = 'task-list';
-        ul.style.listStyle = 'none';
-        ul.style.padding = '0';
-        renderTaskTreeList(taskTree, ul);
-        container.appendChild(ul);
-      } else if (view === 'grid') {
-        const table = document.createElement('table');
-        table.className = 'task-grid';
-        const thead = document.createElement('thead');
-        const headerRow = document.createElement('tr');
-        const titleHeader = document.createElement('th');
-        titleHeader.style.display = 'flex';
-        titleHeader.style.alignItems = 'center';
-        titleHeader.style.justifyContent = 'space-between';
-        
-        const titleSection = document.createElement('div');
-        titleSection.style.display = 'flex';
-        titleSection.style.alignItems = 'center';
-        titleSection.style.gap = '10px';
-        
-        const filterIcon = document.createElement('span');
-        filterIcon.innerHTML = '▼';
-        filterIcon.style.fontSize = '10px';
-        
-        const titleText = document.createElement('span');
-        titleText.textContent = 'Title';
-        
-        titleSection.appendChild(filterIcon);
-        titleSection.appendChild(titleText);
-        
-        const controlsSection = document.createElement('div');
-        controlsSection.className = 'header-controls';
-        
-        const expandAllBtn = document.createElement('button');
-        expandAllBtn.className = 'header-btn';
-        expandAllBtn.textContent = 'Expand All';
-        expandAllBtn.onclick = () => {
-          expandedTasks.clear();
-          allTasks.forEach(t => expandedTasks.add(t.id));
-          renderTasks(allTasks);
-        };
-        
-        const collapseAllBtn = document.createElement('button');
-        collapseAllBtn.className = 'header-btn';
-        collapseAllBtn.textContent = 'Collapse All';
-        collapseAllBtn.onclick = () => {
-          expandedTasks.clear();
-          renderTasks(allTasks);
-        };
-        
-        const upBtn = document.createElement('button');
-        upBtn.className = 'header-btn';
-        upBtn.innerHTML = '↑';
-        
-        const downBtn = document.createElement('button');
-        downBtn.className = 'header-btn';
-        downBtn.innerHTML = '↓';
-        
-        controlsSection.appendChild(expandAllBtn);
-        controlsSection.appendChild(collapseAllBtn);
-        controlsSection.appendChild(upBtn);
-        controlsSection.appendChild(downBtn);
-        
-        titleHeader.appendChild(titleSection);
-        titleHeader.appendChild(controlsSection);
-        
-        headerRow.appendChild(titleHeader);
-        
-        ['Status', 'Priority', 'Actions'].forEach(text => {
-          const th = document.createElement('th');
-          th.textContent = text;
-          headerRow.appendChild(th);
-        });
-        
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-        
-        const tbody = document.createElement('tbody');
-        renderTaskTreeGrid(taskTree, tbody, allTasks);
-        table.appendChild(tbody);
-        
-        container.appendChild(table);
-      }
+      const table = document.createElement('table');
+      table.className = 'task-grid';
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      const titleHeader = document.createElement('th');
+      titleHeader.style.display = 'flex';
+      titleHeader.style.alignItems = 'center';
+      titleHeader.style.justifyContent = 'space-between';
+      
+      const titleSection = document.createElement('div');
+      titleSection.style.display = 'flex';
+      titleSection.style.alignItems = 'center';
+      titleSection.style.gap = '10px';
+      
+      const filterIcon = document.createElement('span');
+      filterIcon.innerHTML = '▼';
+      filterIcon.style.fontSize = '10px';
+      
+      const titleText = document.createElement('span');
+      titleText.textContent = 'Title';
+      
+      titleSection.appendChild(filterIcon);
+      titleSection.appendChild(titleText);
+      
+      const controlsSection = document.createElement('div');
+      controlsSection.className = 'header-controls';
+      
+      const expandAllBtn = document.createElement('button');
+      expandAllBtn.className = 'header-btn';
+      expandAllBtn.textContent = 'Expand All';
+      expandAllBtn.onclick = () => {
+        expandedTasks.clear();
+        allTasks.forEach(t => expandedTasks.add(t.id));
+        renderTasks(allTasks);
+      };
+      
+      const collapseAllBtn = document.createElement('button');
+      collapseAllBtn.className = 'header-btn';
+      collapseAllBtn.textContent = 'Collapse All';
+      collapseAllBtn.onclick = () => {
+        expandedTasks.clear();
+        renderTasks(allTasks);
+      };
+      
+      const upBtn = document.createElement('button');
+      upBtn.className = 'header-btn';
+      upBtn.innerHTML = '↑';
+      
+      const downBtn = document.createElement('button');
+      downBtn.className = 'header-btn';
+      downBtn.innerHTML = '↓';
+      
+      controlsSection.appendChild(expandAllBtn);
+      controlsSection.appendChild(collapseAllBtn);
+      controlsSection.appendChild(upBtn);
+      controlsSection.appendChild(downBtn);
+      
+      titleHeader.appendChild(titleSection);
+      titleHeader.appendChild(controlsSection);
+      
+      headerRow.appendChild(titleHeader);
+      
+      ['Status', 'Priority', 'Actions'].forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        headerRow.appendChild(th);
+      });
+      
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+      
+      const tbody = document.createElement('tbody');
+      renderTaskTreeGrid(taskTree, tbody, allTasks);
+      table.appendChild(tbody);
+      
+      container.appendChild(table);
     }
 
     // Function to get expanded tasks including ancestors
@@ -574,48 +540,6 @@
       });
     }
 
-    // Function to render task item for list
-    function renderTaskItem(task, level = 0) {
-      const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
-      const parentId = parentDep ? parentDep.id : '';
-      const li = document.createElement('li');
-      li.style.backgroundColor = 'var(--vscode-input-background)';
-      li.style.border = '1px solid var(--vscode-input-border)';
-      li.style.borderRadius = '4px';
-      li.style.marginBottom = '10px';
-      li.style.padding = '10px';
-      li.style.display = 'flex';
-      li.style.justifyContent = 'space-between';
-      li.style.alignItems = 'center';
-      li.style.paddingLeft = level * 40 + 'px';
-      li.innerHTML = `
-                    <div>
-                        <span style="font-weight: bold;">${task.title}</span>
-                        ${task.description ? `<div style="font-size: 0.9em; opacity: 0.8; margin-top: 5px;">${task.description}</div>` : ''}
-                        <span class="pill type-${task.type || 'task'}">${task.type || 'task'}</span>
-                        <span class="pill status-${task.status}">${task.status}</span>
-                        <span class="pill priority-${task.priority}">${task.priority}</span>
-                        ${parentId ? `<span class="pill">Parent: ${parentId}</span>` : ''}
-                    </div>
-                    <div class="task-actions">
-                        ${task.status === 'open' ? '<button class="start-btn" onclick="startTask(\'' + task.id + '\')">Start</button>' : ''}
-                        ${task.status === 'in_progress' ? '<button class="complete-btn" onclick="completeTask(\'' + task.id + '\')">Complete</button>' : ''}
-                    </div>
-                `;
-      return li;
-    }
-
-    // Function to render task tree for list
-    function renderTaskTreeList(tree, ul, level = 0) {
-      tree.forEach(node => {
-        const li = renderTaskItem(node, level);
-        ul.appendChild(li);
-        if (node.children.length > 0) {
-          renderTaskTreeList(node.children, ul, level + 1);
-        }
-      });
-    }
-
     // Task interaction functions
     function startTask(id) {
       window.vscode = window.vscode || acquireVsCodeApi();
@@ -644,9 +568,6 @@
     document.querySelectorAll('.filters input').forEach(cb => {
       cb.addEventListener('change', () => renderTasks(allTasks));
     });
-
-    // Add event listener for view selector
-    document.getElementById('view-selector').addEventListener('change', () => renderTasks(allTasks));
   </script>
 </body>
 
