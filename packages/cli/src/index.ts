@@ -57,6 +57,11 @@ program
   .option('-s, --status <status>', 'Status: open, in_progress, closed, blocked')
   .option('-t, --title <title>', 'Title')
   .option('-d, --description <desc>', 'Description')
+  .option('-n, --notes <notes>', 'Notes')
+  .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
+  .option('-a, --assignee <assignee>', 'Assignee')
+  .option('-l, --labels <labels>', 'Labels (comma-separated)')
+  .option('-c, --acceptance-criteria <criteria>', 'Acceptance criteria (comma-separated)')
   .action(async (id, options) => {
     let issues = await storage.loadIssues();
     issues = issues.map(issue => {
@@ -65,6 +70,11 @@ program
         if (options.status) updated.status = options.status;
         if (options.title) updated.title = options.title;
         if (options.description) updated.description = options.description;
+        if (options.notes) updated.notes = options.notes;
+        if (options.priority) updated.priority = options.priority;
+        if (options.assignee) updated.assignee = options.assignee;
+        if (options.labels) updated.labels = options.labels.split(',');
+        if (options.acceptanceCriteria) updated.acceptance_criteria = options.acceptanceCriteria.split(',');
         if (options.status === 'closed') updated.closed_at = new Date().toISOString();
         return updated;
       }
