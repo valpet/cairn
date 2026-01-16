@@ -23,17 +23,24 @@ export class StorageService implements IStorageService {
 
   async loadIssues(): Promise<Issue[]> {
     return await this.withLock(async () => {
-      if (!fs.existsSync(this.issuesFilePath)) {
-        return [];
-      }
-      const content = await fs.promises.readFile(this.issuesFilePath, 'utf-8');
-      const lines = content.trim().split('\n').filter(line => line.trim());
-      return lines.map(line => JSON.parse(line) as Issue);
+    if (!fs.existsSync(this.issuesFilePath)) {
+      return [];
+    }
+    const content = await fs.promises.readFile(this.issuesFilePath, 'utf-8');
+    const lines = content.trim().split('\n').filter(line => line.trim());
+    return lines.map(line => JSON.parse(line) as Issue);
     });
   }
 
   async saveIssue(issue: Issue): Promise<void> {
     await this.withLock(async () => {
+      // Check if issue already exists
+      const existingIssues = await this.loadIssues();
+      const existingIssue = existingIssues.find(i => i.id === issue.id);
+      if (existingIssue) {
+        return;
+      }
+      
       const line = JSON.stringify(issue) + '\n';
       await fs.promises.appendFile(this.issuesFilePath, line);
     });
@@ -41,10 +48,14 @@ export class StorageService implements IStorageService {
 
   async updateIssues(updater: (issues: Issue[]) => Issue[]): Promise<void> {
     await this.withLock(async () => {
-      const issues = await this.loadIssues();
-      const updatedIssues = updater(issues);
-      const content = updatedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
-      await fs.promises.writeFile(this.issuesFilePath, content);
+    const issues = await this.loadIssues();
+    console.error('Storage updateIssues loaded issues count:', issues.length);
+    const updatedIssues = updater(issues);
+    console.error('Storage updateIssues updated issues count:', updatedIssues.length);
+    const content = updatedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
+    console.error('Storage writing to', this.issuesFilePath);
+    await fs.promises.writeFile(this.issuesFilePath, content);
+    console.error('Storage writeFile done');
     });
   }
 

@@ -15,56 +15,69 @@ program
   .version('1.0.0');
 
 const cwd = process.cwd();
-const { horizonDir, repoRoot } = findHorizonDir(cwd);
 
-console.log('CWD:', cwd);
-console.log('Horizon dir:', horizonDir);
-console.log('Repo root:', repoRoot);
-
-// Ensure .horizon exists
-if (!fs.existsSync(horizonDir)) {
-  console.error('No .horizon directory found. Run `npx horizon init` in your project root.');
-  process.exit(1);
+function setupServices() {
+  const { horizonDir, repoRoot } = findHorizonDir(cwd);
+  if (!fs.existsSync(horizonDir)) {
+    console.error('No .horizon directory found. Run `npx horizon init` in your project root.');
+    process.exit(1);
+  }
+  const container = createContainer(horizonDir, repoRoot);
+  const storage = container.get<IStorageService>(TYPES.IStorageService);
+  const graph = container.get<IGraphService>(TYPES.IGraphService);
+  const compaction = container.get<ICompactionService>(TYPES.ICompactionService);
+  const git = container.get<IGitService>(TYPES.IGitService);
+  return { storage, graph, compaction, git };
 }
-
-const container = createContainer(horizonDir, repoRoot);
-const storage = container.get<IStorageService>(TYPES.IStorageService);
-const graph = container.get<IGraphService>(TYPES.IGraphService);
-const compaction = container.get<ICompactionService>(TYPES.ICompactionService);
-const git = container.get<IGitService>(TYPES.IGitService);
-
-// Create command
-program
-  .command('create <title>')
-  .description('Create a new issue')
-  .option('-d, --description <desc>', 'Description')
-  .option('-t, --type <type>', 'Type: epic, feature, task, bug')
-  .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
-  .action(async (title, options) => {
-    const issues = await storage.loadIssues();
-    const id = generateId(issues);
-    const issue = {
-      id,
-      title,
-      description: options.description,
-      type: options.type as any,
-      status: 'open' as const,
-      priority: options.priority as any,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    await storage.saveIssue(issue);
-    console.log(`Created issue ${id}: ${title}`);
-    await git.commitChanges(`Create issue ${id}`);
-  });
 
 // Init command
 program
   .command('init')
   .description('Initialize Horizon in the project')
   .option('-s, --stealth', 'Enable stealth mode (add .horizon to .gitignore)')
+  .option('-m, --mcp', 'Set up MCP server configuration in .vscode/mcp.json (only)')
   .action(async (options) => {
-    // .horizon already created above
+    if (options.mcp) {
+      // Create only MCP config
+      const vscodeDir = path.join(cwd, '.vscode');
+      if (!fs.existsSync(vscodeDir)) {
+        fs.mkdirSync(vscodeDir, { recursive: true });
+      }
+      const mcpConfigPath = path.join(vscodeDir, 'mcp.json');
+      const mcpConfig = {
+        servers: {
+          horizon: {
+            command: 'npx',
+            args: ['horizon-mcp'],
+            cwd: '${workspaceFolder}',
+            env: {}
+          }
+        }
+      };
+      if (!fs.existsSync(mcpConfigPath)) {
+        await fs.promises.writeFile(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
+        console.log('Created .vscode/mcp.json with Horizon MCP server configuration');
+      } else {
+        console.log('.vscode/mcp.json already exists');
+      }
+      console.log('MCP server configured. Restart VS Code for the configuration to take effect.');
+      return;
+    }
+
+    // Full initialization
+    const horizonDir = path.join(cwd, '.horizon');
+    if (!fs.existsSync(horizonDir)) {
+      fs.mkdirSync(horizonDir, { recursive: true });
+      console.log('Created .horizon directory');
+    }
+
+    // Create issues.jsonl if it doesn't exist
+    const issuesPath = path.join(horizonDir, 'issues.jsonl');
+    if (!fs.existsSync(issuesPath)) {
+      await fs.promises.writeFile(issuesPath, '');
+      console.log('Created issues.jsonl');
+    }
+
     if (options.stealth) {
       const gitignorePath = path.join(cwd, '.gitignore');
       let gitignore = '';
@@ -134,10 +147,63 @@ By following this workflow, you maintain coherent, persistent task memory withou
       console.log('Created .github/copilot-instructions.md with Horizon workflow guidelines');
     }
 
+    // Always create MCP config in full init
+    const vscodeDir = path.join(cwd, '.vscode');
+    if (!fs.existsSync(vscodeDir)) {
+      fs.mkdirSync(vscodeDir, { recursive: true });
+    }
+    const mcpConfigPath = path.join(vscodeDir, 'mcp.json');
+    const mcpConfig = {
+      servers: {
+        horizon: {
+          command: 'npx',
+          args: ['horizon-mcp'],
+          cwd: '${workspaceFolder}',
+          env: {}
+        }
+      }
+    };
+    if (!fs.existsSync(mcpConfigPath)) {
+      await fs.promises.writeFile(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
+      console.log('Created .vscode/mcp.json with Horizon MCP server configuration');
+    } else {
+      console.log('.vscode/mcp.json already exists');
+    }
+
     console.log('Horizon initialized. Start by creating your first task with \`horizon create <title>\`');
+    console.log('MCP server configured. Restart VS Code for the configuration to take effect.');
     console.log('For programmatic access, configure your MCP client to use the Horizon MCP server for seamless task management.');
+
+    // Initialize git if needed
+    const git = createContainer(horizonDir, cwd).get<IGitService>(TYPES.IGitService);
     await git.initIfNeeded();
     await git.commitChanges('Initialize Horizon');
+  });
+
+// Create command
+program
+  .command('create <title>')
+  .description('Create a new issue')
+  .option('-d, --description <desc>', 'Description')
+  .option('-t, --type <type>', 'Type: epic, feature, task, bug')
+  .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
+  .action(async (title, options) => {
+    const { storage, git } = setupServices();
+    const issues = await storage.loadIssues();
+    const id = generateId(issues);
+    const issue = {
+      id,
+      title,
+      description: options.description,
+      type: options.type as any,
+      status: 'open' as const,
+      priority: options.priority as any,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    await storage.saveIssue(issue);
+    console.log(`Created issue ${id}: ${title}`);
+    await git.commitChanges(`Create issue ${id}`);
   });
 
 // Update command
@@ -154,6 +220,7 @@ program
   .option('-l, --labels <labels>', 'Labels (comma-separated)')
   .option('-c, --acceptance-criteria <criteria>', 'Acceptance criteria (comma-separated)')
   .action(async (id, options) => {
+    const { storage, git } = setupServices();
     await storage.updateIssues(issues => {
       return issues.map(issue => {
         if (issue.id === id) {
@@ -185,6 +252,7 @@ program
   .option('-t, --type <type>', 'Filter by type: epic, feature, task, bug')
   .option('-r, --ready', 'Show only ready work')
   .action(async (options) => {
+    const { storage, graph, compaction } = setupServices();
     let allIssues = await storage.loadIssues();
     allIssues = compaction.compactIssues(allIssues);
     let issues = allIssues;
@@ -219,6 +287,7 @@ depCmd
   .description('Add dependency')
   .option('-t, --type <type>', 'Type: blocks, related, parent-child, discovered-from', 'blocks')
   .action(async (from, to, options) => {
+    const { storage, graph, git } = setupServices();
     await storage.updateIssues(issues => {
       return graph.addDependency(from, to, options.type, issues);
     });
@@ -232,6 +301,7 @@ epicCmd
   .command('subtasks <epicId>')
   .description('List all subtasks of an epic')
   .action(async (epicId) => {
+    const { storage, graph } = setupServices();
     const issues = await storage.loadIssues();
     const subtasks = graph.getEpicSubtasks(epicId, issues);
     if (subtasks.length === 0) {
@@ -248,6 +318,7 @@ epicCmd
   .command('progress <epicId>')
   .description('Show progress of an epic')
   .action(async (epicId) => {
+    const { storage, graph } = setupServices();
     const issues = await storage.loadIssues();
     const progress = graph.calculateEpicProgress(epicId, issues);
     const epic = issues.find(i => i.id === epicId);
@@ -269,6 +340,7 @@ epicCmd
   .option('-d, --description <desc>', 'Description')
   .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
   .action(async (epicId, title, options) => {
+    const { storage, graph, git } = setupServices();
     const issues = await storage.loadIssues();
     const epic = issues.find(i => i.id === epicId);
     if (!epic) {
@@ -306,6 +378,7 @@ program
   .command('review <id>')
   .description('Perform self-review on a task')
   .action(async (id) => {
+    const { storage } = setupServices();
     const issues = await storage.loadIssues();
     const issue = issues.find(i => i.id === id);
     if (!issue) {
