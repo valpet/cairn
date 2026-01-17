@@ -11,7 +11,8 @@
 {"id":"h-koHCOCDV","title":"This is a title","description":"mauahhaha","type":"task","status":"open","priority":"low","created_at":"2026-01-17T15:10:22.698Z","updated_at":"2026-01-17T15:14:42.834Z"}
 {"id":"h-mKhQUkOO","title":"New Ticket","description":"Add description...","type":"task","status":"open","priority":"medium","created_at":"2026-01-17T15:15:15.173Z","updated_at":"2026-01-17T16:45:35.303Z"}
 {"id":"h-2OQD47jg","title":"New Ticket2asdqw","description":"Add description...","type":"task","status":"open","priority":"medium","created_at":"2026-01-17T15:16:15.677Z","updated_at":"2026-01-17T15:18:04.904Z"}
-{"id":"h-Sdbjx3T3","title":"Hello","description":"Add description...","type":"task","status":"open","priority":"medium","created_at":"2026-01-17T15:20:54.886Z","updated_at":"2026-01-17T16:45:35.303Z"}
-{"id":"h-eCvysyiz","title":"New Ticket","description":"** THIS IS A DESCRIPTION **\nAdd description...","type":"refactor","status":"open","priority":"medium","created_at":"2026-01-17T15:29:36.019Z","updated_at":"2026-01-17T16:45:35.303Z"}
+{"id":"h-Sdbjx3T3","title":"Hello","description":"Add description...","type":"task","status":"open","priority":"medium","created_at":"2026-01-17T15:20:54.886Z","updated_at":"2026-01-17T16:50:01.284Z"}
+{"id":"h-eCvysyiz","title":"New Ticket","description":"** THIS IS A DESCRIPTION **\nAdd description...","type":"feature","status":"open","priority":"medium","created_at":"2026-01-17T15:29:36.019Z","updated_at":"2026-01-17T18:33:46.025Z"}
 {"id":"h-YfJBq1zW","title":"Add subtask selection dialog for non-parented tickets","status":"open","created_at":"2026-01-17T16:40:48.837Z","updated_at":"2026-01-17T16:44:29.598Z"}
-{"id":"h-DfNHp8GG","title":"Update subtask display in editor to show id, type, title, status, and priority","status":"open","created_at":"2026-01-17T16:46:54.034Z","updated_at":"2026-01-17T16:47:49.804Z"}
+{"id":"h-DfNHp8GG","title":"Update subtask display in editor to show id, type, title, status, and priority","status":"open","created_at":"2026-01-17T16:46:54.034Z","updated_at":"2026-01-17T16:50:01.284Z","description":"","type":"task","priority":"medium"}
+{"id":"h-sLSyKeOU","title":"Update subtask badges in edit form to match task list pill styling","status":"open","created_at":"2026-01-17T18:39:24.408Z","updated_at":"2026-01-17T18:39:24.409Z"}
