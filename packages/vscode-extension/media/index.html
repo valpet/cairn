@@ -712,7 +712,7 @@
           (statusArray.includes('ready') && task.status === 'open' && isReady(task, allTasks))
         );
       }
-      const expandedTaskList = getExpandedTasks(allTasks, filteredTasks);
+      const expandedTaskList = filteredTasks;
       const taskTree = buildTaskTree(expandedTaskList);
 
       const container = document.getElementById('task-container');
@@ -794,28 +794,6 @@
       table.appendChild(tbody);
       
       container.appendChild(table);
-    }
-
-    // Function to get expanded tasks including ancestors
-    function getExpandedTasks(allTasks, filteredTasks) {
-      const taskMap = new Map(allTasks.map(t => [t.id, t]));
-      const expanded = new Set(filteredTasks.map(t => t.id));
-      const toProcess = [...filteredTasks];
-
-      while (toProcess.length > 0) {
-        const task = toProcess.pop();
-        (task.dependencies || []).forEach(dep => {
-          if (dep.type === 'parent-child') {
-            if (!expanded.has(dep.id)) {
-              expanded.add(dep.id);
-              const parent = taskMap.get(dep.id);
-              if (parent) toProcess.push(parent);
-            }
-          }
-        });
-      }
-
-      return allTasks.filter(t => expanded.has(t.id));
     }
 
     // Function to build task hierarchy
