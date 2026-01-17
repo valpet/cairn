@@ -716,6 +716,19 @@
       top: 36px;
       bottom: 0;
     }
+
+    .hidden-children-row {
+      background-color: var(--vscode-panel-border);
+    }
+
+    .hidden-children-indicator {
+      color: var(--vscode-descriptionForeground);
+      font-size: 12px;
+      font-style: italic;
+      margin-top: -8px;
+      margin-bottom: -8px;
+      opacity: 0.7;
+    }
   </style>
 </head>
 
@@ -1304,12 +1317,125 @@
         const isLastChild = index === tree.length - 1;
         const tr = renderTaskRowGrid(node, level, allTasks, isLastChild, ancestorLines);
         tbody.appendChild(tr);
+
+        // Check if there are hidden children at this level due to filtering (only if expanded)
+        if (expandedTasks.has(node.id)) {
+          const hiddenChildrenCount = countHiddenChildrenAtLevel(node, allTasks);
+          if (hiddenChildrenCount > 0) {
+            const hiddenRow = renderHiddenChildrenIndicator(hiddenChildrenCount, level + 1, isLastChild, [...ancestorLines, !isLastChild]);
+            tbody.appendChild(hiddenRow);
+          }
+        }
+
         if (node.children && node.children.length > 0 && expandedTasks.has(node.id)) {
           // Pass down which levels should have continuing vertical lines
           const newAncestorLines = [...ancestorLines, !isLastChild];
           renderTaskTreeGrid(node.children, tbody, allTasks, level + 1, newAncestorLines);
         }
       });
+    }
+
+    // Function to count children that are hidden due to filtering at any level under this node
+    function countHiddenChildrenAtLevel(parentNode, allTasks) {
+      // Get all actual descendants from the full task list
+      const allDescendants = getAllDescendants(parentNode.id, allTasks);
+
+      // Get descendants that would be visible in the current filtered tree
+      const visibleDescendants = getVisibleDescendantsInTree(parentNode, allTasks);
+
+      // Count how many descendants are not visible due to filtering
+      return allDescendants.length - visibleDescendants.length;
+    }
+
+    // Function to get all descendants of a task (recursive)
+    function getAllDescendants(taskId, allTasks) {
+      const descendants = [];
+      const taskMap = new Map(allTasks.map(t => [t.id, t]));
+
+      function collectDescendants(id) {
+        allTasks.forEach(task => {
+          const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
+          if (parentDep && parentDep.id === id) {
+            descendants.push(task);
+            collectDescendants(task.id);
+          }
+        });
+      }
+
+      collectDescendants(taskId);
+      return descendants;
+    }
+
+    // Function to get descendants that are visible in the current filtered tree
+    function getVisibleDescendantsInTree(node, allTasks) {
+      const visible = [];
+
+      function collectVisible(node) {
+        if (node.children) {
+          node.children.forEach(child => {
+            visible.push(child);
+            if (expandedTasks.has(child.id)) {
+              collectVisible(child);
+            }
+          });
+        }
+      }
+
+      collectVisible(node);
+      return visible;
+    }
+
+    // Function to render a hidden children indicator row
+    function renderHiddenChildrenIndicator(count, level, isLastChild, ancestorLines) {
+      const tr = document.createElement('tr');
+      tr.className = 'hidden-children-row';
+
+      // Title cell with tree lines for hierarchy
+      const titleCell = document.createElement('td');
+
+      // Add tree lines for ancestor levels (exclude immediate parent level to avoid overlap)
+      // Only draw for levels 0 to level-2, as level-1 is handled by our own connection
+      const maxAncestorLevel = Math.min(ancestorLines.length, level - 1);
+      for (let ancestorLevel = 0; ancestorLevel < maxAncestorLevel; ancestorLevel++) {
+        if (ancestorLines[ancestorLevel]) {
+          // This ancestor level has more siblings, draw a vertical line
+          const ancestorLine = document.createElement('div');
+          ancestorLine.className = 'tree-line tree-line-vertical';
+          ancestorLine.style.left = `${ancestorLevel * 30 + 8 + 16}px`;
+          titleCell.appendChild(ancestorLine);
+        }
+      }
+
+      // Add vertical line only (no horizontal connection line)
+      if (level > 0) {
+        // Vertical line - full height for non-last children, corner for last child
+        const vLine = document.createElement('div');
+        if (isLastChild) {
+          vLine.className = 'tree-line tree-line-corner';
+        } else {
+          vLine.className = 'tree-line tree-line-vertical';
+        }
+        vLine.style.left = `${(level - 1) * 30 + 8 + 16}px`;
+        titleCell.appendChild(vLine);
+      }
+
+      const indicatorDiv = document.createElement('div');
+      indicatorDiv.className = 'hidden-children-indicator';
+      indicatorDiv.style.paddingLeft = `${level * 30 + 24}px`;
+      indicatorDiv.style.position = 'relative';
+      indicatorDiv.style.zIndex = '2';
+      indicatorDiv.textContent = `${count} item${count === 1 ? '' : 's'} hidden by filter${count === 1 ? '' : 's'}`;
+      titleCell.appendChild(indicatorDiv);
+
+      tr.appendChild(titleCell);
+
+      // Empty cells for other columns
+      for (let i = 0; i < 4; i++) {
+        const emptyCell = document.createElement('td');
+        tr.appendChild(emptyCell);
+      }
+
+      return tr;
     }
 
     // Task interaction functions

@@ -367,6 +367,13 @@ export function activate(context: vscode.ExtensionContext) {
                     }
                   }
 
+                  // Add dependencies for newly added existing subtasks
+                  for (const subId of newIds) {
+                    if (!currentIds.has(subId)) {
+                      updatedIssues = graph.addDependency(subId, ticketData.id, 'parent-child', updatedIssues);
+                    }
+                  }
+
                   // Add new subtasks
                   const newSubtasksToCreate = newSubtasks.filter(s => !s.id && s.title.trim());
                   for (const sub of newSubtasksToCreate) {

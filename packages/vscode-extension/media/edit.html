@@ -378,6 +378,21 @@
       background-color: var(--vscode-list-activeSelectionBackground);
     }
 
+    .subtask-checkbox {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      flex-shrink: 0;
+      accent-color: var(--vscode-button-background);
+    }
+
+    .subtask-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .subtask-info {
       flex: 1;
       display: flex;
@@ -655,7 +670,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" id="cancelSubtaskSelection" class="secondary">Cancel</button>
-        <button type="button" id="confirmSubtaskSelection">Add Selected</button>
+        <button type="button" id="confirmSubtaskSelection">Add Selected Subtasks</button>
       </div>
     </div>
   </div>
@@ -669,7 +684,7 @@
     let originalTitle = '';
     let originalDescription = '';
     let availableSubtasks = [];
-    let selectedSubtaskId = null;
+    let selectedSubtaskIds = new Set();
 
     // Utility functions for creating pill components
     function createTypeBadge(type) {
@@ -869,21 +884,21 @@
     // Modal handlers
     document.getElementById('cancelSubtaskSelection').addEventListener('click', () => {
       document.getElementById('subtaskModal').classList.add('hidden');
-      selectedSubtaskId = null;
+      selectedSubtaskIds.clear();
       document.getElementById('subtaskSearch').value = '';
     });
 
     document.getElementById('confirmSubtaskSelection').addEventListener('click', () => {
-      if (selectedSubtaskId) {
-        const selectedSubtask = availableSubtasks.find(s => s.id === selectedSubtaskId);
-        if (selectedSubtask) {
+      if (selectedSubtaskIds.size > 0) {
+        const selectedSubtasks = availableSubtasks.filter(s => selectedSubtaskIds.has(s.id));
+        selectedSubtasks.forEach(selectedSubtask => {
           subtasks.push({ id: selectedSubtask.id, title: selectedSubtask.title });
-          renderSubtasks();
-          saveTicket();
-        }
+        });
+        renderSubtasks();
+        saveTicket();
       }
       document.getElementById('subtaskModal').classList.add('hidden');
-      selectedSubtaskId = null;
+      selectedSubtaskIds.clear();
       document.getElementById('subtaskSearch').value = '';
     });
 
@@ -919,8 +934,24 @@
 
       filtered.forEach(subtask => {
         const div = document.createElement('div');
-        div.className = `subtask-item ${selectedSubtaskId === subtask.id ? 'selected' : ''}`;
-        div.onclick = () => selectSubtask(subtask.id);
+        div.className = `subtask-item ${selectedSubtaskIds.has(subtask.id) ? 'selected' : ''}`;
+
+        // Checkbox
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'subtask-checkbox';
+        checkbox.checked = selectedSubtaskIds.has(subtask.id);
+        checkbox.onclick = (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          toggleSubtaskSelection(subtask.id);
+          // Update checkbox state manually since we prevented default
+          checkbox.checked = selectedSubtaskIds.has(subtask.id);
+        };
+
+        // Content container
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'subtask-content';
 
         const infoDiv = document.createElement('div');
         infoDiv.className = 'subtask-info';
@@ -940,17 +971,48 @@
         const statusPill = createStatusPill(subtask.status);
         const priorityPill = createPriorityPill(subtask.priority);
 
-        div.appendChild(infoDiv);
-        div.appendChild(statusPill);
-        div.appendChild(priorityPill);
+        contentDiv.appendChild(infoDiv);
+        contentDiv.appendChild(statusPill);
+        contentDiv.appendChild(priorityPill);
+
+        // Row click handler (selects only this item)
+        div.onclick = () => selectSingleSubtask(subtask.id);
+
+        div.appendChild(checkbox);
+        div.appendChild(contentDiv);
 
         list.appendChild(div);
       });
+
+      // Update modal title to show selection count
+      updateModalTitle();
     }
 
-    function selectSubtask(id) {
-      selectedSubtaskId = id;
+    function selectSingleSubtask(id) {
+      selectedSubtaskIds.clear();
+      selectedSubtaskIds.add(id);
       renderAvailableSubtasks(document.getElementById('subtaskSearch').value);
+    }
+
+    function toggleSubtaskSelection(id) {
+      if (selectedSubtaskIds.has(id)) {
+        selectedSubtaskIds.delete(id);
+      } else {
+        selectedSubtaskIds.add(id);
+      }
+      renderAvailableSubtasks(document.getElementById('subtaskSearch').value);
+    }
+
+    function updateModalTitle() {
+      const titleEl = document.querySelector('.modal-title');
+      const count = selectedSubtaskIds.size;
+      if (count === 0) {
+        titleEl.textContent = 'Select Subtasks';
+      } else if (count === 1) {
+        titleEl.textContent = 'Select Subtasks (1 selected)';
+      } else {
+        titleEl.textContent = `Select Subtasks (${count} selected)`;
+      }
     }
   </script>
 </body>
