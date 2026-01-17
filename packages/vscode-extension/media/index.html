@@ -293,6 +293,28 @@
       top: 0;
     }
 
+    .header-controls {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .header-btn {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--vscode-foreground);
+      border: none;
+      cursor: pointer;
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      font-weight: 400;
+      transition: background-color 0.15s;
+    }
+
+    .header-btn:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+
     .task-row {
       transition: background-color 0.1s;
     }
@@ -996,18 +1018,8 @@
         renderTasks(allTasks);
       };
 
-      const upBtn = document.createElement('button');
-      upBtn.className = 'header-btn';
-      upBtn.innerHTML = '↑';
-
-      const downBtn = document.createElement('button');
-      downBtn.className = 'header-btn';
-      downBtn.innerHTML = '↓';
-
       controlsSection.appendChild(expandAllBtn);
       controlsSection.appendChild(collapseAllBtn);
-      controlsSection.appendChild(upBtn);
-      controlsSection.appendChild(downBtn);
 
       titleHeader.appendChild(titleSection);
       titleHeader.appendChild(controlsSection);
