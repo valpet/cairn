@@ -44,7 +44,7 @@ export class StorageService implements IStorageService {
         if (existingIssue) {
           return;
         }
-        
+
         const line = JSON.stringify(issue) + '\n';
         await fs.promises.appendFile(this.issuesFilePath, line);
       });
@@ -106,7 +106,7 @@ export class StorageService implements IStorageService {
         try {
           return await operation();
         } finally {
-          await fs.promises.unlink(this.lockFilePath).catch(() => {});
+          await fs.promises.unlink(this.lockFilePath).catch(() => { });
         }
       } catch (error: any) {
         if (error.code === 'EEXIST') {

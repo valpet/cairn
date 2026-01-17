@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,28 +14,34 @@
       margin: 0;
       padding: 20px;
     }
+
     h1 {
       font-size: 20px;
       font-weight: 600;
       margin: 0 0 24px 0;
     }
+
     h3 {
       font-size: 14px;
       font-weight: 600;
       margin: 20px 0 12px 0;
     }
+
     .form-group {
       margin-bottom: 20px;
     }
+
     label {
       display: block;
       margin-bottom: 6px;
       font-size: 13px;
       font-weight: 500;
     }
+
     .editable-field {
       position: relative;
     }
+
     .field-display {
       display: flex;
       align-items: flex-start;
@@ -45,41 +52,50 @@
       border-radius: 2px;
       cursor: pointer;
     }
+
     .field-display:hover {
       background-color: var(--vscode-list-hoverBackground);
     }
+
     .field-text {
       flex: 1;
       word-wrap: break-word;
       white-space: pre-wrap;
     }
+
     .field-text.placeholder {
       color: var(--vscode-input-placeholderForeground);
       font-style: italic;
     }
+
     .edit-icon {
       flex-shrink: 0;
       width: 16px;
       height: 16px;
       opacity: 0.6;
     }
+
     .edit-icon:hover {
       opacity: 1;
     }
+
     .field-edit {
       display: flex;
       align-items: flex-start;
       gap: 8px;
     }
+
     .field-edit input,
     .field-edit textarea {
       flex: 1;
     }
+
     .edit-actions {
       display: flex;
       gap: 4px;
       flex-shrink: 0;
     }
+
     .icon-button {
       width: 28px;
       height: 28px;
@@ -91,27 +107,34 @@
       border-radius: 2px;
       cursor: pointer;
     }
+
     .icon-button svg {
       width: 16px;
       height: 16px;
     }
+
     .icon-button.accept {
       color: var(--vscode-button-foreground);
       background-color: var(--vscode-button-background);
     }
+
     .icon-button.accept:hover {
       background-color: var(--vscode-button-hoverBackground);
     }
+
     .icon-button.cancel {
       color: var(--vscode-button-secondaryForeground);
       background-color: var(--vscode-button-secondaryBackground);
     }
+
     .icon-button.cancel:hover {
       background-color: var(--vscode-button-secondaryHoverBackground);
     }
+
     .hidden {
       display: none !important;
     }
+
     input[type="text"],
     select,
     textarea {
@@ -126,6 +149,7 @@
       outline: none;
       border-radius: 2px;
     }
+
     input[type="text"]:focus,
     select:focus,
     textarea:focus {
@@ -133,10 +157,12 @@
       outline: 1px solid var(--vscode-focusBorder);
       outline-offset: -1px;
     }
+
     textarea {
       resize: vertical;
       min-height: 80px;
     }
+
     button {
       padding: 6px 14px;
       font-family: var(--vscode-font-family);
@@ -148,43 +174,53 @@
       cursor: pointer;
       outline: none;
     }
+
     button:hover {
       background-color: var(--vscode-button-hoverBackground);
     }
+
     button:focus {
       outline: 1px solid var(--vscode-focusBorder);
       outline-offset: 2px;
     }
+
     button.secondary {
       color: var(--vscode-button-secondaryForeground);
       background-color: var(--vscode-button-secondaryBackground);
     }
+
     button.secondary:hover {
       background-color: var(--vscode-button-secondaryHoverBackground);
     }
+
     .subtasks {
       margin-top: 24px;
     }
+
     .subtask-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
       margin-bottom: 12px;
     }
+
     .subtask {
       display: flex;
       align-items: center;
       gap: 8px;
     }
+
     .subtask input {
       flex: 1;
     }
+
     .subtask button {
       flex-shrink: 0;
       padding: 6px 12px;
     }
   </style>
 </head>
+
 <body>
   <h1>Edit Ticket</h1>
   <form id="ticketForm">
@@ -194,7 +230,8 @@
         <div class="field-display" id="titleDisplay" onclick="editField('title')">
           <div class="field-text" id="titleText"></div>
           <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z"/>
+            <path
+              d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z" />
           </svg>
         </div>
         <div class="field-edit hidden" id="titleEdit">
@@ -202,12 +239,13 @@
           <div class="edit-actions">
             <button type="button" class="icon-button accept" onclick="acceptField('title')" title="Save">
               <svg viewBox="0 0 16 16" fill="currentColor">
-                <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z"/>
+                <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
               </svg>
             </button>
             <button type="button" class="icon-button cancel" onclick="cancelField('title')" title="Cancel">
               <svg viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z"/>
+                <path
+                  d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z" />
               </svg>
             </button>
           </div>
@@ -220,7 +258,8 @@
         <div class="field-display" id="descriptionDisplay" onclick="editField('description')">
           <div class="field-text" id="descriptionText"></div>
           <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z"/>
+            <path
+              d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z" />
           </svg>
         </div>
         <div class="field-edit hidden" id="descriptionEdit">
@@ -228,12 +267,13 @@
           <div class="edit-actions">
             <button type="button" class="icon-button accept" onclick="acceptField('description')" title="Save">
               <svg viewBox="0 0 16 16" fill="currentColor">
-                <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z"/>
+                <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
               </svg>
             </button>
             <button type="button" class="icon-button cancel" onclick="cancelField('description')" title="Cancel">
               <svg viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z"/>
+                <path
+                  d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z" />
               </svg>
             </button>
           </div>
@@ -324,10 +364,10 @@
       const display = document.getElementById(`${fieldName}Display`);
       const edit = document.getElementById(`${fieldName}Edit`);
       const input = document.getElementById(`${fieldName}Input`);
-      
+
       display.classList.add('hidden');
       edit.classList.remove('hidden');
-      
+
       if (fieldName === 'title') {
         originalTitle = currentTitle;
         input.value = currentTitle;
@@ -335,7 +375,7 @@
         originalDescription = currentDescription;
         input.value = currentDescription;
       }
-      
+
       input.focus();
       input.select();
     }
@@ -343,7 +383,7 @@
     function acceptField(fieldName) {
       const input = document.getElementById(`${fieldName}Input`);
       const newValue = input.value.trim();
-      
+
       if (fieldName === 'title') {
         currentTitle = newValue;
         updateTitleDisplay();
@@ -351,7 +391,7 @@
         currentDescription = newValue;
         updateDescriptionDisplay();
       }
-      
+
       exitEditMode(fieldName);
       saveTicket();
     }
@@ -368,7 +408,7 @@
     function exitEditMode(fieldName) {
       const display = document.getElementById(`${fieldName}Display`);
       const edit = document.getElementById(`${fieldName}Edit`);
-      
+
       display.classList.remove('hidden');
       edit.classList.add('hidden');
     }
@@ -424,4 +464,5 @@
     });
   </script>
 </body>
+
 </html>
