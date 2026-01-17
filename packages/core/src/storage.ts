@@ -14,7 +14,7 @@ export interface IStorageService {
 export class StorageService implements IStorageService {
   private issuesFilePath: string;
   private lockFilePath: string;
-  private lockDepth: number = 0;
+  private writeQueue: Promise<void> = Promise.resolve(); // Serialize all write operations within this process
 
   constructor(@inject('config') private config: { horizonDir: string }) {
     this.issuesFilePath = path.join(config.horizonDir, 'issues.jsonl');
@@ -22,106 +22,97 @@ export class StorageService implements IStorageService {
   }
 
   async loadIssues(): Promise<Issue[]> {
-    return await this.withLock(async () => {
+    return await this.loadIssuesInternal();
+  }
+
+  private async loadIssuesInternal(): Promise<Issue[]> {
     if (!fs.existsSync(this.issuesFilePath)) {
       return [];
     }
     const content = await fs.promises.readFile(this.issuesFilePath, 'utf-8');
     const lines = content.trim().split('\n').filter(line => line.trim());
     return lines.map(line => JSON.parse(line) as Issue);
-    });
   }
 
   async saveIssue(issue: Issue): Promise<void> {
-    await this.withLock(async () => {
-      // Check if issue already exists
-      const existingIssues = await this.loadIssues();
-      const existingIssue = existingIssues.find(i => i.id === issue.id);
-      if (existingIssue) {
-        return;
-      }
-      
-      const line = JSON.stringify(issue) + '\n';
-      await fs.promises.appendFile(this.issuesFilePath, line);
+    // Queue this write operation
+    this.writeQueue = this.writeQueue.then(async () => {
+      await this.withLock(async () => {
+        // Check if issue already exists
+        const existingIssues = await this.loadIssuesInternal();
+        const existingIssue = existingIssues.find(i => i.id === issue.id);
+        if (existingIssue) {
+          return;
+        }
+        
+        const line = JSON.stringify(issue) + '\n';
+        await fs.promises.appendFile(this.issuesFilePath, line);
+      });
+    }).catch(err => {
+      console.error('saveIssue queued operation failed:', err);
+      throw err;
     });
+    return this.writeQueue;
   }
 
   async updateIssues(updater: (issues: Issue[]) => Issue[]): Promise<void> {
-    await this.withLock(async () => {
-    const issues = await this.loadIssues();
-    console.error('Storage updateIssues loaded issues count:', issues.length);
-    const updatedIssues = updater(issues);
-    console.error('Storage updateIssues updated issues count:', updatedIssues.length);
-    const content = updatedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
-    console.error('Storage writing to', this.issuesFilePath);
-    await fs.promises.writeFile(this.issuesFilePath, content);
-    console.error('Storage writeFile done');
+    console.error('=== Storage updateIssues CALLED ===');
+    // Queue this write operation
+    this.writeQueue = this.writeQueue.then(async () => {
+      await this.withLock(async () => {
+        console.error('Storage updateIssues: Inside lock');
+        const issues = await this.loadIssuesInternal();
+        console.error('Storage updateIssues loaded issues count:', issues.length);
+        const updatedIssues = updater(issues);
+        console.error('Storage updateIssues updated issues count:', updatedIssues.length);
+        const content = updatedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
+        console.error('Storage writing to', this.issuesFilePath);
+        await fs.promises.writeFile(this.issuesFilePath, content);
+        console.error('Storage writeFile done');
+      });
+    }).catch(err => {
+      console.error('updateIssues queued operation failed:', err);
+      throw err;
     });
+    await this.writeQueue;
+    console.error('=== Storage updateIssues COMPLETE ===');
+  }
+
+  getIssuesFilePath(): string {
+    return this.issuesFilePath;
   }
 
   private async withLock<T>(operation: () => Promise<T>): Promise<T> {
-    // Check if we already hold the lock (re-entrant call)
-    if (this.lockDepth > 0) {
-      this.lockDepth++;
-      try {
-        return await operation();
-      } finally {
-        this.lockDepth--;
-      }
-    }
-
-    const maxRetries = 10;
+    const maxRetries = 50;
     const retryDelay = 100; // ms
     const lockTimeout = 30000; // 30 seconds
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        // Check for and clean up stale locks
-        await this.cleanupStaleLock(lockTimeout);
+        // Clean up stale locks
+        if (fs.existsSync(this.lockFilePath)) {
+          const lockContent = await fs.promises.readFile(this.lockFilePath, 'utf-8');
+          const lockData = JSON.parse(lockContent);
+          const lockAge = Date.now() - lockData.timestamp;
+          if (lockAge > lockTimeout) {
+            await fs.promises.unlink(this.lockFilePath);
+          }
+        }
 
         // Try to acquire lock
-        const lockData = {
-          pid: process.pid,
-          timestamp: Date.now()
-        };
+        const lockData = { pid: process.pid, timestamp: Date.now() };
         await fs.promises.writeFile(this.lockFilePath, JSON.stringify(lockData), { flag: 'wx' });
 
-        this.lockDepth = 1;
         try {
-          // Execute operation while holding lock
           return await operation();
         } finally {
-          this.lockDepth--;
-          if (this.lockDepth === 0) {
-            // Release lock only when we're back to depth 0
-            try {
-              await fs.promises.unlink(this.lockFilePath);
-            } catch (error) {
-              const err = error as NodeJS.ErrnoException;
-              if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {
-                // Lock file was already removed, likely by another process in a concurrent scenario
-                console.warn(
-                  `Lock file at ${this.lockFilePath} was already removed when attempting to release it. ` +
-                  'This is expected in some concurrent access scenarios.',
-                  err,
-                );
-              } else {
-                // Unexpected file system issue when trying to remove the lock file
-                console.error(
-                  `Failed to release lock file at ${this.lockFilePath} due to an unexpected file system error. ` +
-                  'This may indicate permission problems, a full disk, or other file system issues and should be investigated. ' +
-                  'Proceeding because the protected operation has already completed.',
-                  error,
-                );
-              }
-            }
-          }
+          await fs.promises.unlink(this.lockFilePath).catch(() => {});
         }
       } catch (error: any) {
         if (error.code === 'EEXIST') {
           // Lock exists, wait and retry
           if (attempt < maxRetries - 1) {
-            await new Promise(resolve => setTimeout(resolve, retryDelay * (attempt + 1)));
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
             continue;
           }
           throw new Error('Failed to acquire file lock after maximum retries');
@@ -131,65 +122,5 @@ export class StorageService implements IStorageService {
     }
 
     throw new Error('Unexpected error in file locking');
-  }
-
-  private async cleanupStaleLock(timeoutMs: number): Promise<void> {
-    try {
-      if (!fs.existsSync(this.lockFilePath)) {
-        return; // No lock file exists
-      }
-
-      const lockContent = await fs.promises.readFile(this.lockFilePath, 'utf-8');
-      const lockData = JSON.parse(lockContent);
-
-      // Only handle new format lock files (JSON with timestamp and pid)
-      if (typeof lockData.timestamp === 'number' && typeof lockData.pid === 'number') {
-        const lockAge = Date.now() - lockData.timestamp;
-        if (lockAge > timeoutMs) {
-          // Lock is stale, try to remove it
-          try {
-            await fs.promises.unlink(this.lockFilePath);
-            console.warn(`Cleaned up stale lock file (age: ${lockAge}ms, pid: ${lockData.pid})`);
-          } catch (unlinkError) {
-            // Another process might have removed it or the process is still alive
-            console.warn(
-              `Failed to remove stale lock file at ${this.lockFilePath} (age: ${lockAge}ms, pid: ${lockData.pid}). ` +
-              'Another process may have already cleaned it up or the owning process is still active.',
-              unlinkError,
-            );
-          }
-        }
-      } else {
-        // Invalid or old format lock file - clean it up
-        try {
-          await fs.promises.unlink(this.lockFilePath);
-          console.warn(`Cleaned up invalid lock file at ${this.lockFilePath}. Expected JSON format with timestamp and pid.`);
-        } catch (unlinkError) {
-          console.warn(
-            `Failed to remove invalid lock file at ${this.lockFilePath}. ` +
-            'Manual intervention may be required.',
-            unlinkError,
-          );
-        }
-      }
-    } catch (error) {
-      // If we can't read or parse the lock file, it's probably corrupted
-      // Try to remove it
-      try {
-        await fs.promises.unlink(this.lockFilePath);
-        console.warn(`Cleaned up corrupted lock file at ${this.lockFilePath}. The file could not be parsed or read.`, error);
-      } catch (unlinkError) {
-        // Ignore cleanup errors
-        console.warn(
-          `Failed to clean up corrupted lock file at ${this.lockFilePath}. ` +
-          'The lock file appears corrupted but cannot be removed. Manual intervention may be required.',
-          { parseError: error, unlinkError: unlinkError },
-        );
-      }
-    }
-  }
-
-  getIssuesFilePath(): string {
-    return this.issuesFilePath;
   }
 }

@@ -1,76 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Ticket</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+      font-family: var(--vscode-font-family);
+      font-size: var(--vscode-font-size);
+      color: var(--vscode-foreground);
+      background-color: var(--vscode-editor-background);
+      margin: 0;
+      padding: 20px;
     }
-
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 24px 0;
+    }
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 20px 0 12px 0;
+    }
     .form-group {
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
-
     label {
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 500;
     }
-
-    input,
+    .editable-field {
+      position: relative;
+    }
+    .field-display {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 6px 8px;
+      min-height: 32px;
+      border: 1px solid transparent;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .field-display:hover {
+      background-color: var(--vscode-list-hoverBackground);
+    }
+    .field-text {
+      flex: 1;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+    .field-text.placeholder {
+      color: var(--vscode-input-placeholderForeground);
+      font-style: italic;
+    }
+    .edit-icon {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      opacity: 0.6;
+    }
+    .edit-icon:hover {
+      opacity: 1;
+    }
+    .field-edit {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .field-edit input,
+    .field-edit textarea {
+      flex: 1;
+    }
+    .edit-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .icon-button {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--vscode-button-border, transparent);
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .icon-button svg {
+      width: 16px;
+      height: 16px;
+    }
+    .icon-button.accept {
+      color: var(--vscode-button-foreground);
+      background-color: var(--vscode-button-background);
+    }
+    .icon-button.accept:hover {
+      background-color: var(--vscode-button-hoverBackground);
+    }
+    .icon-button.cancel {
+      color: var(--vscode-button-secondaryForeground);
+      background-color: var(--vscode-button-secondaryBackground);
+    }
+    .icon-button.cancel:hover {
+      background-color: var(--vscode-button-secondaryHoverBackground);
+    }
+    .hidden {
+      display: none !important;
+    }
+    input[type="text"],
     select,
     textarea {
       width: 100%;
-      padding: 8px;
+      padding: 6px 8px;
       box-sizing: border-box;
+      font-family: var(--vscode-font-family);
+      font-size: var(--vscode-font-size);
+      color: var(--vscode-input-foreground);
+      background-color: var(--vscode-input-background);
+      border: 1px solid var(--vscode-input-border, transparent);
+      outline: none;
+      border-radius: 2px;
     }
-
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--vscode-focusBorder);
+      outline: 1px solid var(--vscode-focusBorder);
+      outline-offset: -1px;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
     button {
-      padding: 10px 20px;
-      background: #007acc;
-      color: white;
+      padding: 6px 14px;
+      font-family: var(--vscode-font-family);
+      font-size: var(--vscode-font-size);
+      color: var(--vscode-button-foreground);
+      background-color: var(--vscode-button-background);
       border: none;
+      border-radius: 2px;
       cursor: pointer;
+      outline: none;
     }
-
     button:hover {
-      background: #005aa3;
+      background-color: var(--vscode-button-hoverBackground);
     }
-
+    button:focus {
+      outline: 1px solid var(--vscode-focusBorder);
+      outline-offset: 2px;
+    }
+    button.secondary {
+      color: var(--vscode-button-secondaryForeground);
+      background-color: var(--vscode-button-secondaryBackground);
+    }
+    button.secondary:hover {
+      background-color: var(--vscode-button-secondaryHoverBackground);
+    }
     .subtasks {
-      margin-top: 20px;
+      margin-top: 24px;
     }
-
+    .subtask-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
     .subtask {
       display: flex;
       align-items: center;
-      margin-bottom: 5px;
+      gap: 8px;
     }
-
     .subtask input {
       flex: 1;
-      margin-right: 10px;
+    }
+    .subtask button {
+      flex-shrink: 0;
+      padding: 6px 12px;
     }
   </style>
 </head>
-
 <body>
   <h1>Edit Ticket</h1>
   <form id="ticketForm">
     <div class="form-group">
-      <label for="title">Title:</label>
-      <input type="text" id="title" required>
+      <label>Title:</label>
+      <div class="editable-field">
+        <div class="field-display" id="titleDisplay" onclick="editField('title')">
+          <div class="field-text" id="titleText"></div>
+          <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z"/>
+          </svg>
+        </div>
+        <div class="field-edit hidden" id="titleEdit">
+          <input type="text" id="titleInput">
+          <div class="edit-actions">
+            <button type="button" class="icon-button accept" onclick="acceptField('title')" title="Save">
+              <svg viewBox="0 0 16 16" fill="currentColor">
+                <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z"/>
+              </svg>
+            </button>
+            <button type="button" class="icon-button cancel" onclick="cancelField('title')" title="Cancel">
+              <svg viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="form-group">
-      <label for="description">Description:</label>
-      <textarea id="description" rows="4"></textarea>
+      <label>Description:</label>
+      <div class="editable-field">
+        <div class="field-display" id="descriptionDisplay" onclick="editField('description')">
+          <div class="field-text" id="descriptionText"></div>
+          <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z"/>
+          </svg>
+        </div>
+        <div class="field-edit hidden" id="descriptionEdit">
+          <textarea id="descriptionInput" rows="4"></textarea>
+          <div class="edit-actions">
+            <button type="button" class="icon-button accept" onclick="acceptField('description')" title="Save">
+              <svg viewBox="0 0 16 16" fill="currentColor">
+                <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z"/>
+              </svg>
+            </button>
+            <button type="button" class="icon-button cancel" onclick="cancelField('description')" title="Cancel">
+              <svg viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="form-group">
       <label for="type">Type:</label>
-      <select id="type">
+      <select id="type" onchange="saveTicket()">
         <option value="task">Task</option>
         <option value="bug">Bug</option>
         <option value="feature">Feature</option>
@@ -82,7 +254,7 @@
     </div>
     <div class="form-group">
       <label for="priority">Priority:</label>
-      <select id="priority">
+      <select id="priority" onchange="saveTicket()">
         <option value="low">Low</option>
         <option value="medium">Medium</option>
         <option value="high">High</option>
@@ -91,30 +263,129 @@
     </div>
     <div class="subtasks">
       <h3>Subtasks</h3>
-      <div id="subtasksList"></div>
-      <button type="button" id="addSubtask">Add Subtask</button>
+      <div id="subtasksList" class="subtask-list"></div>
+      <button type="button" id="addSubtask" class="secondary">Add Subtask</button>
     </div>
-    <button type="submit">Save</button>
   </form>
 
   <script>
     const vscode = acquireVsCodeApi();
     let ticketId = null;
     let subtasks = [];
+    let currentTitle = '';
+    let currentDescription = '';
+    let originalTitle = '';
+    let originalDescription = '';
 
-    // Load ticket data
+    // Notify extension that webview is ready
+    vscode.postMessage({ type: 'webviewReady' });
+    console.log('Webview ready message sent');
+
     window.addEventListener('message', event => {
       const message = event.data;
+      console.log('Webview received message:', message);
       if (message.type === 'loadTicket') {
         ticketId = message.ticket.id;
-        document.getElementById('title').value = message.ticket.title || '';
-        document.getElementById('description').value = message.ticket.description || '';
+        currentTitle = message.ticket.title || '';
+        currentDescription = message.ticket.description || '';
+        console.log('Loaded ticket:', ticketId, 'title:', currentTitle, 'desc:', currentDescription);
         document.getElementById('type').value = message.ticket.type || 'task';
         document.getElementById('priority').value = message.ticket.priority || 'medium';
         subtasks = message.ticket.subtasks || [];
+        updateTitleDisplay();
+        updateDescriptionDisplay();
         renderSubtasks();
       }
     });
+
+    function updateTitleDisplay() {
+      const textEl = document.getElementById('titleText');
+      if (!currentTitle) {
+        textEl.textContent = 'Click to add title...';
+        textEl.classList.add('placeholder');
+      } else {
+        textEl.textContent = currentTitle;
+        textEl.classList.remove('placeholder');
+      }
+    }
+
+    function updateDescriptionDisplay() {
+      const textEl = document.getElementById('descriptionText');
+      if (!currentDescription) {
+        textEl.textContent = 'Click to add description...';
+        textEl.classList.add('placeholder');
+      } else {
+        textEl.textContent = currentDescription;
+        textEl.classList.remove('placeholder');
+      }
+    }
+
+    function editField(fieldName) {
+      const display = document.getElementById(`${fieldName}Display`);
+      const edit = document.getElementById(`${fieldName}Edit`);
+      const input = document.getElementById(`${fieldName}Input`);
+      
+      display.classList.add('hidden');
+      edit.classList.remove('hidden');
+      
+      if (fieldName === 'title') {
+        originalTitle = currentTitle;
+        input.value = currentTitle;
+      } else {
+        originalDescription = currentDescription;
+        input.value = currentDescription;
+      }
+      
+      input.focus();
+      input.select();
+    }
+
+    function acceptField(fieldName) {
+      const input = document.getElementById(`${fieldName}Input`);
+      const newValue = input.value.trim();
+      
+      if (fieldName === 'title') {
+        currentTitle = newValue;
+        updateTitleDisplay();
+      } else {
+        currentDescription = newValue;
+        updateDescriptionDisplay();
+      }
+      
+      exitEditMode(fieldName);
+      saveTicket();
+    }
+
+    function cancelField(fieldName) {
+      if (fieldName === 'title') {
+        currentTitle = originalTitle;
+      } else {
+        currentDescription = originalDescription;
+      }
+      exitEditMode(fieldName);
+    }
+
+    function exitEditMode(fieldName) {
+      const display = document.getElementById(`${fieldName}Display`);
+      const edit = document.getElementById(`${fieldName}Edit`);
+      
+      display.classList.remove('hidden');
+      edit.classList.add('hidden');
+    }
+
+    function saveTicket() {
+      console.log('Saving ticket, ticketId:', ticketId, 'title:', currentTitle, 'desc:', currentDescription);
+      const ticket = {
+        id: ticketId,
+        title: currentTitle,
+        description: currentDescription,
+        type: document.getElementById('type').value,
+        priority: document.getElementById('priority').value,
+        subtasks: subtasks
+      };
+      console.log('Sending saveTicket message:', ticket);
+      vscode.postMessage({ type: 'saveTicket', ticket });
+    }
 
     function renderSubtasks() {
       const list = document.getElementById('subtasksList');
@@ -122,9 +393,10 @@
       subtasks.forEach((subtask, index) => {
         const div = document.createElement('div');
         div.className = 'subtask';
+        const titleValue = (subtask.title || '').replace(/"/g, '&quot;');
         div.innerHTML = `
-          <input type="text" value="${subtask.title}" onchange="updateSubtask(${index}, this.value)">
-          <button type="button" onclick="removeSubtask(${index})">Remove</button>
+          <input type="text" value="${titleValue}" onchange="updateSubtask(${index}, this.value)" placeholder="Subtask title">
+          <button type="button" class="secondary" onclick="removeSubtask(${index})">Remove</button>
         `;
         list.appendChild(div);
       });
@@ -132,31 +404,24 @@
 
     function updateSubtask(index, title) {
       subtasks[index].title = title;
+      saveTicket();
     }
 
     function removeSubtask(index) {
       subtasks.splice(index, 1);
       renderSubtasks();
+      saveTicket();
     }
 
     document.getElementById('addSubtask').addEventListener('click', () => {
       subtasks.push({ title: '' });
       renderSubtasks();
+      saveTicket();
     });
 
     document.getElementById('ticketForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const ticket = {
-        id: ticketId,
-        title: document.getElementById('title').value,
-        description: document.getElementById('description').value,
-        type: document.getElementById('type').value,
-        priority: document.getElementById('priority').value,
-        subtasks: subtasks
-      };
-      vscode.postMessage({ type: 'saveTicket', ticket });
     });
   </script>
 </body>
-
 </html>

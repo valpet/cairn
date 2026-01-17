@@ -9,6 +9,7 @@
 
 ## Horizon Task Management Instructions
 As a GitHub Copilot agent, you MUST work task-based using Horizon CLI commands for all development work. This ensures long-horizon memory and prevents context overflow.
+CRITICAL: Whenever the developer wants something done, you MUST create a Horizon task for it, even for small changes. You MUST NOT make any code changes outside of a Horizon task.
 
 ### Initialization
 - Horizon has been initialized in this project. Use `horizon list --ready` to see available tasks.
