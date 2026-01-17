@@ -321,6 +321,62 @@
       border-bottom: 1px solid var(--vscode-panel-border);
     }
 
+    /* Column width distribution */
+    .task-grid colgroup col:nth-child(1) {
+      width: auto;
+      /* Title - shares remaining space */
+    }
+
+    .task-grid colgroup col:nth-child(2) {
+      width: auto;
+      /* Description - shares remaining space */
+    }
+
+    .task-grid colgroup col:nth-child(3) {
+      width: 120px;
+      /* Status - fixed narrow width */
+    }
+
+    .task-grid colgroup col:nth-child(4) {
+      width: 100px;
+      /* Priority - fixed narrow width */
+    }
+
+    .task-grid colgroup col:nth-child(5) {
+      width: 140px;
+      /* Actions - fixed narrow width */
+    }
+
+    .task-grid td {
+      padding: 12px 16px;
+      vertical-align: top;
+      position: relative;
+    }
+
+    /* Actions column uses middle alignment */
+    .task-grid td:nth-child(5) {
+      vertical-align: middle;
+    }
+
+    /* Make title and description cells share equally */
+    .task-grid td:nth-child(1),
+    .task-grid td:nth-child(2) {
+      width: 50%;
+    }
+
+    /* Border on row, not individual cells */
+    .task-row {
+      border-bottom: 1px solid var(--vscode-panel-border);
+    }
+
+    .child-row {
+      border-bottom: 1px solid var(--vscode-panel-border);
+    }
+
+    .hidden-children-row {
+      border-bottom: 1px solid var(--vscode-panel-border);
+    }
+
     .header-controls {
       display: flex;
       gap: 8px;
@@ -648,6 +704,7 @@
       display: flex;
       gap: 8px;
       justify-content: flex-start;
+      align-items: center;
     }
 
     .start-btn {
@@ -684,7 +741,7 @@
       background: none;
       border: none;
       cursor: pointer;
-      padding: 4px;
+      padding: 6px;
       border-radius: 3px;
       opacity: 0.7;
       transition: opacity 0.15s;
@@ -692,6 +749,8 @@
       align-items: center;
       justify-content: center;
       color: var(--vscode-foreground);
+      height: 28px;
+      width: 28px;
     }
 
     .edit-btn:hover {
@@ -704,6 +763,95 @@
       height: 16px;
     }
 
+    .delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 3px;
+      opacity: 0.7;
+      transition: opacity 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #f85149;
+      position: relative;
+      height: 28px;
+      width: 28px;
+    }
+
+    .delete-btn:hover {
+      opacity: 1;
+      background: rgba(248, 81, 73, 0.1);
+    }
+
+    .delete-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Delete Confirmation Popup */
+    .delete-confirm-popup {
+      position: absolute;
+      background-color: var(--vscode-dropdown-background);
+      border: 1px solid #f85149;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      padding: 12px;
+      z-index: 2000;
+      min-width: 220px;
+      display: none;
+    }
+
+    .delete-confirm-popup.visible {
+      display: block;
+    }
+
+    .delete-confirm-text {
+      color: var(--vscode-foreground);
+      font-size: 13px;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .delete-confirm-text strong {
+      color: #f85149;
+    }
+
+    .delete-confirm-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .delete-confirm-btn {
+      padding: 4px 12px;
+      border: none;
+      border-radius: 3px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .delete-confirm-btn.delete {
+      background-color: #f85149;
+      color: white;
+    }
+
+    .delete-confirm-btn.delete:hover {
+      background-color: #da3633;
+    }
+
+    .delete-confirm-btn.cancel {
+      background-color: var(--vscode-button-secondaryBackground);
+      color: var(--vscode-button-secondaryForeground);
+    }
+
+    .delete-confirm-btn.cancel:hover {
+      background-color: var(--vscode-button-secondaryHoverBackground);
+    }
+
     .child-row {
       background-color: var(--vscode-editor-background);
     }
@@ -714,13 +862,6 @@
       align-items: center;
       gap: 8px;
       min-height: 100%;
-    }
-
-    .task-grid td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--vscode-panel-border);
-      vertical-align: top;
-      position: relative;
     }
 
     .tree-line {
@@ -758,6 +899,19 @@
 
     .hidden-children-row {
       background-color: var(--vscode-panel-border);
+    }
+
+    .header-single-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .hidden-children-indicator {
@@ -1082,27 +1236,38 @@
       // Create header table (fixed)
       const headerTable = document.createElement('table');
       headerTable.className = 'task-grid task-grid-header';
+
+      // Add colgroup for consistent column widths
+      const colgroup = document.createElement('colgroup');
+      for (let i = 0; i < 5; i++) {
+        const col = document.createElement('col');
+        colgroup.appendChild(col);
+      }
+      headerTable.appendChild(colgroup);
+
       const thead = document.createElement('thead');
       const headerRow = document.createElement('tr');
       const titleHeader = document.createElement('th');
-      titleHeader.style.display = 'flex';
-      titleHeader.style.alignItems = 'center';
-      titleHeader.style.justifyContent = 'space-between';
+      titleHeader.colSpan = 5;
+      titleHeader.style.padding = '12px 16px';
 
-      const titleSection = document.createElement('div');
-      titleSection.style.display = 'flex';
-      titleSection.style.alignItems = 'center';
-      titleSection.style.gap = '10px';
+      const headerContainer = document.createElement('div');
+      headerContainer.className = 'header-single-row';
+
+      const leftSection = document.createElement('div');
+      leftSection.className = 'header-left';
 
       const filterIcon = document.createElement('span');
       filterIcon.innerHTML = '▼';
       filterIcon.style.fontSize = '10px';
+      filterIcon.style.opacity = '0.7';
 
       const titleText = document.createElement('span');
       titleText.textContent = 'Title';
+      titleText.style.fontWeight = '600';
 
-      titleSection.appendChild(filterIcon);
-      titleSection.appendChild(titleText);
+      leftSection.appendChild(filterIcon);
+      leftSection.appendChild(titleText);
 
       const controlsSection = document.createElement('div');
       controlsSection.className = 'header-controls';
@@ -1133,16 +1298,11 @@
       controlsSection.appendChild(collapseAllBtn);
       controlsSection.appendChild(createNewBtn);
 
-      titleHeader.appendChild(titleSection);
-      titleHeader.appendChild(controlsSection);
+      headerContainer.appendChild(leftSection);
+      headerContainer.appendChild(controlsSection);
+      titleHeader.appendChild(headerContainer);
 
       headerRow.appendChild(titleHeader);
-
-      ['Description', 'Status', 'Priority', 'Actions'].forEach(text => {
-        const th = document.createElement('th');
-        th.textContent = text;
-        headerRow.appendChild(th);
-      });
 
       thead.appendChild(headerRow);
       headerTable.appendChild(thead);
@@ -1155,6 +1315,14 @@
       // Create body table (scrollable)
       const bodyTable = document.createElement('table');
       bodyTable.className = 'task-grid task-grid-body';
+
+      // Add colgroup for consistent column widths
+      const bodyColgroup = document.createElement('colgroup');
+      for (let i = 0; i < 5; i++) {
+        const col = document.createElement('col');
+        bodyColgroup.appendChild(col);
+      }
+      bodyTable.appendChild(bodyColgroup);
 
       const tbody = document.createElement('tbody');
       renderTaskTreeGrid(taskTree, tbody, allTasks);
@@ -1346,6 +1514,17 @@
       editBtn.onclick = () => editTask(task.id);
       actionsCell.appendChild(editBtn);
 
+      // Delete button (always available)
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.title = 'Delete';
+      deleteBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L17.1991 18.0129C17.129 19.065 17.0939 19.5911 16.8667 19.99C16.6666 20.3412 16.3648 20.6235 16.0011 20.7998C15.588 21 15.0607 21 14.0062 21H9.99377C8.93927 21 8.41202 21 7.99889 20.7998C7.63517 20.6235 7.33339 20.3412 7.13332 19.99C6.90607 19.5911 6.871 19.065 6.80086 18.0129L6 6M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        showDeleteConfirmation(task.id, deleteBtn);
+      };
+      actionsCell.appendChild(deleteBtn);
+
       if (task.status === 'open') {
         const startBtn = document.createElement('button');
         startBtn.className = 'start-btn';
@@ -1527,6 +1706,81 @@
       } catch (error) {
         console.error('Error posting message:', error);
       }
+    }
+
+    let deleteConfirmPopup = null;
+
+    function showDeleteConfirmation(taskId, button) {
+      // Close any existing popup
+      if (deleteConfirmPopup) {
+        deleteConfirmPopup.remove();
+      }
+
+      // Create popup
+      const popup = document.createElement('div');
+      popup.className = 'delete-confirm-popup visible';
+
+      const task = allTasks.find(t => t.id === taskId);
+      const childCount = task?.children?.length || 0;
+
+      const textEl = document.createElement('div');
+      textEl.className = 'delete-confirm-text';
+      if (childCount > 0) {
+        textEl.innerHTML = `Delete <strong>${task.title}</strong>?<br><br>This will unparent ${childCount} subtask${childCount === 1 ? '' : 's'}.`;
+      } else {
+        textEl.innerHTML = `Delete <strong>${task.title}</strong>?`;
+      }
+
+      const buttonsEl = document.createElement('div');
+      buttonsEl.className = 'delete-confirm-buttons';
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'delete-confirm-btn cancel';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.onclick = () => {
+        popup.remove();
+        deleteConfirmPopup = null;
+      };
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-confirm-btn delete';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.onclick = () => {
+        popup.remove();
+        deleteConfirmPopup = null;
+        deleteTask(taskId);
+      };
+
+      buttonsEl.appendChild(cancelBtn);
+      buttonsEl.appendChild(deleteBtn);
+
+      popup.appendChild(textEl);
+      popup.appendChild(buttonsEl);
+
+      // Position popup relative to button
+      document.body.appendChild(popup);
+      const buttonRect = button.getBoundingClientRect();
+      popup.style.position = 'fixed';
+      popup.style.top = `${buttonRect.bottom + 4}px`;
+      popup.style.left = `${buttonRect.left - popup.offsetWidth + button.offsetWidth}px`;
+
+      deleteConfirmPopup = popup;
+
+      // Close popup when clicking outside
+      setTimeout(() => {
+        document.addEventListener('click', function closePopup(e) {
+          if (popup && !popup.contains(e.target) && e.target !== button) {
+            popup.remove();
+            deleteConfirmPopup = null;
+            document.removeEventListener('click', closePopup);
+          }
+        });
+      }, 0);
+    }
+
+    function deleteTask(taskId) {
+      console.log('Deleting task', taskId);
+      vscode.postMessage({ type: 'deleteTask', id: taskId });
     }
 
     // Function to update scrollable container height

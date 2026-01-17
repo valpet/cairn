@@ -179,6 +179,14 @@ export function activate(context: vscode.ExtensionContext) {
             } catch (error) {
               console.error('Error executing create command:', error);
             }
+          } else if (message.type === 'deleteTask') {
+            console.log('Delete task message received for:', message.id);
+            try {
+              await deleteTask(message.id);
+              console.log('Task deleted successfully');
+            } catch (error) {
+              console.error('Error deleting task:', error);
+            }
           }
         } catch (error) {
           console.error('Error handling webview message:', error);
@@ -422,6 +430,16 @@ export function activate(context: vscode.ExtensionContext) {
               // Error already logged and shown above
               console.error('Queued save operation failed:', error);
             });
+          } else if (message.type === 'deleteTask') {
+            console.log('Delete task message received from editor for:', message.id);
+            try {
+              await deleteTask(message.id);
+              console.log('Task deleted successfully from editor');
+              // Close the editor panel
+              panel.dispose();
+            } catch (error) {
+              console.error('Error deleting task from editor:', error);
+            }
           }
         } catch (error) {
           console.error('=== ERROR IN MESSAGE HANDLER ===');
@@ -483,6 +501,61 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() { }
+
+async function deleteTask(taskId: string): Promise<void> {
+  console.log('=== deleteTask CALLED ===', taskId);
+  try {
+    console.log('Loading issues...');
+    const issues = await storage.loadIssues();
+    console.log('Loaded', issues.length, 'issues');
+
+    // Find the task to delete
+    const taskToDelete = issues.find(i => i.id === taskId);
+    if (!taskToDelete) {
+      console.error('Task not found:', taskId);
+      throw new Error(`Task ${taskId} not found`);
+    }
+    console.log('Found task to delete:', taskToDelete.title);
+
+    // Get all subtasks (children) of this task
+    const subtasks = graph.getEpicSubtasks(taskId, issues);
+    console.log('Found', subtasks.length, 'subtasks');
+
+    // Remove parent-child dependencies for all subtasks
+    let updatedIssues = issues;
+    for (const subtask of subtasks) {
+      console.log('Removing dependency from subtask:', subtask.id);
+      updatedIssues = graph.removeDependency(subtask.id, taskId, updatedIssues);
+    }
+
+    // Remove the task itself
+    console.log('Filtering out task:', taskId);
+    updatedIssues = updatedIssues.filter(i => i.id !== taskId);
+    console.log('Updated issues count:', updatedIssues.length);
+
+    // Save the updated issues
+    console.log('Saving updated issues...');
+    await storage.updateIssues(() => updatedIssues);
+    console.log('Save complete');
+
+    const subtaskCount = subtasks.length;
+    if (subtaskCount > 0) {
+      vscode.window.showInformationMessage(
+        `Deleted task ${taskId} and unparented ${subtaskCount} subtask${subtaskCount === 1 ? '' : 's'}`
+      );
+    } else {
+      vscode.window.showInformationMessage(`Deleted task ${taskId}`);
+    }
+    console.log('=== deleteTask COMPLETE ===');
+  } catch (error) {
+    console.error('=== deleteTask ERROR ===');
+    const err = error as Error;
+    console.error('Error:', err.message);
+    console.error('Stack:', err.stack);
+    vscode.window.showErrorMessage(`Failed to delete task: ${err.message}`);
+    throw error;
+  }
+}
 
 function generateId(issues: any[]): string {
   const existingIds = new Set(issues.map(i => i.id));

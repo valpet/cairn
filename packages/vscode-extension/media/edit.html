@@ -567,6 +567,90 @@
       content: '♻️';
       font-size: 11px;
     }
+
+    /* Delete button and confirmation popup */
+    .delete-ticket-btn {
+      background-color: #f85149;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 2px;
+      cursor: pointer;
+      font-family: var(--vscode-font-family);
+      font-size: var(--vscode-font-size);
+      margin-top: 20px;
+      position: relative;
+    }
+
+    .delete-ticket-btn:hover {
+      background-color: #da3633;
+    }
+
+    .delete-ticket-btn:focus {
+      outline: 1px solid var(--vscode-focusBorder);
+      outline-offset: 2px;
+    }
+
+    .delete-confirm-popup {
+      position: absolute;
+      background-color: var(--vscode-dropdown-background);
+      border: 1px solid #f85149;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      padding: 12px;
+      z-index: 2000;
+      min-width: 220px;
+      display: none;
+    }
+
+    .delete-confirm-popup.visible {
+      display: block;
+    }
+
+    .delete-confirm-text {
+      color: var(--vscode-foreground);
+      font-size: 13px;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .delete-confirm-text strong {
+      color: #f85149;
+    }
+
+    .delete-confirm-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .delete-confirm-btn {
+      padding: 4px 12px;
+      border: none;
+      border-radius: 3px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .delete-confirm-btn.delete {
+      background-color: #f85149;
+      color: white;
+    }
+
+    .delete-confirm-btn.delete:hover {
+      background-color: #da3633;
+    }
+
+    .delete-confirm-btn.cancel {
+      background-color: var(--vscode-button-secondaryBackground);
+      color: var(--vscode-button-secondaryForeground);
+    }
+
+    .delete-confirm-btn.cancel:hover {
+      background-color: var(--vscode-button-secondaryHoverBackground);
+    }
   </style>
 </head>
 
@@ -655,6 +739,7 @@
       <div id="subtasksList" class="subtask-list"></div>
       <button type="button" id="addSubtask" class="secondary">Add Subtask</button>
     </div>
+    <button type="button" id="deleteTicket" class="delete-ticket-btn">Delete Ticket</button>
   </form>
 
   <!-- Subtask Selection Modal -->
@@ -1014,6 +1099,80 @@
         titleEl.textContent = `Select Subtasks (${count} selected)`;
       }
     }
+
+    // Delete functionality
+    let deleteConfirmPopup = null;
+
+    document.getElementById('deleteTicket').addEventListener('click', function (e) {
+      const button = e.target;
+
+      // Close any existing popup
+      if (deleteConfirmPopup) {
+        deleteConfirmPopup.remove();
+        deleteConfirmPopup = null;
+        return;
+      }
+
+      // Create popup
+      const popup = document.createElement('div');
+      popup.className = 'delete-confirm-popup visible';
+
+      const childCount = subtasks.length;
+
+      const textEl = document.createElement('div');
+      textEl.className = 'delete-confirm-text';
+      if (childCount > 0) {
+        textEl.innerHTML = `Delete <strong>${currentTitle}</strong>?<br><br>This will unparent ${childCount} subtask${childCount === 1 ? '' : 's'}.`;
+      } else {
+        textEl.innerHTML = `Delete <strong>${currentTitle}</strong>?`;
+      }
+
+      const buttonsEl = document.createElement('div');
+      buttonsEl.className = 'delete-confirm-buttons';
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'delete-confirm-btn cancel';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.onclick = () => {
+        popup.remove();
+        deleteConfirmPopup = null;
+      };
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-confirm-btn delete';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.onclick = () => {
+        popup.remove();
+        deleteConfirmPopup = null;
+        vscode.postMessage({ type: 'deleteTask', id: ticketId });
+      };
+
+      buttonsEl.appendChild(cancelBtn);
+      buttonsEl.appendChild(deleteBtn);
+
+      popup.appendChild(textEl);
+      popup.appendChild(buttonsEl);
+
+      // Position popup relative to button
+      document.body.appendChild(popup);
+      const buttonRect = button.getBoundingClientRect();
+      popup.style.position = 'fixed';
+      popup.style.top = `${buttonRect.top - popup.offsetHeight - 4}px`;
+      popup.style.left = `${buttonRect.left}px`;
+
+      deleteConfirmPopup = popup;
+
+      // Close popup when clicking outside
+      setTimeout(() => {
+        document.addEventListener('click', function closePopup(e) {
+          if (popup && !popup.contains(e.target) && e.target !== button) {
+            popup.remove();
+            deleteConfirmPopup = null;
+            document.removeEventListener('click', closePopup);
+          }
+        });
+      }, 0);
+    });
   </script>
 </body>
 
