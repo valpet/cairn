@@ -120,6 +120,34 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  context.subscriptions.push(
+    vscode.lm.registerTool('horizon_comment', {
+      invoke: async (options, token) => {
+        try {
+          const inputs = options.input as any;
+          const comment = await storage.addComment(inputs.issue_id, inputs.author || 'agent', inputs.content);
+          return { 
+            content: [{ 
+              type: 'text', 
+              text: JSON.stringify({ 
+                success: true, 
+                message: `Added comment to issue ${inputs.issue_id}`, 
+                comment: {
+                  id: comment.id,
+                  author: comment.author,
+                  created_at: comment.created_at
+                }
+              }) 
+            }] 
+          };
+        } catch (error) {
+          const err = error as Error;
+          return { content: [{ type: 'text', text: JSON.stringify({ success: false, message: `Error adding comment: ${err.message}` }) }] };
+        }
+      }
+    })
+  );
+
   // Register command to open task list webview
   context.subscriptions.push(
     vscode.commands.registerCommand('horizon.openTaskList', async () => {
@@ -349,6 +377,7 @@ export function activate(context: vscode.ExtensionContext) {
                         ...issue,
                         title: ticketData.title,
                         description: ticketData.description,
+                        comments: ticketData.comments,
                         type: ticketData.type,
                         priority: ticketData.priority,
                         updated_at: now
@@ -439,6 +468,20 @@ export function activate(context: vscode.ExtensionContext) {
               panel.dispose();
             } catch (error) {
               console.error('Error deleting task from editor:', error);
+            }
+          } else if (message.type === 'addComment') {
+            console.log('Add comment message received:', message);
+            try {
+              const comment = await storage.addComment(message.issueId, message.author, message.content);
+              console.log('Comment added successfully:', comment);
+              // Send the comment back to the webview
+              panel.webview.postMessage({
+                type: 'commentAdded',
+                comment: comment
+              });
+            } catch (error) {
+              console.error('Error adding comment:', error);
+              vscode.window.showErrorMessage(`Failed to add comment: ${error instanceof Error ? error.message : String(error)}`);
             }
           }
         } catch (error) {

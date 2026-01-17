@@ -13,15 +13,23 @@ export interface Issue {
   updated_at: string;
   closed_at?: string;
   design?: string;
-  notes?: string;
+  notes?: string; // deprecated: use comments instead
+  comments?: Comment[];
   acceptance_criteria?: string[];
+}
+
+export interface Comment {
+  id: string;
+  author: string;
+  content: string;
+  created_at: string;
 }
 
 export type IssueStatus = 'open' | 'in_progress' | 'closed' | 'blocked';
 
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
-export type IssueType = 'epic' | 'feature' | 'task' | 'bug';
+export type IssueType = 'epic' | 'feature' | 'task' | 'bug' | 'chore' | 'docs' | 'refactor';
 
 export interface Dependency {
   id: string;

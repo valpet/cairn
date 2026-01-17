@@ -705,6 +705,110 @@
       gap: 8px;
       justify-content: flex-start;
       align-items: center;
+      position: relative;
+    }
+
+    .kebab-menu-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 3px;
+      opacity: 0.7;
+      transition: opacity 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--vscode-foreground);
+      height: 28px;
+      width: 28px;
+      position: relative;
+    }
+
+    .kebab-menu-btn:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .kebab-menu-btn.active {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .kebab-icon {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .kebab-icon span {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background-color: currentColor;
+    }
+
+    .action-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      min-width: 160px;
+      background-color: var(--vscode-dropdown-background);
+      border: 1px solid var(--vscode-dropdown-border);
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      padding: 4px 0;
+      display: none;
+      margin-top: 4px;
+    }
+
+    .action-dropdown.visible {
+      display: block;
+    }
+
+    .action-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background-color 0.1s;
+      color: var(--vscode-foreground);
+    }
+
+    .action-dropdown-item:hover {
+      background-color: var(--vscode-list-hoverBackground);
+    }
+
+    .action-dropdown-item.danger {
+      color: #f85149;
+    }
+
+    .action-dropdown-item.danger:hover {
+      background-color: rgba(248, 81, 73, 0.1);
+    }
+
+    .action-dropdown-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .action-dropdown-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .action-dropdown-divider {
+      height: 1px;
+      background-color: var(--vscode-dropdown-border);
+      margin: 4px 0;
     }
 
     .start-btn {
@@ -1506,38 +1610,17 @@
       const actionsCell = document.createElement('td');
       actionsCell.className = 'task-actions';
 
-      // Edit button (always available)
-      const editBtn = document.createElement('button');
-      editBtn.className = 'edit-btn';
-      editBtn.title = 'Edit';
-      editBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11 4H7.2C6.0799 4 5.51984 4 5.09202 4.21799C4.71569 4.40974 4.40973 4.7157 4.21799 5.09202C4 5.51985 4 6.0799 4 7.2V16.8C4 17.9201 4 18.4802 4.21799 18.908C4.40973 19.2843 4.71569 19.5903 5.09202 19.782C5.51984 20 6.0799 20 7.2 20H16.8C17.9201 20 18.4802 20 18.908 19.782C19.2843 19.5903 19.5903 19.2843 19.782 18.908C20 18.4802 20 17.9201 20 16.8V12.5M15.5 5.5L18.3284 8.32843M10.7627 10.2373L17.411 3.58902C18.192 2.80797 19.4584 2.80797 20.2394 3.58902C21.0205 4.37007 21.0205 5.6364 20.2394 6.41745L13.3774 13.2794C12.6158 14.0411 12.235 14.4219 11.8012 14.7247C11.4162 14.9936 11.0009 15.2162 10.564 15.3882C10.0717 15.582 9.54378 15.6885 8.48793 15.9016L8 16L8.04745 15.6678C8.21536 14.4925 8.29932 13.9048 8.49029 13.3561C8.65975 12.8692 8.89125 12.4063 9.17906 11.9786C9.50341 11.4966 9.92319 11.0768 10.7627 10.2373Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>';
-      editBtn.onclick = () => editTask(task.id);
-      actionsCell.appendChild(editBtn);
-
-      // Delete button (always available)
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'delete-btn';
-      deleteBtn.title = 'Delete';
-      deleteBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L17.1991 18.0129C17.129 19.065 17.0939 19.5911 16.8667 19.99C16.6666 20.3412 16.3648 20.6235 16.0011 20.7998C15.588 21 15.0607 21 14.0062 21H9.99377C8.93927 21 8.41202 21 7.99889 20.7998C7.63517 20.6235 7.33339 20.3412 7.13332 19.99C6.90607 19.5911 6.871 19.065 6.80086 18.0129L6 6M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-      deleteBtn.onclick = (e) => {
+      // Kebab menu button
+      const kebabBtn = document.createElement('button');
+      kebabBtn.className = 'kebab-menu-btn';
+      kebabBtn.title = 'Actions';
+      kebabBtn.innerHTML = '<div class="kebab-icon"><span></span><span></span><span></span></div>';
+      kebabBtn.onclick = (e) => {
         e.stopPropagation();
-        showDeleteConfirmation(task.id, deleteBtn);
+        toggleActionDropdown(task.id, kebabBtn);
       };
-      actionsCell.appendChild(deleteBtn);
+      actionsCell.appendChild(kebabBtn);
 
-      if (task.status === 'open') {
-        const startBtn = document.createElement('button');
-        startBtn.className = 'start-btn';
-        startBtn.textContent = 'Start';
-        startBtn.onclick = () => startTask(task.id);
-        actionsCell.appendChild(startBtn);
-      } else if (task.status === 'in_progress') {
-        const completeBtn = document.createElement('button');
-        completeBtn.className = 'complete-btn';
-        completeBtn.textContent = 'Complete';
-        completeBtn.onclick = () => completeTask(task.id);
-        actionsCell.appendChild(completeBtn);
-      }
       tr.appendChild(actionsCell);
 
       return tr;
@@ -1709,6 +1792,129 @@
     }
 
     let deleteConfirmPopup = null;
+    let activeActionDropdown = null;
+
+    function toggleActionDropdown(taskId, button) {
+      // Close any existing dropdown
+      if (activeActionDropdown) {
+        activeActionDropdown.remove();
+        if (activeActionDropdown.taskId === taskId) {
+          activeActionDropdown = null;
+          button.classList.remove('active');
+          return;
+        }
+        activeActionDropdown = null;
+      }
+
+      // Remove active state from all kebab buttons
+      document.querySelectorAll('.kebab-menu-btn').forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      // Create dropdown
+      const dropdown = document.createElement('div');
+      dropdown.className = 'action-dropdown visible';
+      dropdown.taskId = taskId;
+
+      const task = allTasks.find(t => t.id === taskId);
+
+      // Edit action
+      const editItem = document.createElement('div');
+      editItem.className = 'action-dropdown-item';
+      editItem.innerHTML = `
+        <div class="action-dropdown-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11 4H7.2C6.0799 4 5.51984 4 5.09202 4.21799C4.71569 4.40974 4.40973 4.7157 4.21799 5.09202C4 5.51985 4 6.0799 4 7.2V16.8C4 17.9201 4 18.4802 4.21799 18.908C4.40973 19.2843 4.71569 19.5903 5.09202 19.782C5.51984 20 6.0799 20 7.2 20H16.8C17.9201 20 18.4802 20 18.908 19.782C19.2843 19.5903 19.5903 19.2843 19.782 18.908C20 18.4802 20 17.9201 20 16.8V12.5M15.5 5.5L18.3284 8.32843M10.7627 10.2373L17.411 3.58902C18.192 2.80797 19.4584 2.80797 20.2394 3.58902C21.0205 4.37007 21.0205 5.6364 20.2394 6.41745L13.3774 13.2794C12.6158 14.0411 12.235 14.4219 11.8012 14.7247C11.4162 14.9936 11.0009 15.2162 10.564 15.3882C10.0717 15.582 9.54378 15.6885 8.48793 15.9016L8 16L8.04745 15.6678C8.21536 14.4925 8.29932 13.9048 8.49029 13.3561C8.65975 12.8692 8.89125 12.4063 9.17906 11.9786C9.50341 11.4966 9.92319 11.0768 10.7627 10.2373Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span>Edit</span>
+      `;
+      editItem.onclick = () => {
+        dropdown.remove();
+        activeActionDropdown = null;
+        button.classList.remove('active');
+        editTask(taskId);
+      };
+      dropdown.appendChild(editItem);
+
+      // Status progression actions
+      if (task.status === 'open') {
+        const startItem = document.createElement('div');
+        startItem.className = 'action-dropdown-item';
+        startItem.innerHTML = `
+          <div class="action-dropdown-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 5v14l11-7z" fill="currentColor"/>
+            </svg>
+          </div>
+          <span>Start Task <span style="opacity: 0.6; font-size: 12px;">(Open → In Progress)</span></span>
+        `;
+        startItem.onclick = () => {
+          dropdown.remove();
+          activeActionDropdown = null;
+          button.classList.remove('active');
+          startTask(taskId);
+        };
+        dropdown.appendChild(startItem);
+      } else if (task.status === 'in_progress') {
+        const completeItem = document.createElement('div');
+        completeItem.className = 'action-dropdown-item';
+        completeItem.innerHTML = `
+          <div class="action-dropdown-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span>Complete Task <span style="opacity: 0.6; font-size: 12px;">(In Progress → Closed)</span></span>
+        `;
+        completeItem.onclick = () => {
+          dropdown.remove();
+          activeActionDropdown = null;
+          button.classList.remove('active');
+          completeTask(taskId);
+        };
+        dropdown.appendChild(completeItem);
+      }
+
+      // Divider
+      const divider = document.createElement('div');
+      divider.className = 'action-dropdown-divider';
+      dropdown.appendChild(divider);
+
+      // Delete action
+      const deleteItem = document.createElement('div');
+      deleteItem.className = 'action-dropdown-item danger';
+      deleteItem.innerHTML = `
+        <div class="action-dropdown-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L17.1991 18.0129C17.129 19.065 17.0939 19.5911 16.8667 19.99C16.6666 20.3412 16.3648 20.6235 16.0011 20.7998C15.588 21 15.0607 21 14.0062 21H9.99377C8.93927 21 8.41202 21 7.99889 20.7998C7.63517 20.6235 7.33339 20.3412 7.13332 19.99C6.90607 19.5911 6.871 19.065 6.80086 18.0129L6 6M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span>Delete</span>
+      `;
+      deleteItem.onclick = (e) => {
+        dropdown.remove();
+        activeActionDropdown = null;
+        button.classList.remove('active');
+        showDeleteConfirmation(taskId, button);
+      };
+      dropdown.appendChild(deleteItem);
+
+      // Position dropdown relative to button
+      button.parentElement.appendChild(dropdown);
+      activeActionDropdown = dropdown;
+
+      // Close dropdown when clicking outside
+      setTimeout(() => {
+        document.addEventListener('click', function closeDropdown(e) {
+          if (dropdown && !dropdown.contains(e.target) && e.target !== button && !button.contains(e.target)) {
+            dropdown.remove();
+            activeActionDropdown = null;
+            button.classList.remove('active');
+            document.removeEventListener('click', closeDropdown);
+          }
+        });
+      }, 0);
+    }
 
     function showDeleteConfirmation(taskId, button) {
       // Close any existing popup

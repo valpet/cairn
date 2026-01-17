@@ -334,6 +334,23 @@ program
     console.log('Update with: horizon update <id> -n "Review notes" -c "Criteria met"');
   });
 
+// Comment command
+program
+  .command('comment <id> <message>')
+  .description('Add a comment to an issue')
+  .option('-a, --author <author>', 'Comment author', 'user')
+  .action(async (id, message, options) => {
+    const { storage } = setupServices();
+    const issues = await storage.loadIssues();
+    const issue = issues.find(i => i.id === id);
+    if (!issue) {
+      console.error(`Issue ${id} not found`);
+      return;
+    }
+    const comment = await storage.addComment(id, options.author, message);
+    console.log(`Added comment to ${id} by ${comment.author}`);
+  });
+
 program.parse();
 
 function generateId(issues: any[]): string {

@@ -217,4 +217,69 @@ describe('StorageService', () => {
       expect(issues).toHaveLength(1);
     });
   });
+
+  describe('Comment management', () => {
+    it('should add a comment to an issue', async () => {
+      const issue = {
+        id: 'test-1',
+        title: 'Test Issue',
+        status: 'open' as const,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+      };
+
+      await storage.saveIssue(issue);
+      const comment = await storage.addComment('test-1', 'agent', 'This is a test comment');
+
+      expect(comment.id).toBeTruthy();
+      expect(comment.author).toBe('agent');
+      expect(comment.content).toBe('This is a test comment');
+      expect(comment.created_at).toBeTruthy();
+
+      const issues = await storage.loadIssues();
+      expect(issues[0].comments).toHaveLength(1);
+      expect(issues[0].comments![0]).toEqual(comment);
+    });
+
+    it('should add multiple comments to an issue', async () => {
+      const issue = {
+        id: 'test-1',
+        title: 'Test Issue',
+        status: 'open' as const,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+      };
+
+      await storage.saveIssue(issue);
+      await storage.addComment('test-1', 'user', 'First comment');
+      await storage.addComment('test-1', 'agent', 'Second comment');
+      await storage.addComment('test-1', 'user', 'Third comment');
+
+      const issues = await storage.loadIssues();
+      expect(issues[0].comments).toHaveLength(3);
+      expect(issues[0].comments![0].content).toBe('First comment');
+      expect(issues[0].comments![1].content).toBe('Second comment');
+      expect(issues[0].comments![2].content).toBe('Third comment');
+    });
+
+    it('should update issue timestamp when adding comment', async () => {
+      const issue = {
+        id: 'test-1',
+        title: 'Test Issue',
+        status: 'open' as const,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+      };
+
+      await storage.saveIssue(issue);
+      const beforeUpdate = issue.updated_at;
+
+      // Wait a tiny bit to ensure timestamp difference
+      await new Promise(resolve => setTimeout(resolve, 10));
+      await storage.addComment('test-1', 'agent', 'Test comment');
+
+      const issues = await storage.loadIssues();
+      expect(issues[0].updated_at).not.toBe(beforeUpdate);
+    });
+  });
 });

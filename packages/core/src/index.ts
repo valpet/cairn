@@ -8,6 +8,7 @@ export * from './container';
 // Explicit re-exports to ensure named exports are available for bundlers and TypeScript declaration generation
 export {
   Issue,
+  Comment,
   Dependency,
   IssueStatus,
   IssueType,

@@ -1,12 +1,14 @@
 import { injectable, inject } from 'inversify';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Issue } from './types';
+import { nanoid } from 'nanoid';
+import { Issue, Comment } from './types';
 
 export interface IStorageService {
   loadIssues(): Promise<Issue[]>;
   saveIssue(issue: Issue): Promise<void>;
   updateIssues(updater: (issues: Issue[]) => Issue[]): Promise<void>;
+  addComment(issueId: string, author: string, content: string): Promise<Comment>;
   getIssuesFilePath(): string;
 }
 
@@ -93,6 +95,31 @@ export class StorageService implements IStorageService {
 
   getIssuesFilePath(): string {
     return this.issuesFilePath;
+  }
+
+  async addComment(issueId: string, author: string, content: string): Promise<Comment> {
+    const comment: Comment = {
+      id: nanoid(10),
+      author,
+      content,
+      created_at: new Date().toISOString()
+    };
+
+    await this.updateIssues(issues => {
+      return issues.map(issue => {
+        if (issue.id === issueId) {
+          const comments = issue.comments || [];
+          return {
+            ...issue,
+            comments: [...comments, comment],
+            updated_at: new Date().toISOString()
+          };
+        }
+        return issue;
+      });
+    });
+
+    return comment;
   }
 
   private async withLock<T>(operation: () => Promise<T>): Promise<T> {

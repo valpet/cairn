@@ -651,6 +651,111 @@
     .delete-confirm-btn.cancel:hover {
       background-color: var(--vscode-button-secondaryHoverBackground);
     }
+
+    /* Comments section */
+    .comments-section {
+      margin-top: 24px;
+      padding: 16px;
+      background-color: var(--vscode-editor-inactiveSelectionBackground);
+      border-radius: 4px;
+      border: 1px solid var(--vscode-widget-border);
+    }
+
+    .comments-header {
+      margin: 0 0 16px 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .comments-thread {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .comment-item {
+      padding: 12px;
+      background-color: var(--vscode-editor-background);
+      border-radius: 4px;
+      border-left: 3px solid var(--vscode-focusBorder);
+    }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .comment-author {
+      font-weight: 600;
+      color: var(--vscode-foreground);
+    }
+
+    .comment-author.agent {
+      color: #58a6ff;
+    }
+
+    .comment-timestamp {
+      color: var(--vscode-descriptionForeground);
+      font-size: 11px;
+    }
+
+    .comment-content {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--vscode-editor-foreground);
+    }
+
+    .comments-empty {
+      color: var(--vscode-input-placeholderForeground);
+      font-style: italic;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .add-comment-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px solid var(--vscode-widget-border);
+      padding-top: 12px;
+    }
+
+    .add-comment-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .add-comment-header label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    #commentAuthor {
+      width: 150px;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    #commentInput {
+      width: 100%;
+      min-height: 80px;
+      padding: 8px;
+      font-family: var(--vscode-editor-font-family);
+      font-size: 13px;
+      resize: vertical;
+    }
+
+    .add-comment-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
   </style>
 </head>
 
@@ -734,6 +839,22 @@
         <option value="urgent">Urgent</option>
       </select>
     </div>
+    <div class="comments-section">
+      <h3 class="comments-header">Comments</h3>
+      <div class="comments-thread" id="commentsThread">
+        <div class="comments-empty">No comments yet. Add a comment below to start the conversation.</div>
+      </div>
+      <div class="add-comment-form">
+        <div class="add-comment-header">
+          <label for="commentAuthor">Author:</label>
+          <input type="text" id="commentAuthor" placeholder="your-name or agent" value="user" />
+        </div>
+        <textarea id="commentInput" placeholder="Add a comment..."></textarea>
+        <div class="add-comment-actions">
+          <button type="button" id="addCommentBtn">Add Comment</button>
+        </div>
+      </div>
+    </div>
     <div class="subtasks">
       <h3>Subtasks</h3>
       <div id="subtasksList" class="subtask-list"></div>
@@ -768,6 +889,7 @@
     let currentDescription = '';
     let originalTitle = '';
     let originalDescription = '';
+    let comments = [];
     let availableSubtasks = [];
     let selectedSubtaskIds = new Set();
 
@@ -808,18 +930,23 @@
         ticketId = message.ticket.id;
         currentTitle = message.ticket.title || '';
         currentDescription = message.ticket.description || '';
+        comments = message.ticket.comments || [];
         console.log('Loaded ticket:', ticketId, 'title:', currentTitle, 'desc:', currentDescription);
         document.getElementById('type').value = message.ticket.type || 'task';
         document.getElementById('priority').value = message.ticket.priority || 'medium';
         subtasks = message.ticket.subtasks || [];
         updateTitleDisplay();
         updateDescriptionDisplay();
+        renderComments();
         renderSubtasks();
       } else if (message.type === 'availableSubtasks') {
         availableSubtasks = message.subtasks;
         renderAvailableSubtasks();
         document.getElementById('subtaskModal').classList.remove('hidden');
         document.getElementById('subtaskSearch').focus();
+      } else if (message.type === 'commentAdded') {
+        comments.push(message.comment);
+        renderComments();
       }
     });
 
@@ -904,6 +1031,7 @@
         id: ticketId,
         title: currentTitle,
         description: currentDescription,
+        comments: comments,
         type: document.getElementById('type').value,
         priority: document.getElementById('priority').value,
         subtasks: subtasks
@@ -1099,6 +1227,83 @@
         titleEl.textContent = `Select Subtasks (${count} selected)`;
       }
     }
+
+    // Comment thread functions
+    function renderComments() {
+      const thread = document.getElementById('commentsThread');
+      thread.innerHTML = '';
+
+      if (!comments || comments.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'comments-empty';
+        empty.textContent = 'No comments yet. Add a comment below to start the conversation.';
+        thread.appendChild(empty);
+        return;
+      }
+
+      comments.forEach(comment => {
+        const item = document.createElement('div');
+        item.className = 'comment-item';
+
+        const header = document.createElement('div');
+        header.className = 'comment-header';
+
+        const author = document.createElement('span');
+        author.className = `comment-author ${comment.author === 'agent' ? 'agent' : ''}`;
+        author.textContent = comment.author;
+
+        const timestamp = document.createElement('span');
+        timestamp.className = 'comment-timestamp';
+        timestamp.textContent = formatTimestamp(comment.created_at);
+
+        header.appendChild(author);
+        header.appendChild(document.createTextNode('•'));
+        header.appendChild(timestamp);
+
+        const content = document.createElement('div');
+        content.className = 'comment-content';
+        content.textContent = comment.content;
+
+        item.appendChild(header);
+        item.appendChild(content);
+        thread.appendChild(item);
+      });
+    }
+
+    function formatTimestamp(isoString) {
+      const date = new Date(isoString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      if (diffMins < 1) return 'just now';
+      if (diffMins < 60) return `${diffMins} min${diffMins === 1 ? '' : 's'} ago`;
+      if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+      if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+      return date.toLocaleDateString();
+    }
+
+    document.getElementById('addCommentBtn').addEventListener('click', () => {
+      const input = document.getElementById('commentInput');
+      const authorInput = document.getElementById('commentAuthor');
+      const content = input.value.trim();
+      const author = authorInput.value.trim() || 'user';
+
+      if (!content) return;
+
+      // Send message to extension to add comment
+      vscode.postMessage({
+        type: 'addComment',
+        issueId: ticketId,
+        author: author,
+        content: content
+      });
+
+      // Clear input
+      input.value = '';
+    });
 
     // Delete functionality
     let deleteConfirmPopup = null;
