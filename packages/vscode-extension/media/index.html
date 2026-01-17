@@ -500,9 +500,20 @@
       color: var(--vscode-foreground);
     }
 
-    .description-content.expanded h1 { font-size: 16px; font-weight: 600; }
-    .description-content.expanded h2 { font-size: 14px; font-weight: 600; }
-    .description-content.expanded h3 { font-size: 13px; font-weight: 600; }
+    .description-content.expanded h1 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .description-content.expanded h2 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .description-content.expanded h3 {
+      font-size: 13px;
+      font-weight: 600;
+    }
 
     .description-content.expanded p {
       margin: 4px 0;
@@ -737,28 +748,28 @@
     // Simple markdown to HTML converter
     function markdownToHtml(markdown) {
       let html = markdown;
-      
+
       // Code blocks (before inline code)
       html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
-      
+
       // Headers
       html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
       html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
       html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-      
+
       // Bold
       html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      
+
       // Italic
       html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-      
+
       // Inline code
       html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-      
+
       // Unordered lists
       html = html.replace(/^- (.+)$/gim, '<li>$1</li>');
       html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-      
+
       // Paragraphs (split by double newlines)
       const parts = html.split('\n\n');
       html = parts.map(part => {
@@ -769,7 +780,7 @@
         }
         return '<p>' + part.replace(/\n/g, '<br>') + '</p>';
       }).join('\n');
-      
+
       return html;
     }
 
@@ -1161,7 +1172,7 @@
       descriptionCell.className = 'description-cell';
       const descriptionContent = document.createElement('div');
       const isDescExpanded = expandedDescriptions.has(task.id);
-      
+
       if (task.description && task.description.trim()) {
         descriptionContent.className = `description-content ${isDescExpanded ? 'expanded' : 'collapsed'}`;
         if (isDescExpanded) {
