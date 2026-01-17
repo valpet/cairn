@@ -4,7 +4,7 @@
   "publisher": "local",
   "description": "VS Code extension for Horizon task management tools",
   "repository": "https://github.com/valpet/horizon",
-  "main": "dist/extension.js",
+  "main": "dist/src/extension.js",
   "scripts": {
     "build": "tsc",
     "test": "vitest --run --passWithNoTests",
@@ -20,6 +20,8 @@
   },
   "activationEvents": [
     "onCommand:horizon.openTaskList",
+    "onCommand:horizon.editTicket",
+    "onCommand:horizon.createTicket",
     "onLanguageModelTool:horizon_create",
     "onLanguageModelTool:horizon_list_ready",
     "onLanguageModelTool:horizon_update",
@@ -30,6 +32,14 @@
       {
         "command": "horizon.openTaskList",
         "title": "Open Horizon Task List"
+      },
+      {
+        "command": "horizon.editTicket",
+        "title": "Edit Ticket"
+      },
+      {
+        "command": "horizon.createTicket",
+        "title": "Create New Ticket"
       }
     ],
     "languageModelTools": [

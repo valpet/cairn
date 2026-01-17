@@ -128,17 +128,74 @@ export function activate(context: vscode.ExtensionContext) {
   // Register command to open task list webview
   context.subscriptions.push(
     vscode.commands.registerCommand('horizon.openTaskList', async () => {
+      console.log('=== Creating task list panel ===');
       const panel = vscode.window.createWebviewPanel(
         'horizonTaskList',
         'Horizon Task List',
         vscode.ViewColumn.One,
         {
           enableScripts: true,
+          retainContextWhenHidden: true,
           localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
         }
       );
+      console.log('=== Panel created ===');
+
+      // Handle messages from webview - MUST BE SET UP BEFORE HTML IS LOADED
+      console.log('=== Registering message handler ===');
+      const disposable = panel.webview.onDidReceiveMessage(async (message) => {
+        console.log('=== MESSAGE RECEIVED ===', message);
+        console.log('Message type:', message.type);
+        console.log('Message id:', message.id);
+        try {
+          if (message.type === 'startTask') {
+            console.log('Starting task:', message.id);
+            await storage.updateIssues(issues => {
+              return issues.map(issue => {
+                if (issue.id === message.id) {
+                  return { ...issue, status: 'in_progress', updated_at: new Date().toISOString() };
+                }
+                return issue;
+              });
+            });
+            await git.commitChanges(`Start task ${message.id}`);
+          } else if (message.type === 'completeTask') {
+            console.log('Completing task:', message.id);
+            await storage.updateIssues(issues => {
+              return issues.map(issue => {
+                if (issue.id === message.id) {
+                  return { ...issue, status: 'closed', updated_at: new Date().toISOString(), closed_at: new Date().toISOString() };
+                }
+                return issue;
+              });
+            });
+            await git.commitChanges(`Complete task ${message.id}`);
+          } else if (message.type === 'editTicket') {
+            console.log('Edit ticket message received for:', message.id);
+            try {
+              await vscode.commands.executeCommand('horizon.editTicket', message.id);
+              console.log('Edit command executed successfully');
+            } catch (error) {
+              console.error('Error executing edit command:', error);
+            }
+          } else if (message.type === 'createTicket') {
+            console.log('Create ticket message received');
+            try {
+              await vscode.commands.executeCommand('horizon.createTicket');
+              console.log('Create command executed successfully');
+            } catch (error) {
+              console.error('Error executing create command:', error);
+            }
+          }
+        } catch (error) {
+          console.error('Error handling webview message:', error);
+        }
+      });
+      console.log('=== Message handler registered ===');
+      context.subscriptions.push(disposable);
 
       // Load HTML
+      console.log('=== Loading HTML ===');
       const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'index.html'));
       const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
       panel.webview.html = htmlContent;
@@ -176,32 +233,220 @@ export function activate(context: vscode.ExtensionContext) {
         }
       });
 
+      // Clean up watcher on panel disposal
+      panel.onDidDispose(() => {
+        watcher.close();
+      });
+    })
+  );
+
+  // Register command to edit a ticket
+  context.subscriptions.push(
+    vscode.commands.registerCommand('horizon.editTicket', async (id: string) => {
+      const panel = vscode.window.createWebviewPanel(
+        'horizonEditTicket',
+        'Edit Ticket',
+        vscode.ViewColumn.Beside,
+        {
+          enableScripts: true,
+          localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
+        }
+      );
+
+      // Load HTML
+      const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'edit.html'));
+      const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
+      panel.webview.html = htmlContent;
+
+      // Load ticket data
+      const loadTicket = async () => {
+        try {
+          const issues = await storage.loadIssues();
+          const ticket = issues.find(i => i.id === id);
+          if (ticket) {
+            // Get subtasks
+            const subtasks = graph.getEpicSubtasks(id, issues).map(s => ({ id: s.id, title: s.title }));
+            panel.webview.postMessage({
+              type: 'loadTicket',
+              ticket: {
+                ...ticket,
+                subtasks
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Error loading ticket:', error);
+        }
+      };
+
+      await loadTicket();
+
       // Handle messages from webview
       panel.webview.onDidReceiveMessage(async (message) => {
         try {
-          if (message.type === 'startTask') {
-            await storage.updateIssues(issues => {
-              return issues.map(issue => {
-                if (issue.id === message.id) {
-                  return { ...issue, status: 'in_progress', updated_at: new Date().toISOString() };
-                }
-                return issue;
+          if (message.type === 'saveTicket') {
+            const ticketData = message.ticket;
+            const issues = await storage.loadIssues();
+            if (ticketData.id) {
+              // Update existing
+              await storage.updateIssues(issues => {
+                return issues.map(issue => {
+                  if (issue.id === ticketData.id) {
+                    return {
+                      ...issue,
+                      title: ticketData.title,
+                      description: ticketData.description,
+                      type: ticketData.type,
+                      priority: ticketData.priority,
+                      updated_at: new Date().toISOString()
+                    };
+                  }
+                  return issue;
+                });
               });
-            });
-            await git.commitChanges(`Start task ${message.id}`);
-          } else if (message.type === 'completeTask') {
-            await storage.updateIssues(issues => {
-              return issues.map(issue => {
-                if (issue.id === message.id) {
-                  return { ...issue, status: 'closed', updated_at: new Date().toISOString(), closed_at: new Date().toISOString() };
+              // Handle subtasks
+              const currentSubtasks = graph.getEpicSubtasks(ticketData.id, issues);
+              const currentIds = new Set(currentSubtasks.map(s => s.id));
+              const newSubtasks = ticketData.subtasks as { id?: string; title: string }[];
+              const newIds = new Set(newSubtasks.filter(s => s.id).map(s => s.id!));
+              // Remove dependencies for removed subtasks
+              for (const subId of currentIds) {
+                if (!newIds.has(subId)) {
+                  await storage.updateIssues(iss => graph.removeDependency(subId, ticketData.id, iss));
                 }
-                return issue;
-              });
-            });
-            await git.commitChanges(`Complete task ${message.id}`);
+              }
+              // Update or add subtasks
+              for (const sub of newSubtasks) {
+                if (sub.id) {
+                  // Update title
+                  await storage.updateIssues(iss => {
+                    return iss.map(issue => {
+                      if (issue.id === sub.id) {
+                        return { ...issue, title: sub.title, updated_at: new Date().toISOString() };
+                      }
+                      return issue;
+                    });
+                  });
+                } else {
+                  // Create new
+                  const newSubId = generateId(issues);
+                  const newSub = {
+                    id: newSubId,
+                    title: sub.title,
+                    description: '',
+                    type: 'task' as const,
+                    status: 'open' as const,
+                    priority: 'medium' as const,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                  };
+                  await storage.saveIssue(newSub);
+                  await storage.updateIssues(iss => graph.addDependency(newSubId, ticketData.id, 'parent-child', iss));
+                }
+              }
+              await git.commitChanges(`Update ticket ${ticketData.id}`);
+            } else {
+              // Create new
+              const newId = generateId(issues);
+              const newTicket = {
+                id: newId,
+                title: ticketData.title,
+                description: ticketData.description,
+                type: ticketData.type,
+                status: 'open' as const,
+                priority: ticketData.priority,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              };
+              await storage.saveIssue(newTicket);
+              // Handle subtasks for new ticket
+              const newSubtasks = ticketData.subtasks as { id?: string; title: string }[];
+              for (const sub of newSubtasks) {
+                const newSubId = generateId([...issues, newTicket]);
+                const newSub = {
+                  id: newSubId,
+                  title: sub.title,
+                  description: '',
+                  type: 'task' as const,
+                  status: 'open' as const,
+                  priority: 'medium' as const,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                };
+                await storage.saveIssue(newSub);
+                await storage.updateIssues(iss => graph.addDependency(newSubId, newId, 'parent-child', iss));
+              }
+              await git.commitChanges(`Create ticket ${newId}`);
+            }
+            panel.dispose(); // Close panel after save
           }
         } catch (error) {
-          console.error('Error handling webview message:', error);
+          console.error('Error saving ticket:', error);
+        }
+      });
+    })
+  );
+
+  // Register command to create a new ticket
+  context.subscriptions.push(
+    vscode.commands.registerCommand('horizon.createTicket', async () => {
+      const panel = vscode.window.createWebviewPanel(
+        'horizonEditTicket',
+        'Create Ticket',
+        vscode.ViewColumn.Beside,
+        {
+          enableScripts: true,
+          localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
+        }
+      );
+
+      // Load HTML
+      const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'edit.html'));
+      const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
+      panel.webview.html = htmlContent;
+
+      // No loadTicket, since new
+
+      // Handle messages
+      panel.webview.onDidReceiveMessage(async (message) => {
+        try {
+          if (message.type === 'saveTicket') {
+            const ticketData = message.ticket;
+            const issues = await storage.loadIssues();
+            const newId = generateId(issues);
+            const newTicket = {
+              id: newId,
+              title: ticketData.title,
+              description: ticketData.description,
+              type: ticketData.type,
+              status: 'open' as const,
+              priority: ticketData.priority,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+            await storage.saveIssue(newTicket);
+            // Handle subtasks for new ticket
+            const newSubtasks = ticketData.subtasks as { id?: string; title: string }[];
+            for (const sub of newSubtasks) {
+              const newSubId = generateId([...issues, newTicket]);
+              const newSub = {
+                id: newSubId,
+                title: sub.title,
+                description: '',
+                type: 'task' as const,
+                status: 'open' as const,
+                priority: 'medium' as const,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              };
+              await storage.saveIssue(newSub);
+              await storage.updateIssues(iss => graph.addDependency(newSubId, newId, 'parent-child', iss));
+            }
+            await git.commitChanges(`Create ticket ${newId}`);
+            panel.dispose(); // Close panel after save
+          }
+        } catch (error) {
+          console.error('Error saving ticket:', error);
         }
       });
     })

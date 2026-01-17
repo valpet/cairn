@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Ticket</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007acc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005aa3;
+    }
+    .subtasks {
+      margin-top: 20px;
+    }
+    .subtask {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .subtask input {
+      flex: 1;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Edit Ticket</h1>
+  <form id="ticketForm">
+    <div class="form-group">
+      <label for="title">Title:</label>
+      <input type="text" id="title" required>
+    </div>
+    <div class="form-group">
+      <label for="description">Description:</label>
+      <textarea id="description" rows="4"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="type">Type:</label>
+      <select id="type">
+        <option value="task">Task</option>
+        <option value="bug">Bug</option>
+        <option value="feature">Feature</option>
+        <option value="epic">Epic</option>
+        <option value="chore">Chore</option>
+        <option value="docs">Docs</option>
+        <option value="refactor">Refactor</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="priority">Priority:</label>
+      <select id="priority">
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="urgent">Urgent</option>
+      </select>
+    </div>
+    <div class="subtasks">
+      <h3>Subtasks</h3>
+      <div id="subtasksList"></div>
+      <button type="button" id="addSubtask">Add Subtask</button>
+    </div>
+    <button type="submit">Save</button>
+  </form>
+
+  <script>
+    const vscode = acquireVsCodeApi();
+    let ticketId = null;
+    let subtasks = [];
+
+    // Load ticket data
+    window.addEventListener('message', event => {
+      const message = event.data;
+      if (message.type === 'loadTicket') {
+        ticketId = message.ticket.id;
+        document.getElementById('title').value = message.ticket.title || '';
+        document.getElementById('description').value = message.ticket.description || '';
+        document.getElementById('type').value = message.ticket.type || 'task';
+        document.getElementById('priority').value = message.ticket.priority || 'medium';
+        subtasks = message.ticket.subtasks || [];
+        renderSubtasks();
+      }
+    });
+
+    function renderSubtasks() {
+      const list = document.getElementById('subtasksList');
+      list.innerHTML = '';
+      subtasks.forEach((subtask, index) => {
+        const div = document.createElement('div');
+        div.className = 'subtask';
+        div.innerHTML = `
+          <input type="text" value="${subtask.title}" onchange="updateSubtask(${index}, this.value)">
+          <button type="button" onclick="removeSubtask(${index})">Remove</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function updateSubtask(index, title) {
+      subtasks[index].title = title;
+    }
+
+    function removeSubtask(index) {
+      subtasks.splice(index, 1);
+      renderSubtasks();
+    }
+
+    document.getElementById('addSubtask').addEventListener('click', () => {
+      subtasks.push({ title: '' });
+      renderSubtasks();
+    });
+
+    document.getElementById('ticketForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const ticket = {
+        id: ticketId,
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        type: document.getElementById('type').value,
+        priority: document.getElementById('priority').value,
+        subtasks: subtasks
+      };
+      vscode.postMessage({ type: 'saveTicket', ticket });
+    });
+  </script>
+</body>
+</html>
