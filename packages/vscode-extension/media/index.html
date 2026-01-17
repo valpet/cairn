@@ -788,7 +788,7 @@
     function createStatusPill(status, displayText = null) {
       const pill = document.createElement('span');
       const displayStatus = status || 'open';
-      const text = displayText || (displayStatus === 'in_progress' ? 'In Progress' : 
+      const text = displayText || (displayStatus === 'in_progress' ? 'In Progress' :
         (displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)));
       pill.className = `pill status-${displayStatus}`;
       pill.textContent = text;

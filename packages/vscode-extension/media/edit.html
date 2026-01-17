@@ -649,7 +649,8 @@
         <h2 class="modal-title">Select Subtask</h2>
       </div>
       <div class="modal-body">
-        <input type="text" id="subtaskSearch" class="search-input" placeholder="Search by ID, title, or description..." />
+        <input type="text" id="subtaskSearch" class="search-input"
+          placeholder="Search by ID, title, or description..." />
         <div id="availableSubtasks" class="subtask-list-modal"></div>
       </div>
       <div class="modal-footer">
@@ -681,7 +682,7 @@
     function createStatusPill(status, displayText = null) {
       const pill = document.createElement('span');
       const displayStatus = status || 'open';
-      const text = displayText || (displayStatus === 'in_progress' ? 'In Progress' : 
+      const text = displayText || (displayStatus === 'in_progress' ? 'In Progress' :
         (displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)));
       pill.className = `subtask-status ${displayStatus}`;
       pill.textContent = text;
@@ -817,10 +818,10 @@
       subtasks.forEach((subtask, index) => {
         const div = document.createElement('div');
         div.className = 'subtask';
-        
+
         const infoDiv = document.createElement('div');
         infoDiv.className = 'subtask-info';
-        
+
         const typeBadge = createTypeBadge(subtask.type);
         const titleSpan = document.createElement('span');
         titleSpan.className = 'subtask-title';
@@ -828,25 +829,25 @@
         const idSpan = document.createElement('span');
         idSpan.className = 'subtask-id';
         idSpan.textContent = subtask.id;
-        
+
         infoDiv.appendChild(typeBadge);
         infoDiv.appendChild(titleSpan);
         infoDiv.appendChild(idSpan);
-        
+
         const statusPill = createStatusPill(subtask.status);
         const priorityPill = createPriorityPill(subtask.priority);
-        
+
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.className = 'secondary';
         removeBtn.textContent = 'Remove';
         removeBtn.onclick = () => removeSubtask(index);
-        
+
         div.appendChild(infoDiv);
         div.appendChild(statusPill);
         div.appendChild(priorityPill);
         div.appendChild(removeBtn);
-        
+
         list.appendChild(div);
       });
     }
