@@ -882,7 +882,7 @@
     }
 
     // Function to render task row for grid
-    function renderTaskRowGrid(task, level = 0, allTasks, isLastChild = false) {
+    function renderTaskRowGrid(task, level = 0, allTasks, isLastChild = false, ancestorLines = []) {
       const hasChildren = task.children && task.children.length > 0;
       const isExpanded = expandedTasks.has(task.id);
       
@@ -892,6 +892,19 @@
       
       // Title cell with expand/collapse
       const titleCell = document.createElement('td');
+      
+      // Add tree lines for ancestor levels (exclude immediate parent level to avoid overlap)
+      // Only draw for levels 0 to level-2, as level-1 is handled by our own connection
+      const maxAncestorLevel = Math.min(ancestorLines.length, level - 1);
+      for (let ancestorLevel = 0; ancestorLevel < maxAncestorLevel; ancestorLevel++) {
+        if (ancestorLines[ancestorLevel]) {
+          // This ancestor level has more siblings, draw a vertical line
+          const ancestorLine = document.createElement('div');
+          ancestorLine.className = 'tree-line tree-line-vertical';
+          ancestorLine.style.left = `${ancestorLevel * 30 + 8 + 16}px`;
+          titleCell.appendChild(ancestorLine);
+        }
+      }
       
       // Add tree lines for child nodes (position relative to TD)
       if (level > 0) {
@@ -987,13 +1000,15 @@
     }
 
     // Function to render task tree for grid
-    function renderTaskTreeGrid(tree, tbody, allTasks, level = 0) {
+    function renderTaskTreeGrid(tree, tbody, allTasks, level = 0, ancestorLines = []) {
       tree.forEach((node, index) => {
         const isLastChild = index === tree.length - 1;
-        const tr = renderTaskRowGrid(node, level, allTasks, isLastChild);
+        const tr = renderTaskRowGrid(node, level, allTasks, isLastChild, ancestorLines);
         tbody.appendChild(tr);
         if (node.children && node.children.length > 0 && expandedTasks.has(node.id)) {
-          renderTaskTreeGrid(node.children, tbody, allTasks, level + 1);
+          // Pass down which levels should have continuing vertical lines
+          const newAncestorLines = [...ancestorLines, !isLastChild];
+          renderTaskTreeGrid(node.children, tbody, allTasks, level + 1, newAncestorLines);
         }
       });
     }
