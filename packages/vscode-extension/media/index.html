@@ -591,6 +591,17 @@
       });
     }
 
+    // Function to check if a task is blocked
+    function isBlocked(task, allTasks) {
+      if (!task.dependencies || task.status === 'closed') return false;
+      const taskMap = new Map(allTasks.map(t => [t.id, t]));
+      return task.dependencies.some(dep => {
+        if (dep.type !== 'blocks') return false;
+        const depTask = taskMap.get(dep.id);
+        return depTask && depTask.status !== 'closed';
+      });
+    }
+
     function toggleExpand(taskId) {
       if (expandedTasks.has(taskId)) {
         expandedTasks.delete(taskId);
@@ -827,6 +838,7 @@
     function buildTaskTree(tasks) {
       const taskMap = new Map();
       const roots = [];
+      const hasParent = new Set();
 
       tasks.forEach(task => {
         taskMap.set(task.id, { ...task, children: [] });
@@ -834,16 +846,35 @@
 
       tasks.forEach(task => {
         const node = taskMap.get(task.id);
+        
+        // Check for parent-child relationship
         const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
         if (parentDep) {
           const parent = taskMap.get(parentDep.id);
           if (parent) {
             parent.children.push(node);
-          } else {
+            hasParent.add(task.id);
+          }
+        }
+        
+        // Check for blocks relationship (task is blocked by another task)
+        const blocksDep = (task.dependencies || []).find(dep => dep.type === 'blocks');
+        if (blocksDep && !parentDep) { // Only if not already a child via parent-child
+          const blocker = taskMap.get(blocksDep.id);
+          if (blocker) {
+            blocker.children.push(node);
+            hasParent.add(task.id);
+          }
+        }
+      });
+
+      // Add all tasks without parents to roots
+      tasks.forEach(task => {
+        if (!hasParent.has(task.id)) {
+          const node = taskMap.get(task.id);
+          if (node) {
             roots.push(node);
           }
-        } else {
-          roots.push(node);
         }
       });
 
@@ -913,8 +944,16 @@
       // Status cell
       const statusCell = document.createElement('td');
       const statusPill = document.createElement('span');
-      statusPill.className = `pill status-${task.status}`;
-      statusPill.textContent = task.status === 'in_progress' ? 'Open' : (task.status.charAt(0).toUpperCase() + task.status.slice(1));
+      
+      // Check if task is blocked
+      const taskIsBlocked = isBlocked(task, allTasks);
+      const displayStatus = taskIsBlocked ? 'blocked' : task.status;
+      const displayText = taskIsBlocked ? 'Blocked' : 
+        (task.status === 'in_progress' ? 'In Progress' : 
+         (task.status.charAt(0).toUpperCase() + task.status.slice(1)));
+      
+      statusPill.className = `pill status-${displayStatus}`;
+      statusPill.textContent = displayText;
       statusCell.appendChild(statusPill);
       tr.appendChild(statusCell);
       
