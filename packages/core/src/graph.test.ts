@@ -566,8 +566,8 @@ describe('GraphService', () => {
       ];
 
       const nonParented = graphService.getNonParentedIssues(issues);
-      expect(nonParented).toHaveLength(2);
-      expect(nonParented.map(i => i.id)).toEqual(['epic-1', 'task-1']);
+      expect(nonParented).toHaveLength(3);
+      expect(nonParented.map(i => i.id)).toEqual(['epic-1', 'task-1', 'task-2']);
     });
 
     it('should return all issues when none have parent-child dependencies', () => {

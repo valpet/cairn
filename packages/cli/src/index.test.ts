@@ -108,10 +108,6 @@ describe('CLI Commands', () => {
     mockCompaction = {
       compactIssues: vi.fn(),
     };
-    mockGit = {
-      initIfNeeded: vi.fn(),
-      commitChanges: vi.fn(),
-    };
 
     mockContainer = {
       get: vi.fn((type) => {
@@ -119,7 +115,6 @@ describe('CLI Commands', () => {
           case TYPES.IStorageService: return mockStorage;
           case TYPES.IGraphService: return mockGraph;
           case TYPES.ICompactionService: return mockCompaction;
-          case TYPES.IGitService: return mockGit;
           default: return {};
         }
       }),
@@ -217,7 +212,6 @@ describe('CLI Commands', () => {
       await updateAction('issue-123', { status: 'in_progress' });
 
       expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(mockGit.commitChanges).toHaveBeenCalledWith('Update issue issue-123');
     });
 
     it('should update multiple fields', async () => {
@@ -237,7 +231,6 @@ describe('CLI Commands', () => {
       });
 
       expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(mockGit.commitChanges).toHaveBeenCalledWith('Update issue issue-456');
     });
   });
 
@@ -315,7 +308,6 @@ describe('CLI Commands', () => {
 
       expect(mockStorage.updateIssues).toHaveBeenCalled();
       expect(mockGraph.addDependency).toHaveBeenCalledWith('task-1', 'task-2', 'blocks', expect.any(Array));
-      expect(mockGit.commitChanges).toHaveBeenCalledWith('Add dependency task-1 -> task-2');
     });
   });
 

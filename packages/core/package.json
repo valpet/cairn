@@ -12,8 +12,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.2",
     "inversify": "^6.0.1",
-    "reflect-metadata": "^0.2.2",
-    "simple-git": "^3.20.0"
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

@@ -1,13 +1,12 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createContainer, TYPES, IStorageService, IGraphService, IGitService } from '@horizon/core';
+import { createContainer, TYPES, IStorageService, IGraphService } from '@horizon/core';
 import { nanoid } from 'nanoid';
 
 let container: any;
 let storage: IStorageService;
 let graph: IGraphService;
-let git: IGitService;
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Horizon extension activated');
@@ -27,7 +26,6 @@ export function activate(context: vscode.ExtensionContext) {
   container = createContainer(horizonDir, repoRoot);
   storage = container.get(TYPES.IStorageService);
   graph = container.get(TYPES.IGraphService);
-  git = container.get(TYPES.IGitService);
 
   // Register tools
   context.subscriptions.push(

@@ -21,8 +21,5 @@ describe('Container Module Exports', () => {
 
     expect(ContainerExports.TYPES.ICompactionService).toBeDefined();
     expect(typeof ContainerExports.TYPES.ICompactionService).toBe('symbol');
-
-    expect(ContainerExports.TYPES.IGitService).toBeDefined();
-    expect(typeof ContainerExports.TYPES.IGitService).toBe('symbol');
   });
 });

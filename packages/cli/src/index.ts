@@ -2,7 +2,7 @@
 
 import 'reflect-metadata';
 import { Command } from 'commander';
-import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService, IGitService } from '@horizon/core';
+import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService } from '@horizon/core';
 import { nanoid } from 'nanoid';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -26,8 +26,7 @@ function setupServices() {
   const storage = container.get<IStorageService>(TYPES.IStorageService);
   const graph = container.get<IGraphService>(TYPES.IGraphService);
   const compaction = container.get<ICompactionService>(TYPES.ICompactionService);
-  const git = container.get<IGitService>(TYPES.IGitService);
-  return { storage, graph, compaction, git };
+  return { storage, graph, compaction };
 }
 
 // Init command
@@ -122,10 +121,6 @@ By following this workflow, you maintain coherent, persistent task memory withou
 
     console.log('Horizon initialized. Start by creating your first task with \`horizon create <title>\`');
 
-    // Initialize git if needed
-    const git = createContainer(horizonDir, cwd).get<IGitService>(TYPES.IGitService);
-    await git.initIfNeeded();
-    await git.commitChanges('Initialize Horizon');
   });
 
 // Create command
@@ -136,7 +131,7 @@ program
   .option('-t, --type <type>', 'Type: epic, feature, task, bug')
   .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
   .action(async (title, options) => {
-    const { storage, git } = setupServices();
+    const { storage } = setupServices();
     const issues = await storage.loadIssues();
     const id = generateId(issues);
     const issue = {
@@ -151,7 +146,6 @@ program
     };
     await storage.saveIssue(issue);
     console.log(`Created issue ${id}: ${title}`);
-    await git.commitChanges(`Create issue ${id}`);
   });
 
 // Update command
@@ -168,7 +162,7 @@ program
   .option('-l, --labels <labels>', 'Labels (comma-separated)')
   .option('-c, --acceptance-criteria <criteria>', 'Acceptance criteria (comma-separated)')
   .action(async (id, options) => {
-    const { storage, git } = setupServices();
+    const { storage } = setupServices();
     await storage.updateIssues(issues => {
       return issues.map(issue => {
         if (issue.id === id) {
@@ -189,7 +183,6 @@ program
       });
     });
     console.log(`Updated issue ${id}`);
-    await git.commitChanges(`Update issue ${id}`);
   });
 
 // List command
@@ -235,12 +228,11 @@ depCmd
   .description('Add dependency')
   .option('-t, --type <type>', 'Type: blocks, related, parent-child, discovered-from', 'blocks')
   .action(async (from, to, options) => {
-    const { storage, graph, git } = setupServices();
+    const { storage, graph } = setupServices();
     await storage.updateIssues(issues => {
       return graph.addDependency(from, to, options.type, issues);
     });
     console.log(`Added ${options.type} dependency from ${from} to ${to}`);
-    await git.commitChanges(`Add dependency ${from} -> ${to}`);
   });
 
 // Epic command
@@ -288,7 +280,7 @@ epicCmd
   .option('-d, --description <desc>', 'Description')
   .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
   .action(async (epicId, title, options) => {
-    const { storage, graph, git } = setupServices();
+    const { storage, graph } = setupServices();
     const issues = await storage.loadIssues();
     const epic = issues.find(i => i.id === epicId);
     if (!epic) {
@@ -318,7 +310,6 @@ epicCmd
     });
 
     console.log(`Created subtask ${subtaskId} for epic ${epicId}: ${title}`);
-    await git.commitChanges(`Create subtask ${subtaskId} for epic ${epicId}`);
   });
 
 // Review command

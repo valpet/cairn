@@ -1,17 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import * as CoreExports from './index';
 
-// Mock simple-git to avoid directory existence issues
-vi.mock('simple-git', () => ({
-  default: vi.fn(() => ({
-    checkIsRepo: vi.fn(),
-    init: vi.fn(),
-    add: vi.fn(),
-    commit: vi.fn(),
-    status: vi.fn(),
-  })),
-}));
-
 // Test that all expected exports are available
 describe('Core Index Exports', () => {
   it('should export TYPES', () => {
@@ -42,18 +31,12 @@ describe('Core Index Exports', () => {
 
     const compactionService = container.get(CoreExports.TYPES.ICompactionService);
     expect(typeof compactionService.compactIssues).toBe('function');
-
-    const gitService = container.get(CoreExports.TYPES.IGitService);
-    expect(typeof gitService.initIfNeeded).toBe('function');
-    expect(typeof gitService.commitChanges).toBe('function');
-    expect(typeof gitService.isGitRepo).toBe('function');
   });
 
   it('should export service classes', () => {
     expect(CoreExports.StorageService).toBeDefined();
     expect(CoreExports.GraphService).toBeDefined();
     expect(CoreExports.CompactionService).toBeDefined();
-    expect(CoreExports.GitService).toBeDefined();
   });
 
   it('should export types', () => {
