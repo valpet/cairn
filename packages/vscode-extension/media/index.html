@@ -13,6 +13,12 @@
       color: var(--vscode-foreground);
       margin: 0;
       padding: 20px;
+      padding-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      box-sizing: border-box;
     }
 
     h1 {
@@ -282,6 +288,30 @@
       background-color: var(--vscode-editor-background);
     }
 
+    #task-container {
+      overflow: hidden;
+      /* Prevent any overflow from this container */
+    }
+
+    .task-body-container {
+      overflow-y: auto;
+      border: 1px solid var(--vscode-panel-border);
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .task-grid-header {
+      border: 1px solid var(--vscode-panel-border);
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+    }
+
+    .task-grid-body {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--vscode-editor-background);
+    }
+
     .task-grid th {
       background-color: var(--vscode-editor-background);
       color: var(--vscode-foreground);
@@ -289,8 +319,6 @@
       text-align: left;
       font-weight: 600;
       border-bottom: 1px solid var(--vscode-panel-border);
-      position: sticky;
-      top: 0;
     }
 
     .header-controls {
@@ -309,6 +337,17 @@
       border-radius: 6px;
       font-weight: 400;
       transition: background-color 0.15s;
+    }
+
+    .create-new-issue-btn {
+      background-color: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+      border: none;
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
     }
 
     .header-btn:hover {
@@ -1040,8 +1079,9 @@
       const container = document.getElementById('task-container');
       container.innerHTML = '';
 
-      const table = document.createElement('table');
-      table.className = 'task-grid';
+      // Create header table (fixed)
+      const headerTable = document.createElement('table');
+      headerTable.className = 'task-grid task-grid-header';
       const thead = document.createElement('thead');
       const headerRow = document.createElement('tr');
       const titleHeader = document.createElement('th');
@@ -1085,8 +1125,8 @@
       };
 
       const createNewBtn = document.createElement('button');
-      createNewBtn.className = 'header-btn';
-      createNewBtn.textContent = 'Create New Task';
+      createNewBtn.className = 'create-new-issue-btn';
+      createNewBtn.textContent = 'Create New Issue';
       createNewBtn.onclick = () => createNewTask();
 
       controlsSection.appendChild(expandAllBtn);
@@ -1105,13 +1145,26 @@
       });
 
       thead.appendChild(headerRow);
-      table.appendChild(thead);
+      headerTable.appendChild(thead);
+      container.appendChild(headerTable);
+
+      // Create scrollable body container
+      const bodyContainer = document.createElement('div');
+      bodyContainer.className = 'task-body-container';
+
+      // Create body table (scrollable)
+      const bodyTable = document.createElement('table');
+      bodyTable.className = 'task-grid task-grid-body';
 
       const tbody = document.createElement('tbody');
       renderTaskTreeGrid(taskTree, tbody, allTasks);
-      table.appendChild(tbody);
+      bodyTable.appendChild(tbody);
 
-      container.appendChild(table);
+      bodyContainer.appendChild(bodyTable);
+      container.appendChild(bodyContainer);
+
+      // Update container height after rendering
+      setTimeout(updateScrollableHeight, 0);
     }
 
     // Function to build task hierarchy
@@ -1476,10 +1529,44 @@
       }
     }
 
-    // Initial render (will be updated via message)
-    let allTasks = [];
-    updateFilterChips();
-    renderTasks([]);
+    // Function to update scrollable container height
+    function updateScrollableHeight() {
+      requestAnimationFrame(() => {
+        const bodyContainer = document.querySelector('.task-body-container');
+        if (!bodyContainer) return;
+
+        // Simply use the remaining viewport space
+        const rect = bodyContainer.getBoundingClientRect();
+        const availableHeight = window.innerHeight - rect.top;
+
+        bodyContainer.style.height = `${Math.max(availableHeight, 200)}px`;
+        bodyContainer.style.maxHeight = `${Math.max(availableHeight, 200)}px`;
+      });
+    }
+
+    // Update height on load and resize
+    window.addEventListener('load', updateScrollableHeight);
+    window.addEventListener('resize', updateScrollableHeight);
+
+    // Use ResizeObserver to handle layout changes (like window splits)
+    const resizeObserver = new ResizeObserver(() => {
+      updateScrollableHeight();
+    });
+
+    // Observe body for any size changes
+    resizeObserver.observe(document.body);
+
+    // Also observe the task container when it's created
+    const observer = new MutationObserver(() => {
+      const taskContainer = document.getElementById('task-container');
+      if (taskContainer && !taskContainer.dataset.observed) {
+        taskContainer.dataset.observed = 'true';
+        resizeObserver.observe(taskContainer);
+        updateScrollableHeight();
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
 
     // Listen for messages from extension
     window.addEventListener('message', event => {
