@@ -27,6 +27,68 @@
       margin: 20px 0 12px 0;
     }
 
+    .editor-layout {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .main-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .metadata-card {
+      width: 280px;
+      flex-shrink: 0;
+      background-color: rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--vscode-widget-border);
+      border-radius: 6px;
+      padding: 16px;
+    }
+
+    .metadata-card h3 {
+      margin: 0 0 16px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--vscode-foreground);
+    }
+
+    .metadata-item {
+      margin-bottom: 12px;
+    }
+
+    .metadata-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .metadata-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--vscode-descriptionForeground);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .metadata-value select {
+      width: 100%;
+      padding: 4px 6px;
+      font-size: 13px;
+      border: 1px solid var(--vscode-input-border, transparent);
+      border-radius: 3px;
+      background-color: var(--vscode-input-background);
+      color: var(--vscode-input-foreground);
+      outline: none;
+    }
+
+    .metadata-value select:focus {
+      border-color: var(--vscode-focusBorder);
+      outline: 1px solid var(--vscode-focusBorder);
+      outline-offset: -1px;
+    }
+
     .form-group {
       margin-bottom: 20px;
     }
@@ -656,7 +718,7 @@
     .comments-section {
       margin-top: 24px;
       padding: 16px;
-      background-color: var(--vscode-editor-inactiveSelectionBackground);
+      background-color: rgba(0, 0, 0, 0.08);
       border-radius: 4px;
       border: 1px solid var(--vscode-widget-border);
     }
@@ -762,82 +824,128 @@
 <body>
   <h1>Edit Ticket</h1>
   <form id="ticketForm">
-    <div class="form-group">
-      <label>Title:</label>
-      <div class="editable-field">
-        <div class="field-display" id="titleDisplay" onclick="editField('title')">
-          <div class="field-text" id="titleText"></div>
-          <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
-            <path
-              d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z" />
-          </svg>
-        </div>
-        <div class="field-edit hidden" id="titleEdit">
-          <input type="text" id="titleInput">
-          <div class="edit-actions">
-            <button type="button" class="icon-button accept" onclick="acceptField('title')" title="Save">
-              <svg viewBox="0 0 16 16" fill="currentColor">
-                <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
-              </svg>
-            </button>
-            <button type="button" class="icon-button cancel" onclick="cancelField('title')" title="Cancel">
-              <svg viewBox="0 0 16 16" fill="currentColor">
+    <div class="editor-layout">
+      <div class="main-content">
+        <div class="form-group">
+          <label>Title:</label>
+          <div class="editable-field">
+            <div class="field-display" id="titleDisplay" onclick="editField('title')">
+              <div class="field-text" id="titleText"></div>
+              <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
                 <path
-                  d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z" />
+                  d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z" />
               </svg>
-            </button>
+            </div>
+            <div class="field-edit hidden" id="titleEdit">
+              <input type="text" id="titleInput">
+              <div class="edit-actions">
+                <button type="button" class="icon-button accept" onclick="acceptField('title')" title="Save">
+                  <svg viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
+                  </svg>
+                </button>
+                <button type="button" class="icon-button cancel" onclick="cancelField('title')" title="Cancel">
+                  <svg viewBox="0 0 16 16" fill="currentColor">
+                    <path
+                      d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description:</label>
+          <div class="editable-field">
+            <div class="field-display" id="descriptionDisplay" onclick="editField('description')">
+              <div class="field-text" id="descriptionText"></div>
+              <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path
+                  d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z" />
+              </svg>
+            </div>
+            <div class="field-edit hidden" id="descriptionEdit">
+              <textarea id="descriptionInput" rows="4"></textarea>
+              <div class="edit-actions">
+                <button type="button" class="icon-button accept" onclick="acceptField('description')" title="Save">
+                  <svg viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
+                  </svg>
+                </button>
+                <button type="button" class="icon-button cancel" onclick="cancelField('description')" title="Cancel">
+                  <svg viewBox="0 0 16 16" fill="currentColor">
+                    <path
+                      d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="form-group">
-      <label>Description:</label>
-      <div class="editable-field">
-        <div class="field-display" id="descriptionDisplay" onclick="editField('description')">
-          <div class="field-text" id="descriptionText"></div>
-          <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
-            <path
-              d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z" />
-          </svg>
-        </div>
-        <div class="field-edit hidden" id="descriptionEdit">
-          <textarea id="descriptionInput" rows="4"></textarea>
-          <div class="edit-actions">
-            <button type="button" class="icon-button accept" onclick="acceptField('description')" title="Save">
-              <svg viewBox="0 0 16 16" fill="currentColor">
-                <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
-              </svg>
-            </button>
-            <button type="button" class="icon-button cancel" onclick="cancelField('description')" title="Cancel">
-              <svg viewBox="0 0 16 16" fill="currentColor">
-                <path
-                  d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z" />
-              </svg>
-            </button>
+
+      <div class="metadata-card">
+        <h3>Properties</h3>
+        
+        <div class="metadata-item">
+          <label class="metadata-label">Type</label>
+          <div class="metadata-value">
+            <select id="type" onchange="saveTicket()">
+              <option value="task">Task</option>
+              <option value="bug">Bug</option>
+              <option value="feature">Feature</option>
+              <option value="epic">Epic</option>
+              <option value="chore">Chore</option>
+              <option value="docs">Docs</option>
+              <option value="refactor">Refactor</option>
+            </select>
           </div>
         </div>
+
+        <div class="metadata-item">
+          <label class="metadata-label">Priority</label>
+          <div class="metadata-value">
+            <select id="priority" onchange="saveTicket()">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="metadata-item">
+          <label class="metadata-label">Status</label>
+          <div class="metadata-value">
+            <select id="status" onchange="onStatusChange(); saveTicket()">
+              <option value="open">Open</option>
+              <option value="in_progress">In Progress</option>
+              <option value="closed">Closed</option>
+              <option value="blocked">Blocked</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="metadata-item">
+          <label class="metadata-label">Created</label>
+          <div class="metadata-value" id="createdDate">-</div>
+        </div>
+
+        <div class="metadata-item">
+          <label class="metadata-label">Updated</label>
+          <div class="metadata-value" id="updatedDate">-</div>
+        </div>
+
+        <div class="metadata-item" id="closedDateContainer" style="display: none;">
+          <label class="metadata-label">Closed</label>
+          <div class="metadata-value" id="closedDate">-</div>
+        </div>
+
+        <div class="metadata-item">
+          <label class="metadata-label">ID</label>
+          <div class="metadata-value" id="ticketId">-</div>
+        </div>
       </div>
-    </div>
-    <div class="form-group">
-      <label for="type">Type:</label>
-      <select id="type" onchange="saveTicket()">
-        <option value="task">Task</option>
-        <option value="bug">Bug</option>
-        <option value="feature">Feature</option>
-        <option value="epic">Epic</option>
-        <option value="chore">Chore</option>
-        <option value="docs">Docs</option>
-        <option value="refactor">Refactor</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="priority">Priority:</label>
-      <select id="priority" onchange="saveTicket()">
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-        <option value="urgent">Urgent</option>
-      </select>
     </div>
     <div class="comments-section">
       <h3 class="comments-header">Comments</h3>
@@ -934,7 +1042,26 @@
         console.log('Loaded ticket:', ticketId, 'title:', currentTitle, 'desc:', currentDescription);
         document.getElementById('type').value = message.ticket.type || 'task';
         document.getElementById('priority').value = message.ticket.priority || 'medium';
+        document.getElementById('status').value = message.ticket.status || 'open';
         subtasks = message.ticket.subtasks || [];
+        
+        // Update closed date display based on status
+        onStatusChange();
+        
+        // Populate metadata
+        document.getElementById('ticketId').textContent = message.ticket.id;
+        document.getElementById('createdDate').textContent = formatDate(message.ticket.created_at);
+        document.getElementById('updatedDate').textContent = formatDate(message.ticket.updated_at);
+        
+        const closedContainer = document.getElementById('closedDateContainer');
+        const closedDateEl = document.getElementById('closedDate');
+        if (message.ticket.closed_at) {
+          closedContainer.style.display = 'block';
+          closedDateEl.textContent = formatDate(message.ticket.closed_at);
+        } else {
+          closedContainer.style.display = 'none';
+        }
+        
         updateTitleDisplay();
         updateDescriptionDisplay();
         renderComments();
@@ -1034,6 +1161,7 @@
         comments: comments,
         type: document.getElementById('type').value,
         priority: document.getElementById('priority').value,
+        status: document.getElementById('status').value,
         subtasks: subtasks
       };
       console.log('Sending saveTicket message:', ticket);
@@ -1249,8 +1377,9 @@
         header.className = 'comment-header';
 
         const author = document.createElement('span');
-        author.className = `comment-author ${comment.author === 'agent' ? 'agent' : ''}`;
-        author.textContent = comment.author;
+        const isAgent = comment.author === 'agent' || comment.author === 'developer';
+        author.className = `comment-author ${isAgent ? 'agent' : ''}`;
+        author.textContent = isAgent ? 'Agent' : comment.author;
 
         const timestamp = document.createElement('span');
         timestamp.className = 'comment-timestamp';
@@ -1270,6 +1399,12 @@
       });
     }
 
+    function formatDate(isoString) {
+      if (!isoString) return '-';
+      const date = new Date(isoString);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
     function formatTimestamp(isoString) {
       const date = new Date(isoString);
       const now = new Date();
@@ -1283,6 +1418,19 @@
       if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
       if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
       return date.toLocaleDateString();
+    }
+
+    function onStatusChange() {
+      const status = document.getElementById('status').value;
+      const closedContainer = document.getElementById('closedDateContainer');
+      const closedDateEl = document.getElementById('closedDate');
+      
+      if (status === 'closed') {
+        closedContainer.style.display = 'block';
+        closedDateEl.textContent = formatDate(new Date().toISOString());
+      } else {
+        closedContainer.style.display = 'none';
+      }
     }
 
     document.getElementById('addCommentBtn').addEventListener('click', () => {
@@ -1378,6 +1526,12 @@
         });
       }, 0);
     });
+
+    function formatDate(isoString) {
+      if (!isoString) return '-';
+      const date = new Date(isoString);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
   </script>
 </body>
 

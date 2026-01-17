@@ -296,26 +296,50 @@ export function activate(context: vscode.ExtensionContext) {
         try {
           const issues = await storage.loadIssues();
           const ticket = issues.find(i => i.id === ticketId);
+          
+          let safeTicket;
           if (ticket) {
-            // Get subtasks
-            const subtasks = graph.getEpicSubtasks(ticketId, issues).map(s => ({
-              id: s.id,
-              title: s.title,
-              type: s.type,
-              status: s.status,
-              priority: s.priority
-            }));
-            console.log('Sending loadTicket message for:', ticketId, ticket);
-            panel.webview.postMessage({
-              type: 'loadTicket',
-              ticket: {
-                ...ticket,
-                subtasks
-              }
-            });
+            // Ensure ticket has required fields with defaults
+            safeTicket = {
+              ...ticket,
+              title: ticket.title,
+              description: ticket.description,
+              type: ticket.type,
+              priority: ticket.priority,
+              status: ticket.status
+            };
           } else {
-            console.error('Ticket not found:', ticketId);
+            // Ticket not found, create default data
+            console.error('Ticket not found:', ticketId, '- sending default data');
+            safeTicket = {
+              id: ticketId,
+              title: 'New Ticket',
+              description: 'Add description...',
+              type: 'task',
+              priority: 'medium',
+              status: 'open',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
           }
+          
+          // Get subtasks
+          const subtasks = ticket ? graph.getEpicSubtasks(ticketId, issues).map(s => ({
+            id: s.id,
+            title: s.title,
+            type: s.type,
+            status: s.status,
+            priority: s.priority
+          })) : [];
+          
+          console.log('Sending loadTicket message for:', ticketId, safeTicket);
+          panel.webview.postMessage({
+            type: 'loadTicket',
+            ticket: {
+              ...safeTicket,
+              subtasks
+            }
+          });
         } catch (error) {
           console.error('Error loading ticket:', error);
         }
@@ -378,10 +402,19 @@ export function activate(context: vscode.ExtensionContext) {
                         title: ticketData.title,
                         description: ticketData.description,
                         comments: ticketData.comments,
-                        type: ticketData.type,
-                        priority: ticketData.priority,
+                        type: ticketData.type || 'task',
+                        priority: ticketData.priority || 'medium',
+                        status: ticketData.status || 'open',
                         updated_at: now
                       };
+                      
+                      // Handle closed_at timestamp
+                      if (ticketData.status === 'closed' && issue.status !== 'closed') {
+                        updated.closed_at = now;
+                      } else if (ticketData.status !== 'closed' && issue.status === 'closed') {
+                        updated.closed_at = undefined;
+                      }
+                      
                       console.log('Updated issue:', JSON.stringify(updated, null, 2));
                       return updated;
                     }
