@@ -381,6 +381,17 @@
       align-items: center;
       gap: 4px;
       flex-shrink: 0;
+      height: 22px;
+      line-height: 1;
+    }
+
+    .type-badge::before {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      line-height: 1;
     }
 
     .type-badge.epic {
@@ -402,6 +413,56 @@
       font-size: 16px;
     }
 
+    .type-badge.bug {
+      background-color: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+    }
+
+    .type-badge.bug::before {
+      content: '🐛';
+      font-size: 11px;
+    }
+
+    .type-badge.feature {
+      background-color: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
+    }
+
+    .type-badge.feature::before {
+      content: '✨';
+      font-size: 11px;
+    }
+
+    .type-badge.chore {
+      background-color: rgba(139, 148, 158, 0.2);
+      color: #8b949e;
+    }
+
+    .type-badge.chore::before {
+      content: '🔧';
+      font-size: 11px;
+    }
+
+    .type-badge.docs {
+      background-color: rgba(88, 166, 255, 0.2);
+      color: #58a6ff;
+    }
+
+    .type-badge.docs::before {
+      content: '📝';
+      font-size: 11px;
+    }
+
+    .type-badge.refactor {
+      background-color: rgba(212, 165, 86, 0.2);
+      color: #D4A556;
+    }
+
+    .type-badge.refactor::before {
+      content: '♻️';
+      font-size: 11px;
+    }
+
     .task-title-text {
       color: var(--vscode-foreground);
     }
@@ -416,43 +477,43 @@
     }
 
     .status-open {
-      background-color: #2ea043;
-      color: white;
+      background-color: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
     }
 
     .status-in_progress {
-      background-color: var(--vscode-charts-blue);
-      color: white;
+      background-color: rgba(68, 131, 255, 0.2);
+      color: #58a6ff;
     }
 
     .status-closed {
-      background-color: #8b949e;
-      color: white;
+      background-color: rgba(139, 148, 158, 0.2);
+      color: #8b949e;
     }
 
     .status-blocked {
-      background-color: #da3633;
-      color: white;
+      background-color: rgba(218, 54, 51, 0.2);
+      color: #f85149;
     }
 
     .priority-low {
-      background-color: #2ea043;
-      color: white;
+      background-color: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
     }
 
     .priority-medium {
-      background-color: #d4a556;
-      color: #1f2328;
+      background-color: rgba(212, 165, 86, 0.2);
+      color: #D4A556;
     }
 
     .priority-high {
-      background-color: #fb8500;
-      color: white;
+      background-color: rgba(251, 133, 0, 0.2);
+      color: #fb8500;
     }
 
     .priority-urgent {
-      background-color: #da3633;
-      color: white;
+      background-color: rgba(218, 54, 51, 0.2);
+      color: #f85149;
     }
 
     .task-actions {
