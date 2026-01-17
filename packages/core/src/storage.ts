@@ -10,15 +10,28 @@ export interface IStorageService {
   getIssuesFilePath(): string;
 }
 
+export interface StorageConfig {
+  horizonDir: string;
+  lockMaxRetries?: number;
+  lockRetryDelay?: number;
+  lockTimeout?: number;
+}
+
 @injectable()
 export class StorageService implements IStorageService {
   private issuesFilePath: string;
   private lockFilePath: string;
   private writeQueue: Promise<void> = Promise.resolve(); // Serialize all write operations within this process
+  private lockMaxRetries: number;
+  private lockRetryDelay: number;
+  private lockTimeout: number;
 
-  constructor(@inject('config') private config: { horizonDir: string }) {
+  constructor(@inject('config') private config: StorageConfig) {
     this.issuesFilePath = path.join(config.horizonDir, 'issues.jsonl');
     this.lockFilePath = path.join(config.horizonDir, 'issues.lock');
+    this.lockMaxRetries = config.lockMaxRetries ?? 50;
+    this.lockRetryDelay = config.lockRetryDelay ?? 100;
+    this.lockTimeout = config.lockTimeout ?? 30000;
   }
 
   async loadIssues(): Promise<Issue[]> {
@@ -83,11 +96,7 @@ export class StorageService implements IStorageService {
   }
 
   private async withLock<T>(operation: () => Promise<T>): Promise<T> {
-    const maxRetries = 50;
-    const retryDelay = 100; // ms
-    const lockTimeout = 30000; // 30 seconds
-
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
+    for (let attempt = 0; attempt < this.lockMaxRetries; attempt++) {
       try {
         // Clean up stale locks
         if (fs.existsSync(this.lockFilePath)) {
@@ -98,7 +107,7 @@ export class StorageService implements IStorageService {
             await fs.promises.unlink(this.lockFilePath);
           }
         }
-
+        this.
         // Try to acquire lock
         const lockData = { pid: process.pid, timestamp: Date.now() };
         await fs.promises.writeFile(this.lockFilePath, JSON.stringify(lockData), { flag: 'wx' });
@@ -111,8 +120,8 @@ export class StorageService implements IStorageService {
       } catch (error: any) {
         if (error.code === 'EEXIST') {
           // Lock exists, wait and retry
-          if (attempt < maxRetries - 1) {
-            await new Promise(resolve => setTimeout(resolve, retryDelay));
+          if (attempt < this.lockMaxRetries - 1) {
+            await new Promise(resolve => setTimeout(resolve, this.lockRetryDelay));
             continue;
           }
           throw new Error('Failed to acquire file lock after maximum retries');
