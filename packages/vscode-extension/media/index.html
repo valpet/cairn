@@ -25,22 +25,255 @@
       margin-bottom: 20px;
     }
 
-    .filters {
-      margin-bottom: 20px;
-      display: flex;
-      gap: 20px;
-    }
-
-    .filters label {
+    /* Filter Bar Styles */
+    .filter-bar {
       display: flex;
       align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      user-select: none;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding: 8px 0;
+      font-size: 13px;
     }
 
-    .filters input[type="checkbox"] {
+    .filter-icon {
+      opacity: 0.5;
+      font-size: 16px;
+      margin-right: 2px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .filter-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .filter-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background-color: transparent;
+      border: none;
+      border-radius: 6px;
+      color: var(--vscode-foreground);
       cursor: pointer;
+      font-size: 13px;
+      position: relative;
+      transition: all 0.15s;
+      font-weight: 400;
+    }
+
+    .filter-trigger:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .filter-trigger.active {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .filter-trigger-label {
+      font-weight: 500;
+      opacity: 0.9;
+    }
+
+    .filter-trigger-caret {
+      opacity: 0.5;
+      font-size: 10px;
+      margin-left: 2px;
+    }
+
+    /* Filter Chips */
+    .filter-chips {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: default;
+      transition: all 0.15s;
+    }
+
+    .filter-chip-icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .filter-chip-close {
+      cursor: pointer;
+      opacity: 0.7;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0 0 0 4px;
+      transition: opacity 0.15s;
+    }
+
+    .filter-chip-close:hover {
+      opacity: 1;
+    }
+
+    /* Status-specific chip colors (muted versions) */
+    .filter-chip.ready {
+      background-color: rgba(212, 165, 86, 0.2);
+      color: #D4A556;
+    }
+
+    .filter-chip.open {
+      background-color: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
+    }
+
+    .filter-chip.in_progress {
+      background-color: rgba(68, 131, 255, 0.2);
+      color: #58a6ff;
+    }
+
+    .filter-chip.closed {
+      background-color: rgba(139, 148, 158, 0.2);
+      color: #8b949e;
+    }
+
+    .filter-chip.blocked {
+      background-color: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+    }
+
+    /* Add Filter Button */
+    .add-filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 10px;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: #58a6ff;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .add-filter-btn:hover {
+      background-color: rgba(88, 166, 255, 0.1);
+    }
+
+    .add-filter-btn-icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    /* Clear Filters Button */
+    .clear-filters-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      background: transparent;
+      border: none;
+      color: var(--vscode-foreground);
+      cursor: pointer;
+      font-size: 12px;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+      text-decoration: underline;
+    }
+
+    .clear-filters-btn:hover {
+      opacity: 1;
+    }
+
+    /* Status Popover */
+    .status-popover {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      min-width: 180px;
+      background-color: var(--vscode-dropdown-background);
+      border: 1px solid var(--vscode-dropdown-border);
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      padding: 6px 0;
+      display: none;
+    }
+
+    .status-popover.visible {
+      display: block;
+    }
+
+    .popover-header {
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      opacity: 0.6;
+      letter-spacing: 0.5px;
+    }
+
+    .popover-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background-color 0.1s;
+    }
+
+    .popover-option:hover {
+      background-color: var(--vscode-list-hoverBackground);
+    }
+
+    .popover-checkbox {
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid var(--vscode-input-border);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+
+    .popover-checkbox.checked {
+      background-color: var(--vscode-button-background);
+      border-color: var(--vscode-button-background);
+    }
+
+    .popover-checkbox.checked::after {
+      content: '✓';
+      color: var(--vscode-button-foreground);
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .popover-divider {
+      height: 1px;
+      background-color: var(--vscode-dropdown-border);
+      margin: 4px 0;
+    }
+
+    .popover-action {
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      opacity: 0.8;
+      transition: all 0.1s;
+    }
+
+    .popover-action:hover {
+      background-color: var(--vscode-list-hoverBackground);
+      opacity: 1;
     }
 
     .task-grid {
@@ -274,12 +507,42 @@
   <div class="header">
     <h1>Horizon Task List</h1>
   </div>
-  <div class="filters">
-    <label><input type="checkbox" id="filter-ready" checked> Ready Tasks</label>
-    <label><input type="checkbox" id="filter-open"> Open</label>
-    <label><input type="checkbox" id="filter-in_progress"> In Progress</label>
-    <label><input type="checkbox" id="filter-closed"> Closed</label>
-    <label><input type="checkbox" id="filter-blocked"> Blocked</label>
+  <div class="filter-bar">
+    <div class="filter-trigger" id="status-filter-trigger">
+      <span class="filter-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5C3.58579 3 2.87868 3 2.43934 3.4122C2 3.8244 2 4.48782 2 5.81466V6.50448C2 7.54232 2 8.06124 2.2596 8.49142C2.5192 8.9216 2.99347 9.18858 3.94202 9.72255L6.85504 11.3624C7.49146 11.7206 7.80967 11.8998 8.03751 12.0976C8.51199 12.5095 8.80408 12.9935 8.93644 13.5872C9 13.8722 9 14.2058 9 14.8729L9 17.5424C9 18.452 9 18.9067 9.25192 19.2613C9.50385 19.6158 9.95128 19.7907 10.8462 20.1406C12.7248 20.875 13.6641 21.2422 14.3321 20.8244C15 20.4066 15 19.4519 15 17.5424V14.8729C15 14.2058 15 13.8722 15.0636 13.5872C15.1959 12.9935 15.488 12.5095 15.9625 12.0976C16.1903 11.8998 16.5085 11.7206 17.145 11.3624L20.058 9.72255C21.0065 9.18858 21.4808 8.9216 21.7404 8.49142C22 8.06124 22 7.54232 22 6.50448V5.81466C22 4.48782 22 3.8244 21.5607 3.4122C21.1213 3 20.4142 3 19 3Z" fill="currentColor"></path></svg></span>
+      <span class="filter-trigger-label">Status:</span>
+      <div class="status-popover" id="status-popover">
+        <div class="popover-header">Status</div>
+        <div class="popover-option" data-status="ready">
+          <div class="popover-checkbox"></div>
+          <span>Ready</span>
+        </div>
+        <div class="popover-option" data-status="open">
+          <div class="popover-checkbox"></div>
+          <span>Open</span>
+        </div>
+        <div class="popover-option" data-status="in_progress">
+          <div class="popover-checkbox"></div>
+          <span>In Progress</span>
+        </div>
+        <div class="popover-option" data-status="closed">
+          <div class="popover-checkbox"></div>
+          <span>Closed</span>
+        </div>
+        <div class="popover-option" data-status="blocked">
+          <div class="popover-checkbox"></div>
+          <span>Blocked</span>
+        </div>
+        <div class="popover-divider"></div>
+        <div class="popover-action" id="clear-status-selection">Clear</div>
+      </div>
+    </div>
+    <div class="filter-chips" id="filter-chips"></div>
+    <button class="clear-filters-btn" id="clear-all-filters" style="display: none;">Clear filters</button>
+    <button class="add-filter-btn" id="add-filter-btn">
+      <span class="add-filter-btn-icon">+</span>
+      <span>Add Filter</span>
+    </button>
   </div>
   <div id="task-container">
     <!-- Tasks will be populated here -->
@@ -287,6 +550,8 @@
 
   <script>
     const expandedTasks = new Set();
+    let selectedStatuses = new Set(['ready']); // Default filter
+    let isPopoverOpen = false;
 
     // Function to check if a task is ready (no blocking dependencies)
     function isReady(task, allTasks) {
@@ -308,10 +573,145 @@
       renderTasks(allTasks);
     }
 
+    // Update filter chips display
+    function updateFilterChips() {
+      const chipsContainer = document.getElementById('filter-chips');
+      const clearAllBtn = document.getElementById('clear-all-filters');
+      const statusTrigger = document.getElementById('status-filter-trigger');
+      
+      chipsContainer.innerHTML = '';
+      
+      if (selectedStatuses.size === 0) {
+        clearAllBtn.style.display = 'none';
+        statusTrigger.classList.remove('active');
+      } else {
+        clearAllBtn.style.display = 'inline-flex';
+        statusTrigger.classList.add('active');
+        
+        selectedStatuses.forEach(status => {
+          const chip = document.createElement('div');
+          chip.className = `filter-chip ${status}`;
+          
+          const icon = document.createElement('span');
+          icon.className = 'filter-chip-icon';
+          icon.textContent = getStatusIcon(status);
+          
+          const label = document.createElement('span');
+          label.textContent = getStatusLabel(status);
+          
+          const close = document.createElement('span');
+          close.className = 'filter-chip-close';
+          close.textContent = '✕';
+          close.onclick = () => removeStatusFilter(status);
+          
+          chip.appendChild(icon);
+          chip.appendChild(label);
+          chip.appendChild(close);
+          chipsContainer.appendChild(chip);
+        });
+      }
+      
+      updatePopoverCheckboxes();
+    }
+
+    // Get icon for status
+    function getStatusIcon(status) {
+      const icons = {
+        'ready': '✓',
+        'open': '●',
+        'in_progress': '◐',
+        'closed': '✓',
+        'blocked': '⊘'
+      };
+      return icons[status] || '●';
+    }
+
+    // Get display label for status
+    function getStatusLabel(status) {
+      const labels = {
+        'ready': 'Ready',
+        'open': 'Open',
+        'in_progress': 'In Progress',
+        'closed': 'Closed',
+        'blocked': 'Blocked'
+      };
+      return labels[status] || status;
+    }
+
+    // Update popover checkbox states
+    function updatePopoverCheckboxes() {
+      document.querySelectorAll('.popover-option').forEach(option => {
+        const status = option.dataset.status;
+        const checkbox = option.querySelector('.popover-checkbox');
+        if (selectedStatuses.has(status)) {
+          checkbox.classList.add('checked');
+        } else {
+          checkbox.classList.remove('checked');
+        }
+      });
+    }
+
+    // Toggle status filter
+    function toggleStatusFilter(status) {
+      if (selectedStatuses.has(status)) {
+        selectedStatuses.delete(status);
+      } else {
+        selectedStatuses.add(status);
+      }
+      updateFilterChips();
+      renderTasks(allTasks);
+    }
+
+    // Remove specific status filter
+    function removeStatusFilter(status) {
+      selectedStatuses.delete(status);
+      updateFilterChips();
+      renderTasks(allTasks);
+    }
+
+    // Clear all filters
+    function clearAllFilters() {
+      selectedStatuses.clear();
+      updateFilterChips();
+      renderTasks(allTasks);
+    }
+
+    // Toggle popover
+    function togglePopover() {
+      const popover = document.getElementById('status-popover');
+      isPopoverOpen = !isPopoverOpen;
+      
+      if (isPopoverOpen) {
+        popover.classList.add('visible');
+      } else {
+        popover.classList.remove('visible');
+      }
+    }
+
+    // Close popover when clicking outside
+    document.addEventListener('click', (e) => {
+      const trigger = document.getElementById('status-filter-trigger');
+      const popover = document.getElementById('status-popover');
+      
+      if (!trigger.contains(e.target) && isPopoverOpen) {
+        popover.classList.remove('visible');
+        isPopoverOpen = false;
+      }
+    });
+
     // Function to render tasks
     function renderTasks(allTasks) {
-      const selectedStatuses = Array.from(document.querySelectorAll('.filters input:checked')).map(cb => cb.id.replace('filter-', ''));
-      const filteredTasks = allTasks.filter(task => selectedStatuses.includes(task.status) || (selectedStatuses.includes('ready') && task.status === 'open' && isReady(task, allTasks)));
+      // If no statuses selected, show all tasks
+      let filteredTasks;
+      if (selectedStatuses.size === 0) {
+        filteredTasks = allTasks;
+      } else {
+        const statusArray = Array.from(selectedStatuses);
+        filteredTasks = allTasks.filter(task => 
+          statusArray.includes(task.status) || 
+          (statusArray.includes('ready') && task.status === 'open' && isReady(task, allTasks))
+        );
+      }
       const expandedTaskList = getExpandedTasks(allTasks, filteredTasks);
       const taskTree = buildTaskTree(expandedTaskList);
 
@@ -553,6 +953,7 @@
 
     // Initial render (will be updated via message)
     let allTasks = [];
+    updateFilterChips();
     renderTasks([]);
 
     // Listen for messages from extension
@@ -564,9 +965,34 @@
       }
     });
 
-    // Add event listeners for filters
-    document.querySelectorAll('.filters input').forEach(cb => {
-      cb.addEventListener('change', () => renderTasks(allTasks));
+    // Add event listeners for filter UI
+    document.getElementById('status-filter-trigger').addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePopover();
+    });
+
+    document.querySelectorAll('.popover-option').forEach(option => {
+      option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const status = option.dataset.status;
+        toggleStatusFilter(status);
+      });
+    });
+
+    document.getElementById('clear-status-selection').addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectedStatuses.clear();
+      updateFilterChips();
+      renderTasks(allTasks);
+    });
+
+    document.getElementById('clear-all-filters').addEventListener('click', () => {
+      clearAllFilters();
+    });
+
+    document.getElementById('add-filter-btn').addEventListener('click', () => {
+      // Placeholder for future filter options
+      alert('Additional filters coming soon!\n\nFuture options:\n- Priority\n- Type\n- Assignee\n- Tags\n- Date ranges');
     });
   </script>
 </body>
