@@ -16,4 +16,4 @@
 {"id":"h-YfJBq1zW","title":"Add subtask selection dialog for non-parented tickets","status":"open","created_at":"2026-01-17T16:40:48.837Z","updated_at":"2026-01-17T16:44:29.598Z"}
 {"id":"h-DfNHp8GG","title":"Update subtask display in editor to show id, type, title, status, and priority","status":"open","created_at":"2026-01-17T16:46:54.034Z","updated_at":"2026-01-17T16:50:01.284Z","description":"","type":"task","priority":"medium"}
 {"id":"h-sLSyKeOU","title":"Update subtask badges in edit form to match task list pill styling","status":"open","created_at":"2026-01-17T18:39:24.408Z","updated_at":"2026-01-17T18:39:42.905Z"}
-{"id":"h-wN7SZwxo","title":"Create reusable pill components for type, status, and priority badges","status":"open","created_at":"2026-01-17T18:41:31.590Z","updated_at":"2026-01-17T18:41:31.591Z"}
+{"id":"h-wN7SZwxo","title":"Create reusable pill components for type, status, and priority badges","status":"open","created_at":"2026-01-17T18:41:31.590Z","updated_at":"2026-01-17T18:41:35.514Z"}
