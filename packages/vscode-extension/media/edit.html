@@ -208,15 +208,349 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--vscode-list-inactiveSelectionBackground);
+      border-radius: 3px;
+      margin-bottom: 4px;
     }
 
-    .subtask input {
+    .subtask-info {
       flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .subtask button {
-      flex-shrink: 0;
+    .subtask-type,
+    .subtask-status,
+    .subtask-priority {
       padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+      text-transform: capitalize;
+    }
+
+    .subtask-type {
+      background-color: var(--vscode-badge-background);
+      color: var(--vscode-badge-foreground);
+    }
+
+    .subtask-status.open {
+      background-color: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
+    }
+
+    .subtask-status.in_progress {
+      background-color: rgba(68, 131, 255, 0.2);
+      color: #58a6ff;
+    }
+
+    .subtask-status.closed {
+      background-color: rgba(139, 148, 158, 0.2);
+      color: #8b949e;
+    }
+
+    .subtask-status.blocked {
+      background-color: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+    }
+
+    .subtask-priority.low {
+      background-color: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
+    }
+
+    .subtask-priority.medium {
+      background-color: rgba(212, 165, 86, 0.2);
+      color: #D4A556;
+    }
+
+    .subtask-priority.high {
+      background-color: rgba(251, 133, 0, 0.2);
+      color: #fb8500;
+    }
+
+    .subtask-priority.urgent {
+      background-color: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+    }
+
+    .subtask-title {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .subtask-id {
+      font-size: 12px;
+      color: var(--vscode-descriptionForeground);
+      font-family: monospace;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal.hidden {
+      display: none;
+    }
+
+    .modal-content {
+      background-color: var(--vscode-quickInput-background);
+      border: 1px solid var(--vscode-widget-border);
+      border-radius: 6px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--vscode-widget-border);
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .modal-body {
+      padding: 16px;
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .search-input {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      box-sizing: border-box;
+      font-family: var(--vscode-font-family);
+      font-size: var(--vscode-font-size);
+      color: var(--vscode-input-foreground);
+      background-color: var(--vscode-input-background);
+      border: 1px solid var(--vscode-input-border);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--vscode-focusBorder);
+      outline: 1px solid var(--vscode-focusBorder);
+      outline-offset: -1px;
+    }
+
+    .subtask-list-modal {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid var(--vscode-widget-border);
+      border-radius: 3px;
+    }
+
+    .subtask-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--vscode-list-inactiveSelectionBackground);
+      cursor: pointer;
+    }
+
+    .subtask-item:hover {
+      background-color: var(--vscode-list-hoverBackground);
+    }
+
+    .subtask-item.selected {
+      background-color: var(--vscode-list-activeSelectionBackground);
+    }
+
+    .subtask-info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subtask-type,
+    .subtask-status,
+    .subtask-priority {
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+      text-transform: capitalize;
+    }
+
+    .subtask-type {
+      background-color: var(--vscode-badge-background);
+      color: var(--vscode-badge-foreground);
+    }
+
+    .subtask-status.open {
+      background-color: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
+    }
+
+    .subtask-status.in_progress {
+      background-color: rgba(68, 131, 255, 0.2);
+      color: #58a6ff;
+    }
+
+    .subtask-status.closed {
+      background-color: rgba(139, 148, 158, 0.2);
+      color: #8b949e;
+    }
+
+    .subtask-status.blocked {
+      background-color: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+    }
+
+    .subtask-priority.low {
+      background-color: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
+    }
+
+    .subtask-priority.medium {
+      background-color: rgba(212, 165, 86, 0.2);
+      color: #D4A556;
+    }
+
+    .subtask-priority.high {
+      background-color: rgba(251, 133, 0, 0.2);
+      color: #fb8500;
+    }
+
+    .subtask-priority.urgent {
+      background-color: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+    }
+
+    .subtask-title {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .subtask-id {
+      font-size: 12px;
+      color: var(--vscode-descriptionForeground);
+      font-family: monospace;
+    }
+
+    .modal-footer {
+      padding: 16px;
+      border-top: 1px solid var(--vscode-widget-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* Type badge styles (matching task list) */
+    .type-badge {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      height: 22px;
+      line-height: 1;
+    }
+
+    .type-badge::before {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      line-height: 1;
+    }
+
+    .type-badge.epic {
+      background-color: rgba(138, 98, 255, 0.2);
+      color: #8A62FF;
+    }
+
+    .type-badge.epic::before {
+      content: '⚡';
+    }
+
+    .type-badge.task {
+      background-color: rgba(68, 131, 255, 0.2);
+      color: #4483FF;
+    }
+
+    .type-badge.task::before {
+      content: '•';
+      font-size: 16px;
+    }
+
+    .type-badge.bug {
+      background-color: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+    }
+
+    .type-badge.bug::before {
+      content: '🐛';
+      font-size: 11px;
+    }
+
+    .type-badge.feature {
+      background-color: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
+    }
+
+    .type-badge.feature::before {
+      content: '✨';
+      font-size: 11px;
+    }
+
+    .type-badge.chore {
+      background-color: rgba(139, 148, 158, 0.2);
+      color: #8b949e;
+    }
+
+    .type-badge.chore::before {
+      content: '🔧';
+      font-size: 11px;
+    }
+
+    .type-badge.docs {
+      background-color: rgba(88, 166, 255, 0.2);
+      color: #58a6ff;
+    }
+
+    .type-badge.docs::before {
+      content: '📝';
+      font-size: 11px;
+    }
+
+    .type-badge.refactor {
+      background-color: rgba(212, 165, 86, 0.2);
+      color: #D4A556;
+    }
+
+    .type-badge.refactor::before {
+      content: '♻️';
+      font-size: 11px;
     }
   </style>
 </head>
@@ -308,6 +642,23 @@
     </div>
   </form>
 
+  <!-- Subtask Selection Modal -->
+  <div id="subtaskModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Select Subtask</h2>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="subtaskSearch" class="search-input" placeholder="Search by ID, title, or description..." />
+        <div id="availableSubtasks" class="subtask-list-modal"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="cancelSubtaskSelection" class="secondary">Cancel</button>
+        <button type="button" id="confirmSubtaskSelection">Add Selected</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const vscode = acquireVsCodeApi();
     let ticketId = null;
@@ -316,6 +667,34 @@
     let currentDescription = '';
     let originalTitle = '';
     let originalDescription = '';
+    let availableSubtasks = [];
+    let selectedSubtaskId = null;
+
+    // Utility functions for creating pill components
+    function createTypeBadge(type) {
+      const badge = document.createElement('span');
+      badge.className = `type-badge ${type || 'task'}`;
+      badge.textContent = type || 'Task';
+      return badge;
+    }
+
+    function createStatusPill(status, displayText = null) {
+      const pill = document.createElement('span');
+      const displayStatus = status || 'open';
+      const text = displayText || (displayStatus === 'in_progress' ? 'In Progress' : 
+        (displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)));
+      pill.className = `subtask-status ${displayStatus}`;
+      pill.textContent = text;
+      return pill;
+    }
+
+    function createPriorityPill(priority) {
+      const pill = document.createElement('span');
+      const displayPriority = priority || 'medium';
+      pill.className = `subtask-priority ${displayPriority}`;
+      pill.textContent = displayPriority.charAt(0).toUpperCase() + displayPriority.slice(1);
+      return pill;
+    }
 
     // Notify extension that webview is ready
     vscode.postMessage({ type: 'webviewReady' });
@@ -335,6 +714,11 @@
         updateTitleDisplay();
         updateDescriptionDisplay();
         renderSubtasks();
+      } else if (message.type === 'availableSubtasks') {
+        availableSubtasks = message.subtasks;
+        renderAvailableSubtasks();
+        document.getElementById('subtaskModal').classList.remove('hidden');
+        document.getElementById('subtaskSearch').focus();
       }
     });
 
@@ -433,18 +817,38 @@
       subtasks.forEach((subtask, index) => {
         const div = document.createElement('div');
         div.className = 'subtask';
-        const titleValue = (subtask.title || '').replace(/"/g, '&quot;');
-        div.innerHTML = `
-          <input type="text" value="${titleValue}" onchange="updateSubtask(${index}, this.value)" placeholder="Subtask title">
-          <button type="button" class="secondary" onclick="removeSubtask(${index})">Remove</button>
-        `;
+        
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'subtask-info';
+        
+        const typeBadge = createTypeBadge(subtask.type);
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'subtask-title';
+        titleSpan.textContent = subtask.title;
+        const idSpan = document.createElement('span');
+        idSpan.className = 'subtask-id';
+        idSpan.textContent = subtask.id;
+        
+        infoDiv.appendChild(typeBadge);
+        infoDiv.appendChild(titleSpan);
+        infoDiv.appendChild(idSpan);
+        
+        const statusPill = createStatusPill(subtask.status);
+        const priorityPill = createPriorityPill(subtask.priority);
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'secondary';
+        removeBtn.textContent = 'Remove';
+        removeBtn.onclick = () => removeSubtask(index);
+        
+        div.appendChild(infoDiv);
+        div.appendChild(statusPill);
+        div.appendChild(priorityPill);
+        div.appendChild(removeBtn);
+        
         list.appendChild(div);
       });
-    }
-
-    function updateSubtask(index, title) {
-      subtasks[index].title = title;
-      saveTicket();
     }
 
     function removeSubtask(index) {
@@ -454,14 +858,99 @@
     }
 
     document.getElementById('addSubtask').addEventListener('click', () => {
-      subtasks.push({ title: '' });
-      renderSubtasks();
-      saveTicket();
+      vscode.postMessage({ type: 'getAvailableSubtasks' });
     });
 
     document.getElementById('ticketForm').addEventListener('submit', (e) => {
       e.preventDefault();
     });
+
+    // Modal handlers
+    document.getElementById('cancelSubtaskSelection').addEventListener('click', () => {
+      document.getElementById('subtaskModal').classList.add('hidden');
+      selectedSubtaskId = null;
+      document.getElementById('subtaskSearch').value = '';
+    });
+
+    document.getElementById('confirmSubtaskSelection').addEventListener('click', () => {
+      if (selectedSubtaskId) {
+        const selectedSubtask = availableSubtasks.find(s => s.id === selectedSubtaskId);
+        if (selectedSubtask) {
+          subtasks.push({ id: selectedSubtask.id, title: selectedSubtask.title });
+          renderSubtasks();
+          saveTicket();
+        }
+      }
+      document.getElementById('subtaskModal').classList.add('hidden');
+      selectedSubtaskId = null;
+      document.getElementById('subtaskSearch').value = '';
+    });
+
+    document.getElementById('subtaskSearch').addEventListener('input', (e) => {
+      renderAvailableSubtasks(e.target.value);
+    });
+
+    function renderAvailableSubtasks(searchTerm = '') {
+      const list = document.getElementById('availableSubtasks');
+      list.innerHTML = '';
+
+      const filtered = availableSubtasks
+        .map(subtask => {
+          const searchText = `${subtask.id} ${subtask.title} ${subtask.description}`.toLowerCase();
+          const term = searchTerm.toLowerCase();
+          let score = 0;
+
+          if (searchText.includes(term)) {
+            // Exact ID match gets highest score
+            if (subtask.id.toLowerCase().includes(term)) score += 100;
+            // Title match
+            if (subtask.title.toLowerCase().includes(term)) score += 50;
+            // Description match
+            if (subtask.description.toLowerCase().includes(term)) score += 25;
+            // Word boundaries get bonus
+            if (new RegExp(`\\b${term}\\b`, 'i').test(searchText)) score += 10;
+          }
+
+          return { ...subtask, score };
+        })
+        .filter(subtask => subtask.score > 0 || !searchTerm)
+        .sort((a, b) => b.score - a.score);
+
+      filtered.forEach(subtask => {
+        const div = document.createElement('div');
+        div.className = `subtask-item ${selectedSubtaskId === subtask.id ? 'selected' : ''}`;
+        div.onclick = () => selectSubtask(subtask.id);
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'subtask-info';
+
+        const typeBadge = createTypeBadge(subtask.type);
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'subtask-title';
+        titleSpan.textContent = subtask.title;
+        const idSpan = document.createElement('span');
+        idSpan.className = 'subtask-id';
+        idSpan.textContent = subtask.id;
+
+        infoDiv.appendChild(typeBadge);
+        infoDiv.appendChild(titleSpan);
+        infoDiv.appendChild(idSpan);
+
+        const statusPill = createStatusPill(subtask.status);
+        const priorityPill = createPriorityPill(subtask.priority);
+
+        div.appendChild(infoDiv);
+        div.appendChild(statusPill);
+        div.appendChild(priorityPill);
+
+        list.appendChild(div);
+      });
+    }
+
+    function selectSubtask(id) {
+      selectedSubtaskId = id;
+      renderAvailableSubtasks(document.getElementById('subtaskSearch').value);
+    }
   </script>
 </body>
 

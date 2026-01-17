@@ -264,7 +264,13 @@ export function activate(context: vscode.ExtensionContext) {
           const ticket = issues.find(i => i.id === ticketId);
           if (ticket) {
             // Get subtasks
-            const subtasks = graph.getEpicSubtasks(ticketId, issues).map(s => ({ id: s.id, title: s.title }));
+            const subtasks = graph.getEpicSubtasks(ticketId, issues).map(s => ({
+              id: s.id,
+              title: s.title,
+              type: s.type,
+              status: s.status,
+              priority: s.priority
+            }));
             console.log('Sending loadTicket message for:', ticketId, ticket);
             panel.webview.postMessage({
               type: 'loadTicket',
@@ -288,6 +294,23 @@ export function activate(context: vscode.ExtensionContext) {
             console.log('Webview ready, loading ticket:', pendingTicketId);
             webviewReady = true;
             await loadTicket(pendingTicketId);
+          } else if (message.type === 'getAvailableSubtasks') {
+            console.log('Getting available subtasks');
+            const issues = await storage.loadIssues();
+            const availableSubtasks = graph.getNonParentedIssues(issues)
+              .filter(issue => issue.id !== pendingTicketId) // Exclude current ticket
+              .map(issue => ({
+                id: issue.id,
+                title: issue.title,
+                type: issue.type,
+                status: issue.status,
+                priority: issue.priority,
+                description: issue.description || ''
+              }));
+            panel.webview.postMessage({
+              type: 'availableSubtasks',
+              subtasks: availableSubtasks
+            });
           } else if (message.type === 'saveTicket') {
             // Queue the save operation to prevent concurrent saves
             saveQueue = saveQueue.then(async () => {

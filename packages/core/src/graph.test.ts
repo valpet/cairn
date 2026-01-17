@@ -529,4 +529,92 @@ describe('GraphService', () => {
       });
     });
   });
+
+  describe('getNonParentedIssues', () => {
+    it('should return issues that have no parent-child dependencies', () => {
+      const issues: Issue[] = [
+        {
+          id: 'epic-1',
+          title: 'Epic 1',
+          status: 'open',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z',
+        },
+        {
+          id: 'sub-1',
+          title: 'Subtask 1',
+          status: 'open',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z',
+          dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+        },
+        {
+          id: 'task-1',
+          title: 'Task 1',
+          status: 'open',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z',
+        },
+        {
+          id: 'task-2',
+          title: 'Task 2',
+          status: 'open',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z',
+          dependencies: [{ id: 'task-1', type: 'blocks' }],
+        },
+      ];
+
+      const nonParented = graphService.getNonParentedIssues(issues);
+      expect(nonParented).toHaveLength(2);
+      expect(nonParented.map(i => i.id)).toEqual(['epic-1', 'task-1']);
+    });
+
+    it('should return all issues when none have parent-child dependencies', () => {
+      const issues: Issue[] = [
+        {
+          id: 'task-1',
+          title: 'Task 1',
+          status: 'open',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z',
+        },
+        {
+          id: 'task-2',
+          title: 'Task 2',
+          status: 'open',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z',
+        },
+      ];
+
+      const nonParented = graphService.getNonParentedIssues(issues);
+      expect(nonParented).toHaveLength(2);
+      expect(nonParented.map(i => i.id)).toEqual(['task-1', 'task-2']);
+    });
+
+    it('should return empty array when all issues are parented', () => {
+      const issues: Issue[] = [
+        {
+          id: 'sub-1',
+          title: 'Subtask 1',
+          status: 'open',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z',
+          dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+        },
+        {
+          id: 'sub-2',
+          title: 'Subtask 2',
+          status: 'open',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z',
+          dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+        },
+      ];
+
+      const nonParented = graphService.getNonParentedIssues(issues);
+      expect(nonParented).toHaveLength(0);
+    });
+  });
 });

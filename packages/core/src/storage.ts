@@ -103,11 +103,11 @@ export class StorageService implements IStorageService {
           const lockContent = await fs.promises.readFile(this.lockFilePath, 'utf-8');
           const lockData = JSON.parse(lockContent);
           const lockAge = Date.now() - lockData.timestamp;
-          if (lockAge > lockTimeout) {
+          if (lockAge > this.lockTimeout) {
             await fs.promises.unlink(this.lockFilePath);
           }
         }
-        this.
+
         // Try to acquire lock
         const lockData = { pid: process.pid, timestamp: Date.now() };
         await fs.promises.writeFile(this.lockFilePath, JSON.stringify(lockData), { flag: 'wx' });

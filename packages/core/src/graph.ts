@@ -11,6 +11,7 @@ export interface IGraphService {
   getSubtaskEpic(subtaskId: string, issues: Issue[]): Issue | null;
   calculateEpicProgress(epicId: string, issues: Issue[]): { completed: number; total: number; percentage: number };
   shouldCloseEpic(epicId: string, issues: Issue[]): boolean;
+  getNonParentedIssues(issues: Issue[]): Issue[];
 }
 
 @injectable()
@@ -126,5 +127,19 @@ export class GraphService implements IGraphService {
   shouldCloseEpic(epicId: string, issues: Issue[]): boolean {
     const subtasks = this.getEpicSubtasks(epicId, issues);
     return subtasks.length > 0 && subtasks.every(subtask => subtask.status === 'closed');
+  }
+
+  getNonParentedIssues(issues: Issue[]): Issue[] {
+    const parentedIds = new Set<string>();
+    for (const issue of issues) {
+      if (issue.dependencies) {
+        for (const dep of issue.dependencies) {
+          if (dep.type === 'parent-child') {
+            parentedIds.add(issue.id);
+          }
+        }
+      }
+    }
+    return issues.filter(issue => !parentedIds.has(issue.id));
   }
 }

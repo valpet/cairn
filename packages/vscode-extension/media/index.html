@@ -777,6 +777,32 @@
     let selectedStatuses = new Set(['ready']); // Default filter
     let isPopoverOpen = false;
 
+    // Utility functions for creating pill components
+    function createTypeBadge(type) {
+      const badge = document.createElement('span');
+      badge.className = `type-badge ${type || 'task'}`;
+      badge.textContent = type || 'Task';
+      return badge;
+    }
+
+    function createStatusPill(status, displayText = null) {
+      const pill = document.createElement('span');
+      const displayStatus = status || 'open';
+      const text = displayText || (displayStatus === 'in_progress' ? 'In Progress' : 
+        (displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)));
+      pill.className = `pill status-${displayStatus}`;
+      pill.textContent = text;
+      return pill;
+    }
+
+    function createPriorityPill(priority) {
+      const pill = document.createElement('span');
+      const displayPriority = priority || 'medium';
+      pill.className = `pill priority-${displayPriority}`;
+      pill.textContent = displayPriority.charAt(0).toUpperCase() + displayPriority.slice(1);
+      return pill;
+    }
+
     // Simple markdown to HTML converter
     function markdownToHtml(markdown) {
       let html = markdown;
@@ -1189,9 +1215,7 @@
       titleDiv.appendChild(expandIcon);
 
       // Type badge
-      const typeBadge = document.createElement('span');
-      typeBadge.className = `type-badge ${task.type || 'task'}`;
-      typeBadge.textContent = task.type || 'Task';
+      const typeBadge = createTypeBadge(task.type);
       titleDiv.appendChild(typeBadge);
 
       // Title text
@@ -1225,10 +1249,6 @@
       descriptionCell.appendChild(descriptionContent);
       tr.appendChild(descriptionCell);
 
-      // Status cell
-      const statusCell = document.createElement('td');
-      const statusPill = document.createElement('span');
-
       // Check if task is blocked
       const taskIsBlocked = isBlocked(task, allTasks);
       const displayStatus = taskIsBlocked ? 'blocked' : task.status;
@@ -1236,16 +1256,15 @@
         (task.status === 'in_progress' ? 'In Progress' :
           (task.status.charAt(0).toUpperCase() + task.status.slice(1)));
 
-      statusPill.className = `pill status-${displayStatus}`;
-      statusPill.textContent = displayText;
+      // Status cell
+      const statusCell = document.createElement('td');
+      const statusPill = createStatusPill(displayStatus, displayText);
       statusCell.appendChild(statusPill);
       tr.appendChild(statusCell);
 
       // Priority cell
       const priorityCell = document.createElement('td');
-      const priorityPill = document.createElement('span');
-      priorityPill.className = `pill priority-${task.priority}`;
-      priorityPill.textContent = task.priority.charAt(0).toUpperCase() + task.priority.slice(1);
+      const priorityPill = createPriorityPill(task.priority);
       priorityCell.appendChild(priorityPill);
       tr.appendChild(priorityCell);
 
