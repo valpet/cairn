@@ -126,19 +126,19 @@ export function activate(context: vscode.ExtensionContext) {
         try {
           const inputs = options.input as any;
           const comment = await storage.addComment(inputs.issue_id, inputs.author || 'agent', inputs.content);
-          return { 
-            content: [{ 
-              type: 'text', 
-              text: JSON.stringify({ 
-                success: true, 
-                message: `Added comment to issue ${inputs.issue_id}`, 
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                success: true,
+                message: `Added comment to issue ${inputs.issue_id}`,
                 comment: {
                   id: comment.id,
                   author: comment.author,
                   created_at: comment.created_at
                 }
-              }) 
-            }] 
+              })
+            }]
           };
         } catch (error) {
           const err = error as Error;
