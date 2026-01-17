@@ -48,7 +48,6 @@ export function activate(context: vscode.ExtensionContext) {
             updated_at: new Date().toISOString(),
           };
           await storage.saveIssue(issue);
-          await git.commitChanges(`Create issue ${id}`);
           return { content: [{ type: 'text', text: JSON.stringify({ success: true, message: `Created issue ${id}: ${inputs.title}`, id }) }] };
         } catch (error) {
           const err = error as Error;
@@ -97,7 +96,6 @@ export function activate(context: vscode.ExtensionContext) {
               return issue;
             });
           });
-          await git.commitChanges(`Update issue ${inputs.id}`);
           return { content: [{ type: 'text', text: JSON.stringify({ success: true, message: `Updated issue ${inputs.id}` }) }] };
         } catch (error) {
           const err = error as Error;
@@ -115,7 +113,6 @@ export function activate(context: vscode.ExtensionContext) {
           await storage.updateIssues(issues => {
             return graph.addDependency(inputs.from, inputs.to, inputs.type, issues);
           });
-          await git.commitChanges(`Add dependency ${inputs.from} -> ${inputs.to}`);
           return { content: [{ type: 'text', text: JSON.stringify({ success: true, message: `Added ${inputs.type} dependency from ${inputs.from} to ${inputs.to}` }) }] };
         } catch (error) {
           const err = error as Error;
@@ -158,7 +155,6 @@ export function activate(context: vscode.ExtensionContext) {
                 return issue;
               });
             });
-            await git.commitChanges(`Start task ${message.id}`);
           } else if (message.type === 'completeTask') {
             console.log('Completing task:', message.id);
             await storage.updateIssues(issues => {
@@ -169,7 +165,6 @@ export function activate(context: vscode.ExtensionContext) {
                 return issue;
               });
             });
-            await git.commitChanges(`Complete task ${message.id}`);
           } else if (message.type === 'editTicket') {
             console.log('Edit ticket message received for:', message.id);
             try {
@@ -373,10 +368,6 @@ export function activate(context: vscode.ExtensionContext) {
                   console.log('Calling storage.updateIssues...');
                   await storage.updateIssues(() => updatedIssues);
                   console.log('storage.updateIssues completed');
-
-                  console.log('Calling git.commitChanges...');
-                  await git.commitChanges(`Update ticket ${ticketData.id}`);
-                  console.log('git.commitChanges completed');
                   console.log('=== SAVE OPERATION COMPLETE ===');
                 } catch (saveError) {
                   console.error('=== SAVE OPERATION FAILED ===');
@@ -443,8 +434,6 @@ export function activate(context: vscode.ExtensionContext) {
         };
         console.log('Saving new ticket:', newId);
         await storage.saveIssue(newTicket);
-        console.log('Committing to git...');
-        await git.commitChanges(`Create ticket ${newId}`);
         console.log('New ticket created successfully');
 
         // Now open it for editing

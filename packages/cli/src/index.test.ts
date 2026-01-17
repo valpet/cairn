@@ -166,7 +166,7 @@ describe('CLI Commands', () => {
 
       expect(mockStorage.loadIssues).toHaveBeenCalled();
       expect(mockStorage.saveIssue).toHaveBeenCalledWith({
-        id: 'test-id-123',
+        id: 'h-test-id-123',
         title: 'Test Issue',
         description: undefined,
         type: undefined,
@@ -175,7 +175,6 @@ describe('CLI Commands', () => {
         created_at: expect.any(String),
         updated_at: expect.any(String),
       });
-      expect(mockGit.commitChanges).toHaveBeenCalledWith('Create issue test-id-123');
     });
 
     it('should create a new issue with all options', async () => {
@@ -193,7 +192,7 @@ describe('CLI Commands', () => {
       });
 
       expect(mockStorage.saveIssue).toHaveBeenCalledWith({
-        id: 'test-id-123',
+        id: 'h-test-id-123',
         title: 'Feature Issue',
         description: 'A test description',
         type: 'feature',
@@ -374,7 +373,7 @@ describe('CLI Commands', () => {
       await addSubtaskAction('epic-1', 'New Subtask', { description: 'Test desc', priority: 'medium' });
 
       expect(mockStorage.saveIssue).toHaveBeenCalledWith({
-        id: 'test-id-123',
+        id: 'h-test-id-123',
         title: 'New Subtask',
         description: 'Test desc',
         type: 'task',
@@ -384,8 +383,7 @@ describe('CLI Commands', () => {
         updated_at: expect.any(String),
       });
       expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(mockGraph.addDependency).toHaveBeenCalledWith('test-id-123', 'epic-1', 'parent-child', mockIssues);
-      expect(mockGit.commitChanges).toHaveBeenCalledWith('Create subtask test-id-123 for epic epic-1');
+      expect(mockGraph.addDependency).toHaveBeenCalledWith('h-test-id-123', 'epic-1', 'parent-child', mockIssues);
     });
   });
 
