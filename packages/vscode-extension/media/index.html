@@ -322,7 +322,7 @@
     .task-grid td {
       padding: 12px 16px;
       border-bottom: 1px solid var(--vscode-panel-border);
-      vertical-align: middle;
+      vertical-align: top;
       position: relative;
     }
 
@@ -467,6 +467,94 @@
       color: var(--vscode-foreground);
     }
 
+    .description-cell {
+      max-width: 400px;
+      position: relative;
+    }
+
+    .description-content {
+      font-size: 12px;
+      color: var(--vscode-descriptionForeground);
+      line-height: 1.4;
+    }
+
+    .description-content.collapsed {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .description-content.collapsed:hover {
+      color: var(--vscode-foreground);
+    }
+
+    .description-content.expanded {
+      cursor: pointer;
+    }
+
+    .description-content.expanded h1,
+    .description-content.expanded h2,
+    .description-content.expanded h3 {
+      margin: 8px 0 4px 0;
+      color: var(--vscode-foreground);
+    }
+
+    .description-content.expanded h1 { font-size: 16px; font-weight: 600; }
+    .description-content.expanded h2 { font-size: 14px; font-weight: 600; }
+    .description-content.expanded h3 { font-size: 13px; font-weight: 600; }
+
+    .description-content.expanded p {
+      margin: 4px 0;
+      line-height: 1.5;
+    }
+
+    .description-content.expanded ul,
+    .description-content.expanded ol {
+      margin: 4px 0;
+      padding-left: 20px;
+    }
+
+    .description-content.expanded li {
+      margin: 2px 0;
+    }
+
+    .description-content.expanded code {
+      background-color: var(--vscode-textCodeBlock-background);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: var(--vscode-editor-font-family);
+      font-size: 0.9em;
+    }
+
+    .description-content.expanded pre {
+      background-color: var(--vscode-textCodeBlock-background);
+      padding: 8px;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+
+    .description-content.expanded pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .description-content.expanded strong {
+      font-weight: 600;
+      color: var(--vscode-foreground);
+    }
+
+    .description-content.expanded em {
+      font-style: italic;
+    }
+
+    .description-empty {
+      opacity: 0.4;
+      font-style: italic;
+      font-size: 12px;
+    }
+
     .pill {
       padding: 6px 12px;
       border-radius: 12px;
@@ -597,7 +685,11 @@
   </div>
   <div class="filter-bar">
     <div class="filter-trigger" id="status-filter-trigger">
-      <span class="filter-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5C3.58579 3 2.87868 3 2.43934 3.4122C2 3.8244 2 4.48782 2 5.81466V6.50448C2 7.54232 2 8.06124 2.2596 8.49142C2.5192 8.9216 2.99347 9.18858 3.94202 9.72255L6.85504 11.3624C7.49146 11.7206 7.80967 11.8998 8.03751 12.0976C8.51199 12.5095 8.80408 12.9935 8.93644 13.5872C9 13.8722 9 14.2058 9 14.8729L9 17.5424C9 18.452 9 18.9067 9.25192 19.2613C9.50385 19.6158 9.95128 19.7907 10.8462 20.1406C12.7248 20.875 13.6641 21.2422 14.3321 20.8244C15 20.4066 15 19.4519 15 17.5424V14.8729C15 14.2058 15 13.8722 15.0636 13.5872C15.1959 12.9935 15.488 12.5095 15.9625 12.0976C16.1903 11.8998 16.5085 11.7206 17.145 11.3624L20.058 9.72255C21.0065 9.18858 21.4808 8.9216 21.7404 8.49142C22 8.06124 22 7.54232 22 6.50448V5.81466C22 4.48782 22 3.8244 21.5607 3.4122C21.1213 3 20.4142 3 19 3Z" fill="currentColor"></path></svg></span>
+      <span class="filter-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M19 3H5C3.58579 3 2.87868 3 2.43934 3.4122C2 3.8244 2 4.48782 2 5.81466V6.50448C2 7.54232 2 8.06124 2.2596 8.49142C2.5192 8.9216 2.99347 9.18858 3.94202 9.72255L6.85504 11.3624C7.49146 11.7206 7.80967 11.8998 8.03751 12.0976C8.51199 12.5095 8.80408 12.9935 8.93644 13.5872C9 13.8722 9 14.2058 9 14.8729L9 17.5424C9 18.452 9 18.9067 9.25192 19.2613C9.50385 19.6158 9.95128 19.7907 10.8462 20.1406C12.7248 20.875 13.6641 21.2422 14.3321 20.8244C15 20.4066 15 19.4519 15 17.5424V14.8729C15 14.2058 15 13.8722 15.0636 13.5872C15.1959 12.9935 15.488 12.5095 15.9625 12.0976C16.1903 11.8998 16.5085 11.7206 17.145 11.3624L20.058 9.72255C21.0065 9.18858 21.4808 8.9216 21.7404 8.49142C22 8.06124 22 7.54232 22 6.50448V5.81466C22 4.48782 22 3.8244 21.5607 3.4122C21.1213 3 20.4142 3 19 3Z"
+            fill="currentColor"></path>
+        </svg></span>
       <span class="filter-trigger-label">Status:</span>
       <div class="status-popover" id="status-popover">
         <div class="popover-header">Status</div>
@@ -638,8 +730,48 @@
 
   <script>
     const expandedTasks = new Set();
+    const expandedDescriptions = new Set();
     let selectedStatuses = new Set(['ready']); // Default filter
     let isPopoverOpen = false;
+
+    // Simple markdown to HTML converter
+    function markdownToHtml(markdown) {
+      let html = markdown;
+      
+      // Code blocks (before inline code)
+      html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+      
+      // Headers
+      html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+      html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+      html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+      
+      // Bold
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      
+      // Italic
+      html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      
+      // Inline code
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      
+      // Unordered lists
+      html = html.replace(/^- (.+)$/gim, '<li>$1</li>');
+      html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+      
+      // Paragraphs (split by double newlines)
+      const parts = html.split('\n\n');
+      html = parts.map(part => {
+        part = part.trim();
+        if (!part) return '';
+        if (part.startsWith('<h') || part.startsWith('<ul') || part.startsWith('<pre')) {
+          return part;
+        }
+        return '<p>' + part.replace(/\n/g, '<br>') + '</p>';
+      }).join('\n');
+      
+      return html;
+    }
 
     // Function to check if a task is ready (no blocking dependencies)
     function isReady(task, allTasks) {
@@ -672,44 +804,53 @@
       renderTasks(allTasks);
     }
 
+    function toggleDescription(taskId) {
+      if (expandedDescriptions.has(taskId)) {
+        expandedDescriptions.delete(taskId);
+      } else {
+        expandedDescriptions.add(taskId);
+      }
+      renderTasks(allTasks);
+    }
+
     // Update filter chips display
     function updateFilterChips() {
       const chipsContainer = document.getElementById('filter-chips');
       const clearAllBtn = document.getElementById('clear-all-filters');
       const statusTrigger = document.getElementById('status-filter-trigger');
-      
+
       chipsContainer.innerHTML = '';
-      
+
       if (selectedStatuses.size === 0) {
         clearAllBtn.style.display = 'none';
         statusTrigger.classList.remove('active');
       } else {
         clearAllBtn.style.display = 'inline-flex';
         statusTrigger.classList.add('active');
-        
+
         selectedStatuses.forEach(status => {
           const chip = document.createElement('div');
           chip.className = `filter-chip ${status}`;
-          
+
           const icon = document.createElement('span');
           icon.className = 'filter-chip-icon';
           icon.textContent = getStatusIcon(status);
-          
+
           const label = document.createElement('span');
           label.textContent = getStatusLabel(status);
-          
+
           const close = document.createElement('span');
           close.className = 'filter-chip-close';
           close.textContent = '✕';
           close.onclick = () => removeStatusFilter(status);
-          
+
           chip.appendChild(icon);
           chip.appendChild(label);
           chip.appendChild(close);
           chipsContainer.appendChild(chip);
         });
       }
-      
+
       updatePopoverCheckboxes();
     }
 
@@ -779,7 +920,7 @@
     function togglePopover() {
       const popover = document.getElementById('status-popover');
       isPopoverOpen = !isPopoverOpen;
-      
+
       if (isPopoverOpen) {
         popover.classList.add('visible');
       } else {
@@ -791,7 +932,7 @@
     document.addEventListener('click', (e) => {
       const trigger = document.getElementById('status-filter-trigger');
       const popover = document.getElementById('status-popover');
-      
+
       if (!trigger.contains(e.target) && isPopoverOpen) {
         popover.classList.remove('visible');
         isPopoverOpen = false;
@@ -806,8 +947,8 @@
         filteredTasks = allTasks;
       } else {
         const statusArray = Array.from(selectedStatuses);
-        filteredTasks = allTasks.filter(task => 
-          statusArray.includes(task.status) || 
+        filteredTasks = allTasks.filter(task =>
+          statusArray.includes(task.status) ||
           (statusArray.includes('ready') && task.status === 'open' && isReady(task, allTasks))
         );
       }
@@ -825,25 +966,25 @@
       titleHeader.style.display = 'flex';
       titleHeader.style.alignItems = 'center';
       titleHeader.style.justifyContent = 'space-between';
-      
+
       const titleSection = document.createElement('div');
       titleSection.style.display = 'flex';
       titleSection.style.alignItems = 'center';
       titleSection.style.gap = '10px';
-      
+
       const filterIcon = document.createElement('span');
       filterIcon.innerHTML = '▼';
       filterIcon.style.fontSize = '10px';
-      
+
       const titleText = document.createElement('span');
       titleText.textContent = 'Title';
-      
+
       titleSection.appendChild(filterIcon);
       titleSection.appendChild(titleText);
-      
+
       const controlsSection = document.createElement('div');
       controlsSection.className = 'header-controls';
-      
+
       const expandAllBtn = document.createElement('button');
       expandAllBtn.className = 'header-btn';
       expandAllBtn.textContent = 'Expand All';
@@ -852,7 +993,7 @@
         allTasks.forEach(t => expandedTasks.add(t.id));
         renderTasks(allTasks);
       };
-      
+
       const collapseAllBtn = document.createElement('button');
       collapseAllBtn.className = 'header-btn';
       collapseAllBtn.textContent = 'Collapse All';
@@ -860,38 +1001,38 @@
         expandedTasks.clear();
         renderTasks(allTasks);
       };
-      
+
       const upBtn = document.createElement('button');
       upBtn.className = 'header-btn';
       upBtn.innerHTML = '↑';
-      
+
       const downBtn = document.createElement('button');
       downBtn.className = 'header-btn';
       downBtn.innerHTML = '↓';
-      
+
       controlsSection.appendChild(expandAllBtn);
       controlsSection.appendChild(collapseAllBtn);
       controlsSection.appendChild(upBtn);
       controlsSection.appendChild(downBtn);
-      
+
       titleHeader.appendChild(titleSection);
       titleHeader.appendChild(controlsSection);
-      
+
       headerRow.appendChild(titleHeader);
-      
-      ['Status', 'Priority', 'Actions'].forEach(text => {
+
+      ['Description', 'Status', 'Priority', 'Actions'].forEach(text => {
         const th = document.createElement('th');
         th.textContent = text;
         headerRow.appendChild(th);
       });
-      
+
       thead.appendChild(headerRow);
       table.appendChild(thead);
-      
+
       const tbody = document.createElement('tbody');
       renderTaskTreeGrid(taskTree, tbody, allTasks);
       table.appendChild(tbody);
-      
+
       container.appendChild(table);
     }
 
@@ -907,7 +1048,7 @@
 
       tasks.forEach(task => {
         const node = taskMap.get(task.id);
-        
+
         // Check for parent-child relationship
         const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
         if (parentDep) {
@@ -917,7 +1058,7 @@
             hasParent.add(task.id);
           }
         }
-        
+
         // Check for blocks relationship (task is blocked by another task)
         const blocksDep = (task.dependencies || []).find(dep => dep.type === 'blocks');
         if (blocksDep && !parentDep) { // Only if not already a child via parent-child
@@ -946,14 +1087,14 @@
     function renderTaskRowGrid(task, level = 0, allTasks, isLastChild = false, ancestorLines = []) {
       const hasChildren = task.children && task.children.length > 0;
       const isExpanded = expandedTasks.has(task.id);
-      
+
       const tr = document.createElement('tr');
       tr.className = 'task-row';
       if (level > 0) tr.classList.add('child-row');
-      
+
       // Title cell with expand/collapse
       const titleCell = document.createElement('td');
-      
+
       // Add tree lines for ancestor levels (exclude immediate parent level to avoid overlap)
       // Only draw for levels 0 to level-2, as level-1 is handled by our own connection
       const maxAncestorLevel = Math.min(ancestorLines.length, level - 1);
@@ -966,7 +1107,7 @@
           titleCell.appendChild(ancestorLine);
         }
       }
-      
+
       // Add tree lines for child nodes (position relative to TD)
       if (level > 0) {
         // Horizontal line
@@ -974,7 +1115,7 @@
         hLine.className = 'tree-line tree-line-horizontal';
         hLine.style.left = `${(level - 1) * 30 + 8 + 16}px`;
         titleCell.appendChild(hLine);
-        
+
         // Vertical line - full height for non-last children, corner for last child
         const vLine = document.createElement('div');
         if (isLastChild) {
@@ -985,13 +1126,13 @@
         vLine.style.left = `${(level - 1) * 30 + 8 + 16}px`;
         titleCell.appendChild(vLine);
       }
-      
+
       const titleDiv = document.createElement('div');
       titleDiv.className = 'title-cell';
       titleDiv.style.paddingLeft = `${level * 30}px`;
       titleDiv.style.position = 'relative';
       titleDiv.style.zIndex = '2';
-      
+
       // Expand/collapse icon
       const expandIcon = document.createElement('span');
       expandIcon.className = hasChildren ? (isExpanded ? 'expand-icon expanded' : 'expand-icon collapsed') : 'expand-icon empty';
@@ -999,38 +1140,60 @@
         expandIcon.onclick = () => toggleExpand(task.id);
       }
       titleDiv.appendChild(expandIcon);
-      
+
       // Type badge
       const typeBadge = document.createElement('span');
       typeBadge.className = `type-badge ${task.type || 'task'}`;
       typeBadge.textContent = task.type || 'Task';
       titleDiv.appendChild(typeBadge);
-      
+
       // Title text
       const titleText = document.createElement('span');
       titleText.className = 'task-title-text';
       titleText.textContent = task.title;
       titleDiv.appendChild(titleText);
-      
+
       titleCell.appendChild(titleDiv);
       tr.appendChild(titleCell);
+
+      // Description cell
+      const descriptionCell = document.createElement('td');
+      descriptionCell.className = 'description-cell';
+      const descriptionContent = document.createElement('div');
+      const isDescExpanded = expandedDescriptions.has(task.id);
       
+      if (task.description && task.description.trim()) {
+        descriptionContent.className = `description-content ${isDescExpanded ? 'expanded' : 'collapsed'}`;
+        if (isDescExpanded) {
+          descriptionContent.innerHTML = markdownToHtml(task.description);
+        } else {
+          descriptionContent.textContent = task.description;
+        }
+        descriptionContent.onclick = () => toggleDescription(task.id);
+        descriptionContent.title = isDescExpanded ? 'Click to collapse' : 'Click to expand';
+      } else {
+        descriptionContent.className = 'description-empty';
+        descriptionContent.textContent = 'No description';
+      }
+      descriptionCell.appendChild(descriptionContent);
+      tr.appendChild(descriptionCell);
+
       // Status cell
       const statusCell = document.createElement('td');
       const statusPill = document.createElement('span');
-      
+
       // Check if task is blocked
       const taskIsBlocked = isBlocked(task, allTasks);
       const displayStatus = taskIsBlocked ? 'blocked' : task.status;
-      const displayText = taskIsBlocked ? 'Blocked' : 
-        (task.status === 'in_progress' ? 'In Progress' : 
-         (task.status.charAt(0).toUpperCase() + task.status.slice(1)));
-      
+      const displayText = taskIsBlocked ? 'Blocked' :
+        (task.status === 'in_progress' ? 'In Progress' :
+          (task.status.charAt(0).toUpperCase() + task.status.slice(1)));
+
       statusPill.className = `pill status-${displayStatus}`;
       statusPill.textContent = displayText;
       statusCell.appendChild(statusPill);
       tr.appendChild(statusCell);
-      
+
       // Priority cell
       const priorityCell = document.createElement('td');
       const priorityPill = document.createElement('span');
@@ -1038,7 +1201,7 @@
       priorityPill.textContent = task.priority.charAt(0).toUpperCase() + task.priority.slice(1);
       priorityCell.appendChild(priorityPill);
       tr.appendChild(priorityCell);
-      
+
       // Actions cell
       const actionsCell = document.createElement('td');
       actionsCell.className = 'task-actions';
@@ -1056,7 +1219,7 @@
         actionsCell.appendChild(completeBtn);
       }
       tr.appendChild(actionsCell);
-      
+
       return tr;
     }
 
