@@ -89,6 +89,11 @@
       outline-offset: -1px;
     }
 
+    .metadata-value.date-value {
+      display: flex;
+      align-items: center;
+    }
+
     .form-group {
       margin-bottom: 20px;
     }
@@ -965,17 +970,17 @@
 
         <div class="metadata-item">
           <label class="metadata-label">Created</label>
-          <div class="metadata-value" id="createdDate">-</div>
+          <div class="metadata-value date-value" id="createdDate">-</div>
         </div>
 
         <div class="metadata-item">
           <label class="metadata-label">Updated</label>
-          <div class="metadata-value" id="updatedDate">-</div>
+          <div class="metadata-value date-value" id="updatedDate">-</div>
         </div>
 
         <div class="metadata-item" id="closedDateContainer" style="display: none;">
           <label class="metadata-label">Closed</label>
-          <div class="metadata-value" id="closedDate">-</div>
+          <div class="metadata-value date-value" id="closedDate">-</div>
         </div>
 
         <div class="metadata-item">
@@ -1322,6 +1327,42 @@
       return pill;
     }
 
+    function createCalendarIcon() {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('fill', 'none');
+      svg.setAttribute('width', '18');
+      svg.setAttribute('height', '18');
+      svg.style.marginRight = '4px';
+      svg.style.flexShrink = '0';
+      
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M3 9H21M7 3V5M17 3V5M6 12H10V16H6V12ZM6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z');
+      path.setAttribute('stroke', 'currentColor');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('stroke-linejoin', 'round');
+      
+      svg.appendChild(path);
+      return svg;
+    }
+
+    function setDateWithIcon(elementId, isoString) {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+      
+      // Clear existing content
+      element.innerHTML = '';
+      
+      // Add calendar icon
+      const icon = createCalendarIcon();
+      element.appendChild(icon);
+      
+      // Add date text
+      const textNode = document.createTextNode(formatDate(isoString));
+      element.appendChild(textNode);
+    }
+
     // Notify extension that webview is ready
     vscode.postMessage({ type: 'webviewReady' });
     console.log('Webview ready message sent');
@@ -1346,14 +1387,14 @@
         
         // Populate metadata
         document.getElementById('ticketId').textContent = message.ticket.id;
-        document.getElementById('createdDate').textContent = formatDate(message.ticket.created_at);
-        document.getElementById('updatedDate').textContent = formatDate(message.ticket.updated_at);
+        setDateWithIcon('createdDate', message.ticket.created_at);
+        setDateWithIcon('updatedDate', message.ticket.updated_at);
         
         const closedContainer = document.getElementById('closedDateContainer');
         const closedDateEl = document.getElementById('closedDate');
         if (message.ticket.closed_at) {
           closedContainer.style.display = 'block';
-          closedDateEl.textContent = formatDate(message.ticket.closed_at);
+          setDateWithIcon('closedDate', message.ticket.closed_at);
         } else {
           closedContainer.style.display = 'none';
         }
@@ -1910,7 +1951,7 @@
       
       if (status === 'closed') {
         closedContainer.style.display = 'block';
-        closedDateEl.textContent = formatDate(new Date().toISOString());
+        setDateWithIcon('closedDate', new Date().toISOString());
       } else {
         closedContainer.style.display = 'none';
       }
