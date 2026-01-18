@@ -24,7 +24,7 @@
     h3 {
       font-size: 14px;
       font-weight: 600;
-      margin: 20px 0 12px 0;
+      margin: 0 0 16px 0;
     }
 
     .editor-layout {
@@ -43,15 +43,8 @@
       flex-shrink: 0;
       background-color: rgba(0, 0, 0, 0.08);
       border: 1px solid var(--vscode-widget-border);
-      border-radius: 6px;
+      border-radius: 4px;
       padding: 16px;
-    }
-
-    .metadata-card h3 {
-      margin: 0 0 16px 0;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--vscode-foreground);
     }
 
     .metadata-item {
@@ -255,18 +248,49 @@
       background-color: var(--vscode-button-secondaryHoverBackground);
     }
 
-    .subtasks {
+    .subtasks-section {
       margin-top: 24px;
+      padding: 16px;
+      background-color: rgba(0, 0, 0, 0.08);
+      border-radius: 4px;
+      border: 1px solid var(--vscode-widget-border);
     }
 
-    .subtask-list {
+    .dependencies-section {
+      margin-top: 24px;
+      padding: 16px;
+      background-color: rgba(0, 0, 0, 0.08);
+      border-radius: 4px;
+      border: 1px solid var(--vscode-widget-border);
+    }
+
+    .title-description-section {
+      margin-top: 24px;
+      padding: 16px;
+      background-color: rgba(0, 0, 0, 0.08);
+      border-radius: 4px;
+      border: 1px solid var(--vscode-widget-border);
+    }
+
+    .dependency-section {
+      margin-bottom: 16px;
+    }
+
+    .dependency-section h4 {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--vscode-descriptionForeground);
+    }
+
+    .dependency-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
       margin-bottom: 12px;
     }
 
-    .subtask {
+    .dependency {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -276,16 +300,23 @@
       margin-bottom: 4px;
     }
 
-    .subtask-info {
+    .dependency-direction {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--vscode-descriptionForeground);
+      min-width: 20px;
+    }
+
+    .dependency-info {
       flex: 1;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .subtask-type,
-    .subtask-status,
-    .subtask-priority {
+    .dependency-type,
+    .dependency-status,
+    .dependency-priority {
       padding: 6px 12px;
       border-radius: 12px;
       font-size: 12px;
@@ -294,60 +325,98 @@
       text-transform: capitalize;
     }
 
-    .subtask-type {
+    .dependency-type {
       background-color: var(--vscode-badge-background);
       color: var(--vscode-badge-foreground);
     }
 
-    .subtask-status.open {
+    .dependency-status.open {
       background-color: rgba(46, 160, 67, 0.2);
       color: #3fb950;
     }
 
-    .subtask-status.in_progress {
+    .dependency-status.in_progress {
       background-color: rgba(68, 131, 255, 0.2);
       color: #58a6ff;
     }
 
-    .subtask-status.closed {
+    .dependency-status.closed {
       background-color: rgba(139, 148, 158, 0.2);
       color: #8b949e;
     }
 
-    .subtask-status.blocked {
+    .dependency-status.blocked {
       background-color: rgba(218, 54, 51, 0.2);
       color: #f85149;
     }
 
-    .subtask-priority.low {
+    .dependency-priority.low {
       background-color: rgba(46, 160, 67, 0.2);
       color: #3fb950;
     }
 
-    .subtask-priority.medium {
+    .dependency-priority.medium {
       background-color: rgba(212, 165, 86, 0.2);
       color: #D4A556;
     }
 
-    .subtask-priority.high {
+    .dependency-priority.high {
       background-color: rgba(251, 133, 0, 0.2);
       color: #fb8500;
     }
 
-    .subtask-priority.urgent {
+    .dependency-priority.urgent {
       background-color: rgba(218, 54, 51, 0.2);
       color: #f85149;
     }
 
-    .subtask-title {
+    .dependency-title {
       flex: 1;
       font-weight: 500;
     }
 
-    .subtask-id {
+    .dependency-id {
       font-size: 12px;
       color: var(--vscode-descriptionForeground);
       font-family: monospace;
+    }
+
+    .dependency-list-modal {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid var(--vscode-widget-border);
+      border-radius: 3px;
+    }
+
+    .dependency-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--vscode-list-inactiveSelectionBackground);
+      cursor: pointer;
+    }
+
+    .dependency-item:hover {
+      background-color: var(--vscode-list-hoverBackground);
+    }
+
+    .dependency-item.selected {
+      background-color: var(--vscode-list-activeSelectionBackground);
+    }
+
+    .dependency-checkbox {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      flex-shrink: 0;
+      accent-color: var(--vscode-button-background);
+    }
+
+    .dependency-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .modal {
@@ -826,58 +895,60 @@
   <form id="ticketForm">
     <div class="editor-layout">
       <div class="main-content">
-        <div class="form-group">
-          <label>Title:</label>
-          <div class="editable-field">
-            <div class="field-display" id="titleDisplay" onclick="editField('title')">
-              <div class="field-text" id="titleText"></div>
-              <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
-                <path
-                  d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z" />
-              </svg>
-            </div>
-            <div class="field-edit hidden" id="titleEdit">
-              <input type="text" id="titleInput">
-              <div class="edit-actions">
-                <button type="button" class="icon-button accept" onclick="acceptField('title')" title="Save">
-                  <svg viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
-                  </svg>
-                </button>
-                <button type="button" class="icon-button cancel" onclick="cancelField('title')" title="Cancel">
-                  <svg viewBox="0 0 16 16" fill="currentColor">
-                    <path
-                      d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z" />
-                  </svg>
-                </button>
+        <div class="title-description-section">
+          <div class="form-group">
+            <label>Title:</label>
+            <div class="editable-field">
+              <div class="field-display" id="titleDisplay" onclick="editField('title')">
+                <div class="field-text" id="titleText"></div>
+                <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
+                  <path
+                    d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z" />
+                </svg>
+              </div>
+              <div class="field-edit hidden" id="titleEdit">
+                <input type="text" id="titleInput">
+                <div class="edit-actions">
+                  <button type="button" class="icon-button accept" onclick="acceptField('title')" title="Save">
+                    <svg viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
+                    </svg>
+                  </button>
+                  <button type="button" class="icon-button cancel" onclick="cancelField('title')" title="Cancel">
+                    <svg viewBox="0 0 16 16" fill="currentColor">
+                      <path
+                        d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="form-group">
-          <label>Description:</label>
-          <div class="editable-field">
-            <div class="field-display" id="descriptionDisplay" onclick="editField('description')">
-              <div class="field-text" id="descriptionText"></div>
-              <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
-                <path
-                  d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z" />
-              </svg>
-            </div>
-            <div class="field-edit hidden" id="descriptionEdit">
-              <textarea id="descriptionInput" rows="4"></textarea>
-              <div class="edit-actions">
-                <button type="button" class="icon-button accept" onclick="acceptField('description')" title="Save">
-                  <svg viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
-                  </svg>
-                </button>
-                <button type="button" class="icon-button cancel" onclick="cancelField('description')" title="Cancel">
-                  <svg viewBox="0 0 16 16" fill="currentColor">
-                    <path
-                      d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z" />
-                  </svg>
-                </button>
+          <div class="form-group">
+            <label>Description:</label>
+            <div class="editable-field">
+              <div class="field-display" id="descriptionDisplay" onclick="editField('description')">
+                <div class="field-text" id="descriptionText"></div>
+                <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
+                  <path
+                    d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z" />
+                </svg>
+              </div>
+              <div class="field-edit hidden" id="descriptionEdit">
+                <textarea id="descriptionInput" rows="4"></textarea>
+                <div class="edit-actions">
+                  <button type="button" class="icon-button accept" onclick="acceptField('description')" title="Save">
+                    <svg viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
+                    </svg>
+                  </button>
+                  <button type="button" class="icon-button cancel" onclick="cancelField('description')" title="Cancel">
+                    <svg viewBox="0 0 16 16" fill="currentColor">
+                      <path
+                        d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -947,6 +1018,23 @@
         </div>
       </div>
     </div>
+    <div class="subtasks-section">
+      <h3>Subtasks</h3>
+      <div id="subtasksList" class="subtask-list"></div>
+      <button type="button" id="addSubtask" class="secondary">Add Subtask</button>
+    </div>
+    <div class="dependencies-section">
+      <h3>Dependencies</h3>
+      <div class="dependency-section">
+        <h4>Blocked by</h4>
+        <div id="blockedByList" class="dependency-list"></div>
+      </div>
+      <div class="dependency-section">
+        <h4>This issue is blocking</h4>
+        <div id="blockingList" class="dependency-list"></div>
+      </div>
+      <button type="button" id="addDependency" class="secondary">Add Dependency</button>
+    </div>
     <div class="comments-section">
       <h3 class="comments-header">Comments</h3>
       <div class="comments-thread" id="commentsThread">
@@ -962,11 +1050,6 @@
           <button type="button" id="addCommentBtn">Add Comment</button>
         </div>
       </div>
-    </div>
-    <div class="subtasks">
-      <h3>Subtasks</h3>
-      <div id="subtasksList" class="subtask-list"></div>
-      <button type="button" id="addSubtask" class="secondary">Add Subtask</button>
     </div>
     <button type="button" id="deleteTicket" class="delete-ticket-btn">Delete Ticket</button>
   </form>
@@ -989,10 +1072,42 @@
     </div>
   </div>
 
+  <!-- Dependency Selection Modal -->
+  <div id="dependencyModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Select Dependencies</h2>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500;">Dependency Direction:</label>
+          <div style="display: flex; gap: 16px;">
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
+              <input type="radio" name="dependencyDirection" value="blocks" checked>
+              This task depends on selected tasks (blockers)
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
+              <input type="radio" name="dependencyDirection" value="blocked_by">
+              Selected tasks depend on this task (blocked by)
+            </label>
+          </div>
+        </div>
+        <input type="text" id="dependencySearch" class="search-input"
+          placeholder="Search by ID, title, or description..." />
+        <div id="availableDependencies" class="dependency-list-modal"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="cancelDependencySelection" class="secondary">Cancel</button>
+        <button type="button" id="confirmDependencySelection">Add Selected Dependencies</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const vscode = acquireVsCodeApi();
     let ticketId = null;
     let subtasks = [];
+    let dependencies = [];
     let currentTitle = '';
     let currentDescription = '';
     let originalTitle = '';
@@ -1000,6 +1115,8 @@
     let comments = [];
     let availableSubtasks = [];
     let selectedSubtaskIds = new Set();
+    let availableDependencies = [];
+    let selectedDependencyIds = new Set();
 
     // Utility functions for creating pill components
     function createTypeBadge(type) {
@@ -1027,6 +1144,24 @@
       return pill;
     }
 
+    function createDependencyStatusPill(status, displayText = null) {
+      const pill = document.createElement('span');
+      const displayStatus = status || 'open';
+      const text = displayText || (displayStatus === 'in_progress' ? 'In Progress' :
+        (displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)));
+      pill.className = `dependency-status ${displayStatus}`;
+      pill.textContent = text;
+      return pill;
+    }
+
+    function createDependencyPriorityPill(priority) {
+      const pill = document.createElement('span');
+      const displayPriority = priority || 'medium';
+      pill.className = `dependency-priority ${displayPriority}`;
+      pill.textContent = displayPriority.charAt(0).toUpperCase() + displayPriority.slice(1);
+      return pill;
+    }
+
     // Notify extension that webview is ready
     vscode.postMessage({ type: 'webviewReady' });
     console.log('Webview ready message sent');
@@ -1044,6 +1179,7 @@
         document.getElementById('priority').value = message.ticket.priority || 'medium';
         document.getElementById('status').value = message.ticket.status || 'open';
         subtasks = message.ticket.subtasks || [];
+        dependencies = message.ticket.dependencies || [];
         
         // Update closed date display based on status
         onStatusChange();
@@ -1066,11 +1202,17 @@
         updateDescriptionDisplay();
         renderComments();
         renderSubtasks();
+        renderDependencies();
       } else if (message.type === 'availableSubtasks') {
         availableSubtasks = message.subtasks;
         renderAvailableSubtasks();
         document.getElementById('subtaskModal').classList.remove('hidden');
         document.getElementById('subtaskSearch').focus();
+      } else if (message.type === 'availableDependencies') {
+        availableDependencies = message.dependencies;
+        renderAvailableDependencies();
+        document.getElementById('dependencyModal').classList.remove('hidden');
+        document.getElementById('dependencySearch').focus();
       } else if (message.type === 'commentAdded') {
         comments.push(message.comment);
         renderComments();
@@ -1162,7 +1304,8 @@
         type: document.getElementById('type').value,
         priority: document.getElementById('priority').value,
         status: document.getElementById('status').value,
-        subtasks: subtasks
+        subtasks: subtasks,
+        dependencies: dependencies
       };
       console.log('Sending saveTicket message:', ticket);
       vscode.postMessage({ type: 'saveTicket', ticket });
@@ -1208,14 +1351,71 @@
       });
     }
 
+    function renderDependencies() {
+      const blockedByList = document.getElementById('blockedByList');
+      const blockingList = document.getElementById('blockingList');
+      blockedByList.innerHTML = '';
+      blockingList.innerHTML = '';
+
+      dependencies.forEach((dep, index) => {
+        const div = document.createElement('div');
+        div.className = 'dependency';
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'dependency-info';
+
+        const typeBadge = createTypeBadge(dep.type);
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'dependency-title';
+        titleSpan.textContent = dep.title;
+        const idSpan = document.createElement('span');
+        idSpan.className = 'dependency-id';
+        idSpan.textContent = dep.id;
+
+        infoDiv.appendChild(typeBadge);
+        infoDiv.appendChild(titleSpan);
+        infoDiv.appendChild(idSpan);
+
+        const statusPill = createDependencyStatusPill(dep.status);
+        const priorityPill = createDependencyPriorityPill(dep.priority);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'secondary';
+        removeBtn.textContent = 'Remove';
+        removeBtn.onclick = () => removeDependency(index);
+
+        div.appendChild(infoDiv);
+        div.appendChild(statusPill);
+        div.appendChild(priorityPill);
+        div.appendChild(removeBtn);
+
+        if (dep.direction === 'blocks') {
+          blockedByList.appendChild(div);
+        } else {
+          blockingList.appendChild(div);
+        }
+      });
+    }
+
     function removeSubtask(index) {
       subtasks.splice(index, 1);
       renderSubtasks();
       saveTicket();
     }
 
+    function removeDependency(index) {
+      dependencies.splice(index, 1);
+      renderDependencies();
+      saveTicket();
+    }
+
     document.getElementById('addSubtask').addEventListener('click', () => {
       vscode.postMessage({ type: 'getAvailableSubtasks' });
+    });
+
+    document.getElementById('addDependency').addEventListener('click', () => {
+      vscode.postMessage({ type: 'getAvailableDependencies' });
     });
 
     document.getElementById('ticketForm').addEventListener('submit', (e) => {
@@ -1353,6 +1553,148 @@
         titleEl.textContent = 'Select Subtasks (1 selected)';
       } else {
         titleEl.textContent = `Select Subtasks (${count} selected)`;
+      }
+    }
+
+    // Dependency modal handlers
+    document.getElementById('cancelDependencySelection').addEventListener('click', () => {
+      document.getElementById('dependencyModal').classList.add('hidden');
+      selectedDependencyIds.clear();
+      document.getElementById('dependencySearch').value = '';
+    });
+
+    document.getElementById('confirmDependencySelection').addEventListener('click', () => {
+      const direction = document.querySelector('input[name="dependencyDirection"]:checked').value;
+      if (selectedDependencyIds.size > 0) {
+        const selectedDeps = availableDependencies.filter(d => selectedDependencyIds.has(d.id));
+        selectedDeps.forEach(selectedDep => {
+          dependencies.push({
+            id: selectedDep.id,
+            title: selectedDep.title,
+            type: selectedDep.type,
+            status: selectedDep.status,
+            priority: selectedDep.priority,
+            direction: direction
+          });
+        });
+        renderDependencies();
+        saveTicket();
+      }
+      document.getElementById('dependencyModal').classList.add('hidden');
+      selectedDependencyIds.clear();
+      document.getElementById('dependencySearch').value = '';
+    });
+
+    document.getElementById('dependencySearch').addEventListener('input', (e) => {
+      renderAvailableDependencies(e.target.value);
+    });
+
+    function renderAvailableDependencies(searchTerm = '') {
+      const list = document.getElementById('availableDependencies');
+      list.innerHTML = '';
+
+      const filtered = availableDependencies
+        .map(dep => {
+          const searchText = `${dep.id} ${dep.title} ${dep.description}`.toLowerCase();
+          const term = searchTerm.toLowerCase();
+          let score = 0;
+
+          if (searchText.includes(term)) {
+            // Exact ID match gets highest score
+            if (dep.id.toLowerCase().includes(term)) score += 100;
+            // Title match
+            if (dep.title.toLowerCase().includes(term)) score += 50;
+            // Description match
+            if (dep.description.toLowerCase().includes(term)) score += 25;
+            // Word boundaries get bonus
+            if (new RegExp(`\\b${term}\\b`, 'i').test(searchText)) score += 10;
+          }
+
+          return { ...dep, score };
+        })
+        .filter(dep => dep.score > 0 || !searchTerm)
+        .sort((a, b) => b.score - a.score);
+
+      filtered.forEach(dep => {
+        const div = document.createElement('div');
+        div.className = `dependency-item ${selectedDependencyIds.has(dep.id) ? 'selected' : ''}`;
+
+        // Checkbox
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'dependency-checkbox';
+        checkbox.checked = selectedDependencyIds.has(dep.id);
+        checkbox.onclick = (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          toggleDependencySelection(dep.id);
+          // Update checkbox state manually since we prevented default
+          checkbox.checked = selectedDependencyIds.has(dep.id);
+        };
+
+        // Content container
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'dependency-content';
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'dependency-info';
+
+        const typeBadge = createTypeBadge(dep.type);
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'dependency-title';
+        titleSpan.textContent = dep.title;
+        const idSpan = document.createElement('span');
+        idSpan.className = 'dependency-id';
+        idSpan.textContent = dep.id;
+
+        infoDiv.appendChild(typeBadge);
+        infoDiv.appendChild(titleSpan);
+        infoDiv.appendChild(idSpan);
+
+        const statusPill = createDependencyStatusPill(dep.status);
+        const priorityPill = createDependencyPriorityPill(dep.priority);
+
+        contentDiv.appendChild(infoDiv);
+        contentDiv.appendChild(statusPill);
+        contentDiv.appendChild(priorityPill);
+
+        // Row click handler (selects only this item)
+        div.onclick = () => selectSingleDependency(dep.id);
+
+        div.appendChild(checkbox);
+        div.appendChild(contentDiv);
+
+        list.appendChild(div);
+      });
+
+      // Update modal title to show selection count
+      updateDependencyModalTitle();
+    }
+
+    function selectSingleDependency(id) {
+      selectedDependencyIds.clear();
+      selectedDependencyIds.add(id);
+      renderAvailableDependencies(document.getElementById('dependencySearch').value);
+    }
+
+    function toggleDependencySelection(id) {
+      if (selectedDependencyIds.has(id)) {
+        selectedDependencyIds.delete(id);
+      } else {
+        selectedDependencyIds.add(id);
+      }
+      renderAvailableDependencies(document.getElementById('dependencySearch').value);
+    }
+
+    function updateDependencyModalTitle() {
+      const titleEl = document.querySelector('#dependencyModal .modal-title');
+      const count = selectedDependencyIds.size;
+      if (count === 0) {
+        titleEl.textContent = 'Select Dependencies';
+      } else if (count === 1) {
+        titleEl.textContent = 'Select Dependencies (1 selected)';
+      } else {
+        titleEl.textContent = `Select Dependencies (${count} selected)`;
       }
     }
 

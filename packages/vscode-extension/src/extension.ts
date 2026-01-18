@@ -172,6 +172,8 @@ export function activate(context: vscode.ExtensionContext) {
       );
       console.log('=== Panel created ===');
 
+      let webviewReady = false;
+
       // Handle messages from webview - MUST BE SET UP BEFORE HTML IS LOADED
       console.log('=== Registering message handler ===');
       const disposable = panel.webview.onDidReceiveMessage(async (message) => {
@@ -179,7 +181,11 @@ export function activate(context: vscode.ExtensionContext) {
         console.log('Message type:', message.type);
         console.log('Message id:', message.id);
         try {
-          if (message.type === 'startTask') {
+          if (message.type === 'webviewReady') {
+            console.log('Task list webview ready');
+            webviewReady = true;
+            await updateTasks();
+          } else if (message.type === 'startTask') {
             console.log('Starting task:', message.id);
             await storage.updateIssues(issues => {
               return issues.map(issue => {
@@ -189,6 +195,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return issue;
               });
             });
+            await updateTasks(); // Refresh the list
           } else if (message.type === 'completeTask') {
             console.log('Completing task:', message.id);
             await storage.updateIssues(issues => {
@@ -199,6 +206,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return issue;
               });
             });
+            await updateTasks(); // Refresh the list
           } else if (message.type === 'editTicket') {
             console.log('Edit ticket message received for:', message.id);
             try {
@@ -219,6 +227,7 @@ export function activate(context: vscode.ExtensionContext) {
             console.log('Delete task message received for:', message.id);
             try {
               await deleteTask(message.id);
+              await updateTasks(); // Refresh the list
               console.log('Task deleted successfully');
             } catch (error) {
               console.error('Error deleting task:', error);
@@ -239,6 +248,10 @@ export function activate(context: vscode.ExtensionContext) {
 
       // Function to update tasks
       const updateTasks = async () => {
+        if (!webviewReady) {
+          console.log('Webview not ready yet, skipping updateTasks');
+          return;
+        }
         try {
           const issues = await storage.loadIssues();
           const allTasks = issues.map(task => ({
@@ -250,6 +263,7 @@ export function activate(context: vscode.ExtensionContext) {
             type: task.type || 'task',
             dependencies: task.dependencies || []
           }));
+          console.log('Sending updateTasks with', allTasks.length, 'tasks');
           panel.webview.postMessage({
             type: 'updateTasks',
             tasks: allTasks
@@ -258,9 +272,6 @@ export function activate(context: vscode.ExtensionContext) {
           console.error('Error updating tasks:', error);
         }
       };
-
-      // Initial update
-      await updateTasks();
 
       // Watch for file changes
       const issuesPath = path.join(horizonDir, 'issues.jsonl');
@@ -340,12 +351,45 @@ export function activate(context: vscode.ExtensionContext) {
             priority: s.priority
           })) : [];
           
+          // Get dependencies
+          const dependencies: any[] = [];
+          if (ticket) {
+            // Blockers: tasks that this task depends on (dependencies with type 'blocks')
+            const blockerDeps = ticket.dependencies?.filter((d: any) => d.type === 'blocks') || [];
+            for (const dep of blockerDeps) {
+              const blocker = issues.find(i => i.id === dep.id);
+              if (blocker) {
+                dependencies.push({
+                  id: blocker.id,
+                  title: blocker.title,
+                  type: blocker.type,
+                  status: blocker.status,
+                  priority: blocker.priority,
+                  direction: 'blocks'
+                });
+              }
+            }
+            // Blocked-by: tasks that depend on this task
+            const blockedByIssues = issues.filter(i => i.dependencies?.some((d: any) => d.id === ticketId && d.type === 'blocks'));
+            for (const blocked of blockedByIssues) {
+              dependencies.push({
+                id: blocked.id,
+                title: blocked.title,
+                type: blocked.type,
+                status: blocked.status,
+                priority: blocked.priority,
+                direction: 'blocked_by'
+              });
+            }
+          }
+          
           console.log('Sending loadTicket message for:', ticketId, safeTicket);
           panel.webview.postMessage({
             type: 'loadTicket',
             ticket: {
               ...safeTicket,
-              subtasks
+              subtasks,
+              dependencies
             }
           });
         } catch (error) {
@@ -376,6 +420,25 @@ export function activate(context: vscode.ExtensionContext) {
             panel.webview.postMessage({
               type: 'availableSubtasks',
               subtasks: availableSubtasks
+            });
+          } else if (message.type === 'getAvailableDependencies') {
+            console.log('Getting available dependencies');
+            const issues = await storage.loadIssues();
+            const availableDependencies = issues
+              .filter(issue => issue.id !== pendingTicketId) // Exclude current ticket
+              .filter(issue => !graph.getEpicSubtasks(pendingTicketId, issues).some(s => s.id === issue.id)) // Exclude subtasks
+              .filter(issue => !issue.dependencies?.some((d: any) => d.type === 'parent-child' && (d.from === pendingTicketId || d.to === pendingTicketId))) // Exclude parent-child deps
+              .map(issue => ({
+                id: issue.id,
+                title: issue.title,
+                type: issue.type,
+                status: issue.status,
+                priority: issue.priority,
+                description: issue.description || ''
+              }));
+            panel.webview.postMessage({
+              type: 'availableDependencies',
+              dependencies: availableDependencies
             });
           } else if (message.type === 'saveTicket') {
             // Queue the save operation to prevent concurrent saves
@@ -452,22 +515,40 @@ export function activate(context: vscode.ExtensionContext) {
                     }
                   }
 
-                  // Add new subtasks
-                  const newSubtasksToCreate = newSubtasks.filter(s => !s.id && s.title.trim());
-                  for (const sub of newSubtasksToCreate) {
-                    const newSubId = generateId(updatedIssues);
-                    const newSub = {
-                      id: newSubId,
-                      title: sub.title,
-                      description: '',
-                      type: 'task' as const,
-                      status: 'open' as const,
-                      priority: 'medium' as const,
-                      created_at: now,
-                      updated_at: now
-                    };
-                    updatedIssues.push(newSub);
-                    updatedIssues = graph.addDependency(newSubId, ticketData.id, 'parent-child', updatedIssues);
+                  // Handle dependencies
+                  if (originalIssue) {
+                    const currentBlockers = originalIssue.dependencies?.filter((d: any) => d.type === 'blocks').map((d: any) => d.id) || [];
+                    const newBlockers = ticketData.dependencies.filter((d: any) => d.direction === 'blocks').map((d: any) => d.id);
+                    const currentBlockedBy = updatedIssues.filter((i: any) => i.dependencies?.some((d: any) => d.id === ticketData.id && d.type === 'blocks')).map((i: any) => i.id);
+                    const newBlockedBy = ticketData.dependencies.filter((d: any) => d.direction === 'blocked_by').map((d: any) => d.id);
+                    
+                    // Remove blockers that are no longer present
+                    for (const blockerId of currentBlockers) {
+                      if (!newBlockers.includes(blockerId)) {
+                        updatedIssues = graph.removeDependency(ticketData.id, blockerId, updatedIssues);
+                      }
+                    }
+                    
+                    // Add new blockers
+                    for (const blockerId of newBlockers) {
+                      if (!currentBlockers.includes(blockerId)) {
+                        updatedIssues = graph.addDependency(ticketData.id, blockerId, 'blocks', updatedIssues);
+                      }
+                    }
+                    
+                    // Remove blocked-by that are no longer present
+                    for (const blockedId of currentBlockedBy) {
+                      if (!newBlockedBy.includes(blockedId)) {
+                        updatedIssues = graph.removeDependency(blockedId, ticketData.id, updatedIssues);
+                      }
+                    }
+                    
+                    // Add new blocked-by
+                    for (const blockedId of newBlockedBy) {
+                      if (!currentBlockedBy.includes(blockedId)) {
+                        updatedIssues = graph.addDependency(blockedId, ticketData.id, 'blocks', updatedIssues);
+                      }
+                    }
                   }
 
                   // Single write operation

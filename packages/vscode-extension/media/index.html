@@ -343,6 +343,11 @@
     }
 
     .task-grid colgroup col:nth-child(5) {
+      width: 120px;
+      /* Dependencies - fixed narrow width */
+    }
+
+    .task-grid colgroup col:nth-child(6) {
       width: 140px;
       /* Actions - fixed narrow width */
     }
@@ -354,7 +359,7 @@
     }
 
     /* Actions column uses middle alignment */
-    .task-grid td:nth-child(5) {
+    .task-grid td:nth-child(6) {
       vertical-align: middle;
     }
 
@@ -1081,11 +1086,17 @@
   <script>
     // Acquire VS Code API once at the beginning
     const vscode = acquireVsCodeApi();
+    console.log('Horizon task list webview script loaded');
 
     const expandedTasks = new Set();
     const expandedDescriptions = new Set();
     let selectedStatuses = new Set(['ready']); // Default filter
     let isPopoverOpen = false;
+    let allTasks = [];
+
+    // Notify extension that webview is ready
+    vscode.postMessage({ type: 'webviewReady' });
+    console.log('Task list webview ready message sent');
 
     // Utility functions for creating pill components
     function createTypeBadge(type) {
@@ -1320,6 +1331,7 @@
 
     // Function to render tasks
     function renderTasks(allTasks) {
+      console.log('Rendering tasks:', allTasks.length, 'tasks');
       // If no statuses selected, show all tasks
       let filteredTasks;
       if (selectedStatuses.size === 0) {
@@ -1343,7 +1355,7 @@
 
       // Add colgroup for consistent column widths
       const colgroup = document.createElement('colgroup');
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 6; i++) {
         const col = document.createElement('col');
         colgroup.appendChild(col);
       }
@@ -1352,7 +1364,7 @@
       const thead = document.createElement('thead');
       const headerRow = document.createElement('tr');
       const titleHeader = document.createElement('th');
-      titleHeader.colSpan = 5;
+      titleHeader.colSpan = 6;
       titleHeader.style.padding = '12px 16px';
 
       const headerContainer = document.createElement('div');
@@ -1422,7 +1434,7 @@
 
       // Add colgroup for consistent column widths
       const bodyColgroup = document.createElement('colgroup');
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 6; i++) {
         const col = document.createElement('col');
         bodyColgroup.appendChild(col);
       }
@@ -1606,6 +1618,23 @@
       priorityCell.appendChild(priorityPill);
       tr.appendChild(priorityCell);
 
+      // Dependencies cell
+      const dependencyCell = document.createElement('td');
+      const blockers = (task.dependencies || []).filter(d => d.type === 'blocks').length;
+      const blockedBy = allTasks.filter(t => t.dependencies?.some(d => d.id === task.id && d.type === 'blocks')).length;
+      if (blockers > 0 || blockedBy > 0) {
+        const depText = [];
+        if (blockers > 0) depText.push(`${blockers}←`);
+        if (blockedBy > 0) depText.push(`${blockedBy}→`);
+        dependencyCell.textContent = depText.join(' ');
+        dependencyCell.style.fontSize = '12px';
+        dependencyCell.style.color = 'var(--vscode-descriptionForeground)';
+        dependencyCell.style.textAlign = 'center';
+      } else {
+        dependencyCell.textContent = '';
+      }
+      tr.appendChild(dependencyCell);
+
       // Actions cell
       const actionsCell = document.createElement('td');
       actionsCell.className = 'task-actions';
@@ -1745,7 +1774,7 @@
       tr.appendChild(titleCell);
 
       // Empty cells for other columns
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 5; i++) {
         const emptyCell = document.createElement('td');
         tr.appendChild(emptyCell);
       }
@@ -2031,7 +2060,9 @@
     // Listen for messages from extension
     window.addEventListener('message', event => {
       const message = event.data;
+      console.log('Received message:', message);
       if (message.type === 'updateTasks') {
+        console.log('Updating tasks:', message.tasks.length, 'tasks');
         allTasks = message.tasks;
         renderTasks(allTasks);
       }
