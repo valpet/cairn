@@ -75,6 +75,10 @@
       margin-bottom: 4px;
     }
 
+    .metadata-value {
+      color: var(--vscode-editor-foreground);
+    }
+
     .metadata-value select {
       width: 100%;
       padding: 4px 6px;
@@ -93,6 +97,7 @@
     }
 
     .metadata-value.date-value {
+      color: var(--vscode-editor-foreground);
       display: flex;
       align-items: center;
     }
@@ -205,6 +210,18 @@
       background-color: var(--vscode-button-secondaryHoverBackground);
     }
 
+    .icon-button.remove {
+      color: var(--vscode-foreground);
+      background-color: transparent;
+      border: 1px solid transparent;
+      opacity: 0.6;
+    }
+
+    .icon-button.remove:hover {
+      opacity: 1;
+      background-color: var(--vscode-list-hoverBackground);
+    }
+
     .hidden {
       display: none !important;
     }
@@ -269,6 +286,30 @@
 
     .subtasks-section .collapsible-content {
       background-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .subtask-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .subtask {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--vscode-list-inactiveSelectionBackground);
+      border-radius: 3px;
+      margin-bottom: 4px;
+    }
+
+    .subtask-info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .dependencies-section .collapsible-content {
@@ -661,7 +702,7 @@
     .subtask-title {
       flex: 1;
       font-weight: 600;
-      color: var(--vscode-foreground);
+      color: var(--vscode-editor-foreground);
       font-size: 14px;
     }
 
@@ -1495,6 +1536,18 @@
       return pill;
     }
 
+    function createRemoveIcon() {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 1024 1024');
+      svg.setAttribute('fill', 'currentColor');
+      
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M195.2 195.2a64 64 0 0 1 90.496 0L512 421.504 738.304 195.2a64 64 0 0 1 90.496 90.496L602.496 512 828.8 738.304a64 64 0 0 1-90.496 90.496L512 602.496 285.696 828.8a64 64 0 0 1-90.496-90.496L421.504 512 195.2 285.696a64 64 0 0 1 0-90.496z');
+      
+      svg.appendChild(path);
+      return svg;
+    }
+
     function createCalendarIcon() {
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('viewBox', '0 0 24 24');
@@ -1725,8 +1778,9 @@
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
-        removeBtn.className = 'secondary';
-        removeBtn.textContent = 'Remove';
+        removeBtn.className = 'icon-button remove';
+        removeBtn.title = 'Remove subtask';
+        removeBtn.appendChild(createRemoveIcon());
         removeBtn.onclick = () => removeSubtask(index);
 
         div.appendChild(infoDiv);
@@ -1774,8 +1828,9 @@
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
-        removeBtn.className = 'secondary';
-        removeBtn.textContent = 'Remove';
+        removeBtn.className = 'icon-button remove';
+        removeBtn.title = 'Remove dependency';
+        removeBtn.appendChild(createRemoveIcon());
         removeBtn.onclick = () => removeDependency(index);
 
         div.appendChild(infoDiv);
