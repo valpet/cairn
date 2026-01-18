@@ -291,9 +291,14 @@ export function activate(context: vscode.ExtensionContext) {
   // Register command to edit a ticket
   context.subscriptions.push(
     vscode.commands.registerCommand('horizon.editTicket', async (id: string, options?: { viewColumn?: vscode.ViewColumn }) => {
+      // Load ticket data first to get the title for the panel
+      const issues = await storage.loadIssues();
+      const ticket = issues.find(i => i.id === id);
+      const displayTitle = ticket ? `${ticket.title} (#${id})` : `Edit Ticket #${id}`;
+
       const panel = vscode.window.createWebviewPanel(
         'horizonEditTicket',
-        'Edit Ticket',
+        displayTitle,
         options?.viewColumn || vscode.ViewColumn.Beside,
         {
           enableScripts: true,
@@ -574,6 +579,12 @@ export function activate(context: vscode.ExtensionContext) {
                   await storage.updateIssues(() => updatedIssues);
                   console.log('storage.updateIssues completed');
                   console.log('=== SAVE OPERATION COMPLETE ===');
+
+                  // Update panel title with new title
+                  const updatedTicket = updatedIssues.find(i => i.id === ticketData.id);
+                  if (updatedTicket) {
+                    panel.title = `${updatedTicket.title} (#${ticketData.id})`;
+                  }
                 } catch (saveError) {
                   console.error('=== SAVE OPERATION FAILED ===');
                   console.error('Error during save:', saveError);
