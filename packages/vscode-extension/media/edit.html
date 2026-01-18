@@ -45,6 +45,13 @@
       border: 1px solid var(--vscode-widget-border);
       border-radius: 4px;
       padding: 16px;
+      margin-top: 0;
+    }
+
+    .metadata-card h3 {
+      margin: 0 0 16px 0;
+      font-size: 14px;
+      font-weight: 600;
     }
 
     .metadata-item {
@@ -265,11 +272,17 @@
     }
 
     .title-description-section {
-      margin-top: 24px;
+      margin-top: 0;
       padding: 16px;
       background-color: rgba(0, 0, 0, 0.08);
       border-radius: 4px;
       border: 1px solid var(--vscode-widget-border);
+    }
+
+    .title-description-section h3 {
+      margin: 0 0 16px 0;
+      font-size: 14px;
+      font-weight: 600;
     }
 
     .dependency-section {
@@ -896,6 +909,7 @@
     <div class="editor-layout">
       <div class="main-content">
         <div class="title-description-section">
+          <h3>Overview</h3>
           <div class="form-group">
             <label>Title:</label>
             <div class="editable-field">
