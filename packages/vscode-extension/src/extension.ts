@@ -39,13 +39,21 @@ export function activate(context: vscode.ExtensionContext) {
             id,
             title: inputs.title,
             description: inputs.description || '',
-            type: 'task' as const,
-            status: 'open' as const,
+            type: inputs.type || 'task',
+            status: inputs.status || 'open',
             priority: inputs.priority || 'medium',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
           await storage.saveIssue(issue);
+
+          // Add parent-child dependency if parent is specified
+          if (inputs.parent) {
+            await storage.updateIssues(issues => {
+              return graph.addDependency(id, inputs.parent, 'parent-child', issues);
+            });
+          }
+
           return { content: [{ type: 'text', text: JSON.stringify({ success: true, message: `Created issue ${id}: ${inputs.title}`, id }) }] };
         } catch (error) {
           const err = error as Error;

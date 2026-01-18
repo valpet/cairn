@@ -197,6 +197,90 @@ describe('CLI Commands', () => {
         updated_at: expect.any(String),
       });
     });
+
+    it('should create a new issue with status parameter', async () => {
+      mockStorage.loadIssues.mockResolvedValue([]);
+
+      await importCLI();
+
+      const createCmd = commanderCommands.get('create <title>');
+      const createAction = createCmd?._action;
+
+      await createAction('In Progress Task', {
+        status: 'in_progress'
+      });
+
+      expect(mockStorage.saveIssue).toHaveBeenCalledWith({
+        id: 'h-test-id-123',
+        title: 'In Progress Task',
+        description: undefined,
+        type: undefined,
+        status: 'in_progress',
+        priority: undefined,
+        created_at: expect.any(String),
+        updated_at: expect.any(String),
+      });
+    });
+
+    it('should create a new issue with parent parameter and add dependency', async () => {
+      const mockIssues = [{ id: 'parent-123', title: 'Parent Epic' }];
+      mockStorage.loadIssues.mockResolvedValue(mockIssues);
+
+      await importCLI();
+
+      const createCmd = commanderCommands.get('create <title>');
+      const createAction = createCmd?._action;
+
+      await createAction('Child Task', {
+        parent: 'parent-123'
+      });
+
+      expect(mockStorage.saveIssue).toHaveBeenCalledWith({
+        id: 'h-test-id-123',
+        title: 'Child Task',
+        description: undefined,
+        type: undefined,
+        status: 'open',
+        priority: undefined,
+        created_at: expect.any(String),
+        updated_at: expect.any(String),
+      });
+
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockGraph.addDependency).toHaveBeenCalledWith('h-test-id-123', 'parent-123', 'parent-child', mockIssues);
+    });
+
+    it('should create a new issue with all new parameters combined', async () => {
+      const mockIssues = [{ id: 'epic-456', title: 'Test Epic' }];
+      mockStorage.loadIssues.mockResolvedValue(mockIssues);
+
+      await importCLI();
+
+      const createCmd = commanderCommands.get('create <title>');
+      const createAction = createCmd?._action;
+
+      await createAction('Complete Feature Task', {
+        description: 'Full featured task',
+        type: 'feature',
+        priority: 'urgent',
+        status: 'in_progress',
+        parent: 'epic-456'
+      });
+
+      expect(mockStorage.saveIssue).toHaveBeenCalledWith({
+        id: 'h-test-id-123',
+        title: 'Complete Feature Task',
+        description: 'Full featured task',
+        type: 'feature',
+        status: 'in_progress',
+        priority: 'urgent',
+        created_at: expect.any(String),
+        updated_at: expect.any(String),
+      });
+
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockGraph.addDependency).toHaveBeenCalledWith('h-test-id-123', 'epic-456', 'parent-child', mockIssues);
+    });
   });
 
   describe('update command', () => {

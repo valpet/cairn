@@ -87,7 +87,7 @@ Horizon has been initialized in this project. To see available tasks, use the \`
 While you're free to work as you see fit, using Horizon will significantly improve your effectiveness on this project. Here's how to integrate it into your work:
 
 - **Check for ready work first**: Before starting new tasks, use \`horizon_list_ready\` to see what tasks are unblocked and ready to work on.
-- **Create tasks for significant work**: For any substantial changes or features, create a Horizon task using \`horizon_create\` (or \`horizon create <title>\` in terminal).
+- **Create tasks for significant work**: For any substantial changes or features, create a Horizon task using \`horizon_create\` (or \`horizon create <title> -d <description> -t <type> -p <priority> -s <status> -r <parent>\` in terminal).
 - **Break down complex tasks**: Use \`horizon_dep_add\` with 'parent-child' type to create subtasks for epics.
 - **Track discoveries**: When you find new work during development, add it as a 'discovered-from' dependency.
 - **Update progress regularly**: Use \`horizon_update\` to mark tasks as in progress, add notes, or close completed work.
@@ -105,7 +105,7 @@ While you're free to work as you see fit, using Horizon will significantly impro
 ### Terminal Commands (as backup)
 If the tools aren't available, you can use these terminal commands:
 - \`horizon list --ready\`: List ready tasks
-- \`horizon create <title> -d <description> -p <priority>\`: Create task
+- \`horizon create <title> -d <description> -p <priority> -t <type> -s <status> -r <parent>\`: Create task
 - \`horizon update <id> -s <status> -n <notes>\`: Update task
 - \`horizon dep add <from> <to> --type <type>\`: Add dependency
 - \`horizon comment <id> <message>\`: Add comment
@@ -152,8 +152,10 @@ program
   .option('-d, --description <desc>', 'Description')
   .option('-t, --type <type>', 'Type: epic, feature, task, bug')
   .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
+  .option('-s, --status <status>', 'Status: open, in_progress, closed, blocked')
+  .option('-r, --parent <parent>', 'Parent issue ID for parent-child dependency')
   .action(async (title, options) => {
-    const { storage } = setupServices();
+    const { storage, graph } = setupServices();
     const issues = await storage.loadIssues();
     const id = generateId(issues);
     const issue = {
@@ -161,12 +163,20 @@ program
       title,
       description: options.description,
       type: options.type as any,
-      status: 'open' as const,
+      status: options.status as any || 'open',
       priority: options.priority as any,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
     await storage.saveIssue(issue);
+
+    // Add parent-child dependency if parent is specified
+    if (options.parent) {
+      await storage.updateIssues(issues => {
+        return graph.addDependency(id, options.parent, 'parent-child', issues);
+      });
+    }
+
     console.log(`Created issue ${id}: ${title}`);
   });
 

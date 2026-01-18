@@ -46,7 +46,7 @@
       {
         "name": "horizon_create",
         "displayName": "Create Task",
-        "modelDescription": "Create a new task in Horizon",
+        "modelDescription": "Create a new task in Horizon with full configuration options",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -58,6 +58,19 @@
               "type": "string",
               "description": "Optional description of the task"
             },
+            "type": {
+              "type": "string",
+              "enum": [
+                "task",
+                "bug",
+                "feature",
+                "epic",
+                "chore",
+                "docs",
+                "refactor"
+              ],
+              "description": "Type of the task"
+            },
             "priority": {
               "type": "string",
               "enum": [
@@ -67,6 +80,20 @@
                 "urgent"
               ],
               "description": "Priority level"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "open",
+                "in_progress",
+                "closed",
+                "blocked"
+              ],
+              "description": "Initial status of the task"
+            },
+            "parent": {
+              "type": "string",
+              "description": "Optional parent task ID for parent-child relationship"
             }
           },
           "required": [
