@@ -1527,6 +1527,8 @@
       const titleText = document.createElement('span');
       titleText.className = 'task-title-text';
       titleText.textContent = task.title;
+      titleText.style.cursor = 'pointer';
+      titleText.onclick = () => editTask(task.id);
       titleDiv.appendChild(titleText);
 
       titleCell.appendChild(titleDiv);

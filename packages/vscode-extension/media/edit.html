@@ -1548,6 +1548,20 @@
       return svg;
     }
 
+    function editTask(id) {
+      console.log('Editing task', id);
+      console.log('vscode object:', vscode);
+      console.log('typeof vscode.postMessage:', typeof vscode?.postMessage);
+      try {
+        const message = { type: 'editTicket', id };
+        console.log('Attempting to post message:', message);
+        vscode.postMessage(message);
+        console.log('Message posted successfully');
+      } catch (error) {
+        console.error('Error posting message:', error);
+      }
+    }
+
     function createCalendarIcon() {
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('viewBox', '0 0 24 24');
@@ -1765,6 +1779,8 @@
         const titleSpan = document.createElement('span');
         titleSpan.className = 'subtask-title';
         titleSpan.textContent = subtask.title;
+        titleSpan.style.cursor = 'pointer';
+        titleSpan.onclick = () => editTask(subtask.id);
         const idSpan = document.createElement('span');
         idSpan.className = 'subtask-id';
         idSpan.textContent = subtask.id;
@@ -1815,6 +1831,8 @@
         const titleSpan = document.createElement('span');
         titleSpan.className = 'dependency-title';
         titleSpan.textContent = dep.title;
+        titleSpan.style.cursor = 'pointer';
+        titleSpan.onclick = () => editTask(dep.id);
         const idSpan = document.createElement('span');
         idSpan.className = 'dependency-id';
         idSpan.textContent = dep.id;

@@ -290,11 +290,11 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register command to edit a ticket
   context.subscriptions.push(
-    vscode.commands.registerCommand('horizon.editTicket', async (id: string) => {
+    vscode.commands.registerCommand('horizon.editTicket', async (id: string, options?: { viewColumn?: vscode.ViewColumn }) => {
       const panel = vscode.window.createWebviewPanel(
         'horizonEditTicket',
         'Edit Ticket',
-        vscode.ViewColumn.Beside,
+        options?.viewColumn || vscode.ViewColumn.Beside,
         {
           enableScripts: true,
           localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
@@ -599,6 +599,14 @@ export function activate(context: vscode.ExtensionContext) {
               // Error already logged and shown above
               console.error('Queued save operation failed:', error);
             });
+          } else if (message.type === 'editTicket') {
+            console.log('Edit ticket message received from editor for:', message.id);
+            try {
+              await vscode.commands.executeCommand('horizon.editTicket', message.id, { viewColumn: vscode.ViewColumn.Active });
+              console.log('Edit command executed successfully from editor');
+            } catch (error) {
+              console.error('Error executing edit command from editor:', error);
+            }
           } else if (message.type === 'deleteTask') {
             console.log('Delete task message received from editor for:', message.id);
             try {

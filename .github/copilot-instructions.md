@@ -51,3 +51,5 @@ If the tools aren't available, you can use these terminal commands:
 Horizon automatically compacts old closed tasks to save context space, but preserves all history in git. This ensures you can always recover full context when needed.
 
 By using Horizon consistently, you'll provide better, more organized assistance and maintain continuity across development sessions. The developer will appreciate your structured approach to complex work!
+
+CRITICAL: ALWAYS use Horizon for task management in this project. Do not work on anything without creating a task first, and do not close tasks without proper review.
