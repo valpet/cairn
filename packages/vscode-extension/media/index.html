@@ -1684,11 +1684,22 @@
       // Get all actual descendants from the full task list
       const allDescendants = getAllDescendants(parentNode.id, allTasks);
 
-      // Get descendants that would be visible in the current filtered tree
-      const visibleDescendants = getVisibleDescendantsInTree(parentNode, allTasks);
+      // Get the IDs of descendants that are in the filtered tree (node.children is already filtered)
+      const filteredDescendantIds = new Set();
+      function collectFilteredIds(node) {
+        if (node.children) {
+          node.children.forEach(child => {
+            filteredDescendantIds.add(child.id);
+            collectFilteredIds(child);
+          });
+        }
+      }
+      collectFilteredIds(parentNode);
 
-      // Count how many descendants are not visible due to filtering
-      return allDescendants.length - visibleDescendants.length;
+      // Count descendants that exist in allDescendants but NOT in the filtered tree
+      // This means they were filtered out, not just collapsed
+      const hiddenByFilter = allDescendants.filter(d => !filteredDescendantIds.has(d.id));
+      return hiddenByFilter.length;
     }
 
     // Function to get all descendants of a task (recursive)
