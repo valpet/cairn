@@ -1245,11 +1245,11 @@
           <div style="display: flex; gap: 16px;">
             <label style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
               <input type="radio" name="dependencyDirection" value="blocks" checked>
-              This task depends on selected tasks (blockers)
+              This task depends on selected tasks (Blocked by)
             </label>
             <label style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
               <input type="radio" name="dependencyDirection" value="blocked_by">
-              Selected tasks depend on this task (blocked by)
+              Selected tasks depend on this task (Blocking)
             </label>
           </div>
         </div>
@@ -1887,7 +1887,13 @@
       if (selectedSubtaskIds.size > 0) {
         const selectedSubtasks = availableSubtasks.filter(s => selectedSubtaskIds.has(s.id));
         selectedSubtasks.forEach(selectedSubtask => {
-          subtasks.push({ id: selectedSubtask.id, title: selectedSubtask.title });
+          subtasks.push({
+            id: selectedSubtask.id,
+            title: selectedSubtask.title,
+            type: selectedSubtask.type,
+            status: selectedSubtask.status,
+            priority: selectedSubtask.priority
+          });
         });
         renderSubtasks();
         saveTicket();
