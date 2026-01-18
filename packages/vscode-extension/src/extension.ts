@@ -403,8 +403,26 @@ export function activate(context: vscode.ExtensionContext) {
           if (message.type === 'webviewReady') {
             console.log('Webview ready, loading ticket:', pendingTicketId);
             webviewReady = true;
-            await loadTicket(pendingTicketId);
-          } else if (message.type === 'getAvailableSubtasks') {
+            await loadTicket(pendingTicketId);          } else if (message.type === 'getGitUser') {
+            console.log('Getting git user info');
+            const { execSync } = require('child_process');
+            let gitUserName = '';
+            let gitUserEmail = '';
+            try {
+              gitUserName = execSync('git config user.name', { cwd: repoRoot, encoding: 'utf-8' }).trim();
+            } catch (e) {
+              console.log('Could not get git user.name');
+            }
+            try {
+              gitUserEmail = execSync('git config user.email', { cwd: repoRoot, encoding: 'utf-8' }).trim();
+            } catch (e) {
+              console.log('Could not get git user.email');
+            }
+            panel.webview.postMessage({
+              type: 'gitUserInfo',
+              userName: gitUserName,
+              userEmail: gitUserEmail
+            });          } else if (message.type === 'getAvailableSubtasks') {
             console.log('Getting available subtasks');
             const issues = await storage.loadIssues();
             const availableSubtasks = graph.getNonParentedIssues(issues)
