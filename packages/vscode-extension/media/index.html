@@ -298,6 +298,7 @@
       border: 1px solid var(--vscode-panel-border);
       border-top: none;
       border-radius: 0 0 4px 4px;
+      position: relative;
     }
 
     .task-grid-header {
@@ -973,37 +974,22 @@
       min-height: 100%;
     }
 
-    .tree-line {
+    .tree-lines-svg {
       position: absolute;
-      background-color: rgba(255, 255, 255, 0.15);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
       z-index: 1;
+      overflow: visible;
     }
 
-    .tree-line-vertical {
-      width: 2px;
-      top: 0;
-      bottom: 0;
-    }
-
-    .tree-line-horizontal {
-      height: 2px;
-      width: 20px;
-      left: 2px;
-      top: 26px;
-    }
-
-    .tree-line-corner {
-      width: 2px;
-      top: 0;
-      height: 26px;
-    }
-
-    /* Vertical line from parent to children */
-    .tree-line-parent-vertical {
-      width: 2px;
-      top: 36px;
-      bottom: 0;
+    .tree-lines-svg path,
+    .tree-lines-svg line {
+      stroke: rgba(255, 255, 255, 0.15);
+      stroke-width: 2;
+      fill: none;
     }
 
     .hidden-children-row {
@@ -1447,8 +1433,11 @@
       bodyContainer.appendChild(bodyTable);
       container.appendChild(bodyContainer);
 
-      // Update container height after rendering
-      setTimeout(updateScrollableHeight, 0);
+      // Render SVG tree lines after DOM is ready
+      setTimeout(() => {
+        renderTreeLinesSVG(bodyContainer, allTasks);
+        updateScrollableHeight();
+      }, 0);
     }
 
     // Function to build task hierarchy
@@ -1509,52 +1498,18 @@
 
       // Title cell with expand/collapse
       const titleCell = document.createElement('td');
-
-      // Add tree lines for ancestor levels (exclude immediate parent level to avoid overlap)
-      // Only draw for levels 0 to level-2, as level-1 is handled by our own connection
-      const maxAncestorLevel = Math.min(ancestorLines.length, level - 1);
-      for (let ancestorLevel = 0; ancestorLevel < maxAncestorLevel; ancestorLevel++) {
-        if (ancestorLines[ancestorLevel]) {
-          // This ancestor level has more siblings, draw a vertical line
-          const ancestorLine = document.createElement('div');
-          ancestorLine.className = 'tree-line tree-line-vertical';
-          ancestorLine.style.left = `${ancestorLevel * 30 + 8 + 16}px`;
-          titleCell.appendChild(ancestorLine);
-        }
-      }
-
-      // Add tree lines for child nodes (position relative to TD)
-      if (level > 0) {
-        // Horizontal line
-        const hLine = document.createElement('div');
-        hLine.className = 'tree-line tree-line-horizontal';
-        hLine.style.left = `${(level - 1) * 30 + 8 + 16}px`;
-        titleCell.appendChild(hLine);
-
-        // Vertical line - full height for non-last children, corner for last child
-        const vLine = document.createElement('div');
-        if (isLastChild) {
-          vLine.className = 'tree-line tree-line-corner';
-        } else {
-          vLine.className = 'tree-line tree-line-vertical';
-        }
-        vLine.style.left = `${(level - 1) * 30 + 8 + 16}px`;
-        titleCell.appendChild(vLine);
-      }
+      
+      // Store metadata for SVG line rendering
+      tr.dataset.taskId = task.id;
+      tr.dataset.level = level;
+      tr.dataset.isLastChild = isLastChild;
+      tr.dataset.hasChildren = hasChildren;
 
       const titleDiv = document.createElement('div');
       titleDiv.className = 'title-cell';
       titleDiv.style.paddingLeft = `${level * 30}px`;
       titleDiv.style.position = 'relative';
       titleDiv.style.zIndex = '2';
-
-      // If this task has children, add a vertical line extending down from it
-      if (hasChildren && isExpanded) {
-        const parentLine = document.createElement('div');
-        parentLine.className = 'tree-line tree-line-parent-vertical';
-        parentLine.style.left = `${level * 30 + 8 + 16}px`;
-        titleCell.appendChild(parentLine);
-      }
 
       // Expand/collapse icon
       const expandIcon = document.createElement('span');
@@ -1748,10 +1703,13 @@
       // Title cell with tree lines for hierarchy
       const titleCell = document.createElement('td');
 
-      // Add tree lines for ancestor levels (exclude immediate parent level to avoid overlap)
-      // Only draw for levels 0 to level-2, as level-1 is handled by our own connection
-      const maxAncestorLevel = Math.min(ancestorLines.length, level - 1);
-      for (let ancestorLevel = 0; ancestorLevel < maxAncestorLevel; ancestorLevel++) {
+      // Add tree lines for ancestor levels
+      // Skip parent level to avoid overlap, but only for non-root items
+      for (let ancestorLevel = 0; ancestorLevel < ancestorLines.length; ancestorLevel++) {
+        if (level > 0 && ancestorLevel === level - 1) {
+          // Skip parent level for non-root to avoid overlap
+          continue;
+        }
         if (ancestorLines[ancestorLevel]) {
           // This ancestor level has more siblings, draw a vertical line
           const ancestorLine = document.createElement('div');
@@ -2027,6 +1985,123 @@
     function deleteTask(taskId) {
       console.log('Deleting task', taskId);
       vscode.postMessage({ type: 'deleteTask', id: taskId });
+    }
+
+    // Function to render tree lines using SVG overlay
+    function renderTreeLinesSVG(container, allTasks) {
+      // Remove existing SVG if present
+      const existingSvg = container.querySelector('.tree-lines-svg');
+      if (existingSvg) {
+        existingSvg.remove();
+      }
+
+      // Get all task rows
+      const rows = container.querySelectorAll('tr.task-row');
+      if (rows.length === 0) return;
+
+      // Create SVG element
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'tree-lines-svg');
+      svg.style.position = 'absolute';
+      svg.style.top = '0';
+      svg.style.left = '0';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.pointerEvents = 'none';
+      svg.style.zIndex = '1';
+      
+      // Build a map of task positions
+      const taskPositions = new Map();
+      const containerRect = container.getBoundingClientRect();
+      
+      rows.forEach(row => {
+        const taskId = row.dataset.taskId;
+        const level = parseInt(row.dataset.level || '0');
+        const isLastChild = row.dataset.isLastChild === 'true';
+        const hasChildren = row.dataset.hasChildren === 'true';
+        
+        const rect = row.getBoundingClientRect();
+        const relativeTop = rect.top - containerRect.top + container.scrollTop;
+        const relativeBottom = rect.bottom - containerRect.top + container.scrollTop;
+        const centerY = relativeTop + (rect.height / 2);
+        
+        taskPositions.set(taskId, {
+          level,
+          isLastChild,
+          hasChildren,
+          top: relativeTop,
+          bottom: relativeBottom,
+          centerY,
+          height: rect.height
+        });
+      });
+      
+      // Build parent-child relationships
+      const taskMap = new Map(allTasks.map(t => [t.id, t]));
+      const childrenMap = new Map();
+      
+      allTasks.forEach(task => {
+        const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
+        if (parentDep) {
+          if (!childrenMap.has(parentDep.id)) {
+            childrenMap.set(parentDep.id, []);
+          }
+          childrenMap.get(parentDep.id).push(task.id);
+        }
+        
+        const blocksDep = (task.dependencies || []).find(dep => dep.type === 'blocks');
+        if (blocksDep && !parentDep) {
+          if (!childrenMap.has(blocksDep.id)) {
+            childrenMap.set(blocksDep.id, []);
+          }
+          childrenMap.get(blocksDep.id).push(task.id);
+        }
+      });
+      
+      // Draw tree lines
+      taskPositions.forEach((pos, taskId) => {
+        const { level, isLastChild, hasChildren, centerY } = pos;
+        // X position is at the center of the caret icon (16px wide)
+        // With padding-left of level * 30, the caret center is at level * 30 + 8
+        const x = level * 30 + 8 + 17; // +16 for cell padding
+        
+        // Draw connection to parent (horizontal line only)
+        if (level > 0) {
+          const parentX = (level - 1) * 30 + 8 + 18;
+          
+          // Horizontal line from parent's vertical line to this task's icon
+          const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          hLine.setAttribute('x1', parentX);
+          hLine.setAttribute('y1', centerY);
+          hLine.setAttribute('x2', x - 8); // Stop 8px before caret center (at left edge of caret)
+          hLine.setAttribute('y2', centerY);
+          svg.appendChild(hLine);
+        }
+        
+        // Draw vertical line to children if this task has expanded children
+        if (hasChildren && expandedTasks.has(taskId)) {
+          const children = childrenMap.get(taskId) || [];
+          const visibleChildren = children.filter(childId => taskPositions.has(childId));
+          
+          if (visibleChildren.length > 0) {
+            // Find the last visible child
+            const lastChildId = visibleChildren[visibleChildren.length - 1];
+            const lastChildPos = taskPositions.get(lastChildId);
+            
+            // Draw single vertical line from bottom of this task's caret to the last child's center
+            // Caret is 16px tall, so bottom is at centerY + 8
+            const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            vLine.setAttribute('x1', x);
+            vLine.setAttribute('y1', centerY + 8);
+            vLine.setAttribute('x2', x);
+            vLine.setAttribute('y2', lastChildPos.centerY+1);
+            svg.appendChild(vLine);
+          }
+        }
+      });
+      
+      // Insert SVG at the beginning of container (behind content)
+      container.insertBefore(svg, container.firstChild);
     }
 
     // Function to update scrollable container height
