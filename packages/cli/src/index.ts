@@ -70,45 +70,67 @@ program
     }
     const instructionsPath = path.join(githubDir, 'copilot-instructions.md');
     const horizonInstructions = `
-## Horizon Task Management Instructions
-As a GitHub Copilot agent, you MUST work task-based using Horizon tools for all development work. This ensures long-horizon memory and prevents context overflow.
+## Horizon Task Management for GitHub Copilot Agents
 
-### Initialization
-- Horizon has been initialized in this project. Use \`horizon_get_ready_work\` MCP tool (or \`horizon list --ready\` as backup) to see available tasks.
+Horizon is a powerful task management system designed to help AI agents like you maintain long-term memory and collaborate effectively on complex software development projects. By using Horizon, you can:
 
-### Task Management
-- **Always start by checking ready work**: Use \`horizon_get_ready_work\` MCP tool (or \`horizon list --ready\` as backup) to see unblocked tasks.
-- **Break down large tasks**: Use \`horizon_add_dependency\` MCP tool with 'parent-child' type (or \`horizon dep add <subtask> <parent> --type parent-child\` as backup) to create hierarchical subtasks.
-- **Create new tasks**: Use \`horizon_create_issue\` MCP tool (or \`horizon create <title> -d <description> -p <priority>\` as backup) for any work discovered.
-- **Track discoveries**: When finding new work, use \`horizon_add_dependency\` MCP tool with 'discovered-from' type (or \`horizon dep add <newtask> <current> --type discovered-from\` as backup).
-- **Update progress**: Regularly update task status with \`horizon_update_issue\` MCP tool (or \`horizon update <id> -s <status> -n <notes>\` as backup).
-- **Document implementation details**: Add detailed notes on decisions, challenges, and solutions.
-- **Mark completion**: Set status to 'closed' when done, include acceptance criteria with \`horizon_update_issue\` MCP tool (or \`horizon update <id> -c <criteria>\` as backup).
+- **Track progress systematically** across multiple sessions
+- **Maintain context** for complex, multi-step tasks
+- **Collaborate seamlessly** with developers and other agents
+- **Avoid losing track** of work in progress
+- **Document decisions and challenges** for future reference
 
-### Self-Review Process
-- After implementing any feature, perform a brutal self-review:
-  - Run \`horizon review <id>\` for checklist prompts.
-  - Check code quality, edge cases, error handling.
-  - Update acceptance criteria if not met.
-  - Add notes on what was learned or improved.
-  - If issues found, create subtasks for fixes.
-- Review task dependencies: Ensure no blockers remain.
+### Getting Started
+Horizon has been initialized in this project. To see available tasks, use the \`horizon_list_ready\` tool or run \`horizon list --ready\` in the terminal.
 
-### Subtasks Support
-- Horizon supports subtasks via 'parent-child' dependency type.
-- Create parent epics, then subtasks linked with \`horizon_add_dependency\` MCP tool (or \`dep add <sub> <parent> --type parent-child\` as backup).
-- Use \`horizon_get_ready_work\` MCP tool (or \`list --ready\` as backup) to find next actionable subtasks.
+### Recommended Workflow
+While you're free to work as you see fit, using Horizon will significantly improve your effectiveness on this project. Here's how to integrate it into your work:
+
+- **Check for ready work first**: Before starting new tasks, use \`horizon_list_ready\` to see what tasks are unblocked and ready to work on.
+- **Create tasks for significant work**: For any substantial changes or features, create a Horizon task using \`horizon_create\` (or \`horizon create <title>\` in terminal).
+- **Break down complex tasks**: Use \`horizon_dep_add\` with 'parent-child' type to create subtasks for epics.
+- **Track discoveries**: When you find new work during development, add it as a 'discovered-from' dependency.
+- **Update progress regularly**: Use \`horizon_update\` to mark tasks as in progress, add notes, or close completed work.
+- **Document your work**: Use \`horizon_comment\` to record findings, ideas, challenges, solutions, and progress as you work on tasks. This helps maintain a detailed record for collaboration and future reference.
+- **Add comments for collaboration**: Use \`horizon_comment\` to document important insights or communicate with the developer.
+- **Perform self-reviews**: Before closing tasks, review your work quality and ensure all acceptance criteria are met.
+
+### Available Tools
+- \`horizon_list_ready\`: Get list of unblocked tasks ready to work on
+- \`horizon_create\`: Create a new task
+- \`horizon_update\`: Update task status, notes, or acceptance criteria
+- \`horizon_dep_add\`: Add dependencies between tasks
+- \`horizon_comment\`: Add comments to tasks
+
+### Terminal Commands (as backup)
+If the tools aren't available, you can use these terminal commands:
+- \`horizon list --ready\`: List ready tasks
+- \`horizon create <title> -d <description> -p <priority>\`: Create task
+- \`horizon update <id> -s <status> -n <notes>\`: Update task
+- \`horizon dep add <from> <to> --type <type>\`: Add dependency
+- \`horizon comment <id> <message>\`: Add comment
 
 ### Memory Management
-- Compaction automatically summarizes old closed tasks to save context.
-- Git integration preserves history across sessions.
-- Always document progress to recover context later.
+Horizon automatically compacts old closed tasks to save context space, but preserves all history in git. This ensures you can always recover full context when needed.
 
-By following this workflow, you maintain coherent, persistent task memory without losing track of complex, multi-session work.`;
+By using Horizon consistently, you'll provide better, more organized assistance and maintain continuity across development sessions. The developer will appreciate your structured approach to complex work!`;
 
     if (fs.existsSync(instructionsPath)) {
       const existing = await fs.promises.readFile(instructionsPath, 'utf-8');
-      if (!existing.includes('Horizon Task Management Instructions')) {
+      if (!existing.includes('Horizon Task Management for GitHub Copilot Agents')) {
+        await fs.promises.appendFile(instructionsPath, '\n' + horizonInstructions);
+        console.log('Appended Horizon workflow guidelines to existing .github/copilot-instructions.md');
+      } else {
+        console.log('Horizon instructions already present in .github/copilot-instructions.md');
+      }
+    } else {
+      await fs.promises.writeFile(instructionsPath, '<!-- Horizon Task Management Instructions for GitHub Copilot Agents -->\n' + horizonInstructions);
+      console.log('Created .github/copilot-instructions.md with Horizon workflow guidelines');
+    }
+
+    if (fs.existsSync(instructionsPath)) {
+      const existing = await fs.promises.readFile(instructionsPath, 'utf-8');
+      if (!existing.includes('Horizon Task Management for GitHub Copilot Agents')) {
         await fs.promises.appendFile(instructionsPath, '\n' + horizonInstructions);
         console.log('Appended Horizon workflow guidelines to existing .github/copilot-instructions.md');
       } else {
