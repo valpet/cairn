@@ -909,62 +909,14 @@
     <div class="editor-layout">
       <div class="main-content">
         <div class="title-description-section">
-          <h3>Overview</h3>
-          <div class="form-group">
-            <label>Title:</label>
-            <div class="editable-field">
-              <div class="field-display" id="titleDisplay" onclick="editField('title')">
-                <div class="field-text" id="titleText"></div>
-                <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
-                  <path
-                    d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z" />
-                </svg>
-              </div>
-              <div class="field-edit hidden" id="titleEdit">
-                <input type="text" id="titleInput">
-                <div class="edit-actions">
-                  <button type="button" class="icon-button accept" onclick="acceptField('title')" title="Save">
-                    <svg viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
-                    </svg>
-                  </button>
-                  <button type="button" class="icon-button cancel" onclick="cancelField('title')" title="Cancel">
-                    <svg viewBox="0 0 16 16" fill="currentColor">
-                      <path
-                        d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
+          <h3>Title & Description</h3>
+          <div class="field-group">
+            <label for="titleContainer">Title</label>
+            <div id="titleContainer"></div>
           </div>
-          <div class="form-group">
-            <label>Description:</label>
-            <div class="editable-field">
-              <div class="field-display" id="descriptionDisplay" onclick="editField('description')">
-                <div class="field-text" id="descriptionText"></div>
-                <svg class="edit-icon" viewBox="0 0 16 16" fill="currentColor">
-                  <path
-                    d="M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z" />
-                </svg>
-              </div>
-              <div class="field-edit hidden" id="descriptionEdit">
-                <textarea id="descriptionInput" rows="4"></textarea>
-                <div class="edit-actions">
-                  <button type="button" class="icon-button accept" onclick="acceptField('description')" title="Save">
-                    <svg viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
-                    </svg>
-                  </button>
-                  <button type="button" class="icon-button cancel" onclick="cancelField('description')" title="Cancel">
-                    <svg viewBox="0 0 16 16" fill="currentColor">
-                      <path
-                        d="M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div class="field-group">
+            <label for="descriptionContainer">Description</label>
+            <div id="descriptionContainer"></div>
           </div>
         </div>
       </div>
@@ -1124,13 +1076,207 @@
     let dependencies = [];
     let currentTitle = '';
     let currentDescription = '';
-    let originalTitle = '';
-    let originalDescription = '';
     let comments = [];
     let availableSubtasks = [];
     let selectedSubtaskIds = new Set();
     let availableDependencies = [];
     let selectedDependencyIds = new Set();
+
+    // Reusable EditableField component
+    class EditableField {
+      constructor(options) {
+        this.fieldName = options.fieldName;
+        this.placeholder = options.placeholder || 'Click to edit...';
+        this.isTextarea = options.isTextarea || false;
+        this.onSave = options.onSave;
+        this.onCancel = options.onCancel;
+        this.onDisplayUpdate = options.onDisplayUpdate;
+        
+        this.container = null;
+        this.displayElement = null;
+        this.editElement = null;
+        this.inputElement = null;
+        this.originalValue = '';
+        this.currentValue = '';
+        this.isDirty = false;
+        
+        this.init();
+      }
+      
+      init() {
+        // Create container
+        this.container = document.createElement('div');
+        this.container.className = 'editable-field';
+        
+        // Create display element
+        this.displayElement = document.createElement('div');
+        this.displayElement.className = 'field-display';
+        this.displayElement.onclick = () => this.enterEditMode();
+        
+        const textElement = document.createElement('div');
+        textElement.className = 'field-text';
+        this.displayElement.appendChild(textElement);
+        
+        const icon = document.createElement('svg');
+        icon.className = 'edit-icon';
+        icon.setAttribute('viewBox', '0 0 16 16');
+        icon.setAttribute('fill', 'currentColor');
+        const path = document.createElement('path');
+        path.setAttribute('d', 'M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z');
+        icon.appendChild(path);
+        this.displayElement.appendChild(icon);
+        
+        // Create edit element
+        this.editElement = document.createElement('div');
+        this.editElement.className = 'field-edit hidden';
+        
+        this.inputElement = document.createElement(this.isTextarea ? 'textarea' : 'input');
+        if (!this.isTextarea) {
+          this.inputElement.type = 'text';
+        }
+        this.inputElement.className = this.isTextarea ? '' : 'input';
+        if (this.isTextarea) {
+          this.inputElement.rows = 4;
+        }
+        this.inputElement.onblur = () => this.handleBlur();
+        this.inputElement.onkeydown = (e) => this.handleKeydown(e);
+        
+        const actions = document.createElement('div');
+        actions.className = 'edit-actions';
+        
+        const acceptBtn = document.createElement('button');
+        acceptBtn.type = 'button';
+        acceptBtn.className = 'icon-button accept';
+        acceptBtn.title = 'Save';
+        acceptBtn.onclick = () => this.save();
+        
+        const acceptSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        acceptSvg.setAttribute('viewBox', '0 0 16 16');
+        acceptSvg.setAttribute('fill', 'currentColor');
+        const acceptPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        acceptPath.setAttribute('d', 'M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z');
+        acceptSvg.appendChild(acceptPath);
+        acceptBtn.appendChild(acceptSvg);
+        
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'icon-button cancel';
+        cancelBtn.title = 'Cancel';
+        cancelBtn.onclick = () => this.cancel();
+        
+        const cancelSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        cancelSvg.setAttribute('viewBox', '0 0 16 16');
+        cancelSvg.setAttribute('fill', 'currentColor');
+        const cancelPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        cancelPath.setAttribute('d', 'M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z');
+        cancelSvg.appendChild(cancelPath);
+        cancelBtn.appendChild(cancelSvg);
+        
+        actions.appendChild(acceptBtn);
+        actions.appendChild(cancelBtn);
+        
+        this.editElement.appendChild(this.inputElement);
+        this.editElement.appendChild(actions);
+        
+        this.container.appendChild(this.displayElement);
+        this.container.appendChild(this.editElement);
+        console.log('EditableField init completed, container:', this.container);
+      }
+      
+      getElement() {
+        console.log('getElement called, container:', this.container);
+        return this.container;
+      }
+      
+      setValue(value) {
+        this.currentValue = value || '';
+        this.originalValue = this.currentValue;
+        this.updateDisplay();
+      }
+      
+      updateDisplay() {
+        const textElement = this.displayElement.querySelector('.field-text');
+        if (!this.currentValue) {
+          textElement.textContent = this.placeholder;
+          textElement.classList.add('placeholder');
+        } else {
+          textElement.textContent = this.currentValue;
+          textElement.classList.remove('placeholder');
+        }
+        
+        if (this.onDisplayUpdate) {
+          this.onDisplayUpdate(this.currentValue);
+        }
+      }
+      
+      enterEditMode() {
+        this.displayElement.classList.add('hidden');
+        this.editElement.classList.remove('hidden');
+        this.inputElement.value = this.currentValue;
+        this.inputElement.focus();
+        this.inputElement.select();
+        this.isDirty = false;
+      }
+      
+      exitEditMode() {
+        this.displayElement.classList.remove('hidden');
+        this.editElement.classList.add('hidden');
+        this.isDirty = false;
+      }
+      
+      handleBlur() {
+        // If value hasn't changed, exit edit mode
+        if (!this.isDirty) {
+          this.exitEditMode();
+        }
+        // If value has changed (dirty), stay in edit mode - user must explicitly save/cancel
+      }
+      
+      handleKeydown(e) {
+        if (e.key === 'Enter' && !this.isTextarea) {
+          e.preventDefault();
+          this.save();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          this.cancel();
+        } else if (e.key === 'Tab') {
+          // Allow tab navigation, but mark as dirty if value changed
+          this.checkDirty();
+        } else {
+          // Mark as dirty on any input change
+          setTimeout(() => this.checkDirty(), 0);
+        }
+      }
+      
+      checkDirty() {
+        const newValue = this.inputElement.value.trim();
+        this.isDirty = newValue !== this.originalValue;
+      }
+      
+      save() {
+        const newValue = this.inputElement.value.trim();
+        this.currentValue = newValue;
+        this.updateDisplay();
+        this.exitEditMode();
+        
+        if (this.onSave) {
+          this.onSave(newValue);
+        }
+      }
+      
+      cancel() {
+        this.currentValue = this.originalValue;
+        this.updateDisplay();
+        this.exitEditMode();
+        
+        if (this.onCancel) {
+          this.onCancel();
+        }
+      }
+    }
+
+    // Create editable field instances
+    let titleField, descriptionField;
 
     // Utility functions for creating pill components
     function createTypeBadge(type) {
@@ -1212,8 +1358,64 @@
           closedContainer.style.display = 'none';
         }
         
-        updateTitleDisplay();
-        updateDescriptionDisplay();
+        // Initialize editable fields
+        if (!titleField) {
+          titleField = new EditableField({
+            fieldName: 'title',
+            placeholder: 'Click to add title...',
+            isTextarea: false,
+            onSave: (value) => {
+              currentTitle = value;
+              saveTicket();
+            },
+            onCancel: () => {
+              // Cancel handled automatically
+            },
+            onDisplayUpdate: (value) => {
+              // Update display handled automatically
+            }
+          });
+          document.getElementById('titleContainer').appendChild(titleField.getElement());
+        }
+        titleField.setValue(currentTitle);
+        
+        if (!descriptionField) {
+          try {
+            descriptionField = new EditableField({
+              fieldName: 'description',
+              placeholder: 'Click to add description...',
+              isTextarea: true,
+              onSave: (value) => {
+                currentDescription = value;
+                saveTicket();
+              },
+              onCancel: () => {
+                // Cancel handled automatically
+              },
+              onDisplayUpdate: (value) => {
+                // Update display handled automatically
+              }
+            });
+            const descContainer = document.getElementById('descriptionContainer');
+            console.log('Description container found:', !!descContainer);
+            if (descContainer) {
+              const element = descriptionField.getElement();
+              console.log('Description element to append:', element);
+              descContainer.appendChild(element);
+              console.log('Description element appended');
+            } else {
+              console.error('Description container not found');
+            }
+          } catch (error) {
+            console.error('Error creating description field:', error);
+          }
+        }
+        try {
+          descriptionField.setValue(currentDescription);
+        } catch (error) {
+          console.error('Error setting description value:', error);
+        }
+        
         renderComments();
         renderSubtasks();
         renderDependencies();
@@ -1232,81 +1434,6 @@
         renderComments();
       }
     });
-
-    function updateTitleDisplay() {
-      const textEl = document.getElementById('titleText');
-      if (!currentTitle) {
-        textEl.textContent = 'Click to add title...';
-        textEl.classList.add('placeholder');
-      } else {
-        textEl.textContent = currentTitle;
-        textEl.classList.remove('placeholder');
-      }
-    }
-
-    function updateDescriptionDisplay() {
-      const textEl = document.getElementById('descriptionText');
-      if (!currentDescription) {
-        textEl.textContent = 'Click to add description...';
-        textEl.classList.add('placeholder');
-      } else {
-        textEl.textContent = currentDescription;
-        textEl.classList.remove('placeholder');
-      }
-    }
-
-    function editField(fieldName) {
-      const display = document.getElementById(`${fieldName}Display`);
-      const edit = document.getElementById(`${fieldName}Edit`);
-      const input = document.getElementById(`${fieldName}Input`);
-
-      display.classList.add('hidden');
-      edit.classList.remove('hidden');
-
-      if (fieldName === 'title') {
-        originalTitle = currentTitle;
-        input.value = currentTitle;
-      } else {
-        originalDescription = currentDescription;
-        input.value = currentDescription;
-      }
-
-      input.focus();
-      input.select();
-    }
-
-    function acceptField(fieldName) {
-      const input = document.getElementById(`${fieldName}Input`);
-      const newValue = input.value.trim();
-
-      if (fieldName === 'title') {
-        currentTitle = newValue;
-        updateTitleDisplay();
-      } else {
-        currentDescription = newValue;
-        updateDescriptionDisplay();
-      }
-
-      exitEditMode(fieldName);
-      saveTicket();
-    }
-
-    function cancelField(fieldName) {
-      if (fieldName === 'title') {
-        currentTitle = originalTitle;
-      } else {
-        currentDescription = originalDescription;
-      }
-      exitEditMode(fieldName);
-    }
-
-    function exitEditMode(fieldName) {
-      const display = document.getElementById(`${fieldName}Display`);
-      const edit = document.getElementById(`${fieldName}Edit`);
-
-      display.classList.remove('hidden');
-      edit.classList.add('hidden');
-    }
 
     function saveTicket() {
       console.log('Saving ticket, ticketId:', ticketId, 'title:', currentTitle, 'desc:', currentDescription);
