@@ -6,7 +6,8 @@
   "description": "Persistent memory for AI agents and developers. Replace messy markdown plans with a dependency-aware graph that maintains context across long development sessions.",
   "readme": "README.md",
   "author": {
-    "name": "Peter Valtersson"
+    "name": "Peter Valtersson",
+    "email": "peter.valtersson@gmail.com"
   },
   "license": "MIT",
   "repository": "https://github.com/valpet/cairn",
