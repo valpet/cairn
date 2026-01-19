@@ -1,10 +1,30 @@
 {
-  "name": "@cairn/core",
+  "name": "@valpet/cairn-core",
   "version": "1.0.0",
   "description": "Core library for Cairn task management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
+  "author": "Peter Valtersson",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/valpet/cairn.git",
+    "directory": "packages/core"
+  },
+  "keywords": [
+    "task-management",
+    "productivity",
+    "ai",
+    "copilot",
+    "dependency-graph",
+    "jsonl",
+    "typescript"
+  ],
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest --run",

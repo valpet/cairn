@@ -1,18 +1,38 @@
 {
-  "name": "cairn",
+  "name": "@valpet/cairn-cli",
   "version": "1.0.0",
   "description": "CLI wrapper for Cairn task management",
   "bin": {
     "cairn": "dist/index.js"
   },
   "license": "MIT",
+  "author": "Peter Valtersson",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/valpet/cairn.git",
+    "directory": "packages/cli"
+  },
+  "keywords": [
+    "cli",
+    "task-management",
+    "productivity",
+    "ai",
+    "copilot",
+    "terminal",
+    "command-line"
+  ],
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest --run --passWithNoTests",
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@cairn/core": "file:../core",
+    "@valpet/cairn-core": "^1.0.0",
     "commander": "^11.0.0",
     "inversify": "^6.0.1",
     "nanoid": "^5.1.6",

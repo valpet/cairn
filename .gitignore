@@ -3,3 +3,5 @@ dist/
 coverage/
 !coverage/lcov.info
 # .cairn/  # Uncomment for stealth mode
+.npmrc
+packages/vscode-extension/cairn-extension-*.vsix

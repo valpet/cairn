@@ -1,9 +1,9 @@
 {
   "name": "cairn-extension",
-  "displayName": "Cairn Task Management",
+  "displayName": "Cairn",
   "version": "1.0.0",
   "publisher": "local",
-  "description": "Persistent memory for AI agents and developers. Replace messy markdown plans with a dependency-aware graph that maintains context across long development sessions.",
+  "description": "Prevents AI agent 'dementia' in long development sessions. Maintains persistent, structured context through a dependency-aware graph that survives across conversations.",
   "readme": "README.md",
   "author": {
     "name": "Peter Valtersson",
