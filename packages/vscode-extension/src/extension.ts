@@ -7,174 +7,248 @@ import { nanoid } from 'nanoid';
 let container: any;
 let storage: IStorageService;
 let graph: IGraphService;
+let outputChannel: vscode.OutputChannel;
+
+// Tool implementations
+class CairnCreateTool implements vscode.LanguageModelTool<any> {
+  async prepareInvocation(
+    options: vscode.LanguageModelToolInvocationPrepareOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    return {
+      invocationMessage: `Creating task: ${options.input.title}`,
+    };
+  }
+
+  async invoke(
+    options: vscode.LanguageModelToolInvocationOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    try {
+      const inputs = options.input;
+      const issues = await storage.loadIssues();
+      const id = generateId(issues);
+      const issue = {
+        id,
+        title: inputs.title,
+        description: inputs.description || '',
+        type: inputs.type || 'task',
+        status: inputs.status || 'open',
+        priority: inputs.priority || 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      await storage.saveIssue(issue);
+
+      if (inputs.parent) {
+        await storage.updateIssues(issues => {
+          return graph.addDependency(id, inputs.parent, 'parent-child', issues);
+        });
+      }
+
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Created issue ${id}: ${inputs.title}`, id }))
+      ]);
+    } catch (error) {
+      const err = error as Error;
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error creating issue: ${err.message}` }))
+      ]);
+    }
+  }
+}
+
+class CairnListReadyTool implements vscode.LanguageModelTool<any> {
+  async prepareInvocation(
+    _options: vscode.LanguageModelToolInvocationPrepareOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    return {
+      invocationMessage: 'Listing ready tasks',
+    };
+  }
+
+  async invoke(
+    _options: vscode.LanguageModelToolInvocationOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    try {
+      const issues = await storage.loadIssues();
+      const readyIssues = graph.getReadyWork(issues);
+      const result = readyIssues.map(issue => ({
+        id: issue.id,
+        title: issue.title,
+        status: issue.status,
+        priority: issue.priority
+      }));
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, readyTasks: result }))
+      ]);
+    } catch (error) {
+      const err = error as Error;
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error listing ready tasks: ${err.message}` }))
+      ]);
+    }
+  }
+}
+
+class CairnUpdateTool implements vscode.LanguageModelTool<any> {
+  async prepareInvocation(
+    options: vscode.LanguageModelToolInvocationPrepareOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    return {
+      invocationMessage: `Updating task ${options.input.id}`,
+    };
+  }
+
+  async invoke(
+    options: vscode.LanguageModelToolInvocationOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    try {
+      const inputs = options.input;
+      await storage.updateIssues(issues => {
+        return issues.map(issue => {
+          if (issue.id === inputs.id) {
+            const updated = { ...issue, updated_at: new Date().toISOString() };
+            if (inputs.status) updated.status = inputs.status;
+            if (inputs.notes) updated.notes = inputs.notes;
+            if (inputs.acceptance_criteria) updated.acceptance_criteria = inputs.acceptance_criteria;
+            if (inputs.status === 'closed') updated.closed_at = new Date().toISOString();
+            return updated;
+          }
+          return issue;
+        });
+      });
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Updated issue ${inputs.id}` }))
+      ]);
+    } catch (error) {
+      const err = error as Error;
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error updating issue: ${err.message}` }))
+      ]);
+    }
+  }
+}
+
+class CairnDepAddTool implements vscode.LanguageModelTool<any> {
+  async prepareInvocation(
+    options: vscode.LanguageModelToolInvocationPrepareOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    return {
+      invocationMessage: `Adding ${options.input.type} dependency from ${options.input.from} to ${options.input.to}`,
+    };
+  }
+
+  async invoke(
+    options: vscode.LanguageModelToolInvocationOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    try {
+      const inputs = options.input;
+      await storage.updateIssues(issues => {
+        return graph.addDependency(inputs.from, inputs.to, inputs.type, issues);
+      });
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Added ${inputs.type} dependency from ${inputs.from} to ${inputs.to}` }))
+      ]);
+    } catch (error) {
+      const err = error as Error;
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error adding dependency: ${err.message}` }))
+      ]);
+    }
+  }
+}
+
+class CairnCommentTool implements vscode.LanguageModelTool<any> {
+  async prepareInvocation(
+    options: vscode.LanguageModelToolInvocationPrepareOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    return {
+      invocationMessage: `Adding comment to issue ${options.input.issue_id}`,
+    };
+  }
+
+  async invoke(
+    options: vscode.LanguageModelToolInvocationOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    try {
+      const inputs = options.input;
+      const comment = await storage.addComment(inputs.issue_id, inputs.author || 'agent', inputs.content);
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({
+          success: true,
+          message: `Added comment to issue ${inputs.issue_id}`,
+          comment: {
+            id: comment.id,
+            author: comment.author,
+            created_at: comment.created_at
+          }
+        }))
+      ]);
+    } catch (error) {
+      const err = error as Error;
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error adding comment: ${err.message}` }))
+      ]);
+    }
+  }
+}
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Cairn extension activated');
+  outputChannel = vscode.window.createOutputChannel('Cairn');
+  context.subscriptions.push(outputChannel);
+  outputChannel.appendLine('Cairn extension activated');
 
   try {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    console.log('Workspace folders:', vscode.workspace.workspaceFolders?.map(f => f.uri.fsPath));
+    outputChannel.appendLine(`Workspace folders: ${vscode.workspace.workspaceFolders?.map(f => f.uri.fsPath).join(', ')}`);
 
     if (!workspaceFolder) {
-      console.error('No workspace folder found');
+      outputChannel.appendLine('ERROR: No workspace folder found');
       vscode.window.showErrorMessage('No workspace folder found');
       return;
     }
 
-    console.log('Using workspace folder:', workspaceFolder.uri.fsPath);
+    outputChannel.appendLine(`Using workspace folder: ${workspaceFolder.uri.fsPath}`);
     const startDir = workspaceFolder.uri.fsPath;
     const { cairnDir, repoRoot } = findCairnDir(startDir);
-    console.log('Cairn dir:', cairnDir, 'Repo root:', repoRoot);
+    outputChannel.appendLine(`Cairn dir: ${cairnDir}, Repo root: ${repoRoot}`);
 
     if (!fs.existsSync(cairnDir)) {
-      console.error('No .cairn directory found at:', cairnDir);
+      outputChannel.appendLine(`ERROR: No .cairn directory found at: ${cairnDir}`);
       vscode.window.showErrorMessage('No .cairn directory found. Run `npx cairn init` in your project root.');
       return;
     }
 
-    console.log('Creating container...');
+    outputChannel.appendLine('Creating container...');
     container = createContainer(cairnDir, repoRoot);
-    console.log('Getting storage service...');
+    outputChannel.appendLine('Getting storage service...');
     storage = container.get(TYPES.IStorageService);
-    console.log('Getting graph service...');
+    outputChannel.appendLine('Getting graph service...');
     graph = container.get(TYPES.IGraphService);
-    console.log('Services initialized successfully');
+    outputChannel.appendLine('Services initialized successfully');
 
     // Register tools
-    context.subscriptions.push(
-      vscode.lm.registerTool('cairn_create', {
-        invoke: async (options, token) => {
-          try {
-            const inputs = options.input as any;
-            const issues = await storage.loadIssues();
-            const id = generateId(issues);
-            const issue = {
-              id,
-              title: inputs.title,
-              description: inputs.description || '',
-              type: inputs.type || 'task',
-              status: inputs.status || 'open',
-              priority: inputs.priority || 'medium',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            };
-            await storage.saveIssue(issue);
-
-            // Add parent-child dependency if parent is specified
-            if (inputs.parent) {
-              await storage.updateIssues(issues => {
-                return graph.addDependency(id, inputs.parent, 'parent-child', issues);
-              });
-            }
-
-            return { content: [{ type: 'text', text: JSON.stringify({ success: true, message: `Created issue ${id}: ${inputs.title}`, id }) }] };
-          } catch (error) {
-            const err = error as Error;
-            return { content: [{ type: 'text', text: JSON.stringify({ success: false, message: `Error creating issue: ${err.message}` }) }] };
-          }
-        }
-      })
-    );
-
-    context.subscriptions.push(
-      vscode.lm.registerTool('cairn_list_ready', {
-        invoke: async (options, token) => {
-          try {
-            const issues = await storage.loadIssues();
-            const readyIssues = graph.getReadyWork(issues);
-            const result = readyIssues.map(issue => ({
-              id: issue.id,
-              title: issue.title,
-              status: issue.status,
-              priority: issue.priority
-            }));
-            return { content: [{ type: 'text', text: JSON.stringify({ success: true, readyTasks: result }) }] };
-          } catch (error) {
-            const err = error as Error;
-            return { content: [{ type: 'text', text: JSON.stringify({ success: false, message: `Error listing ready tasks: ${err.message}` }) }] };
-          }
-        }
-      })
-    );
-
-    context.subscriptions.push(
-      vscode.lm.registerTool('cairn_update', {
-        invoke: async (options, token) => {
-          try {
-            const inputs = options.input as any;
-            await storage.updateIssues(issues => {
-              return issues.map(issue => {
-                if (issue.id === inputs.id) {
-                  const updated = { ...issue, updated_at: new Date().toISOString() };
-                  if (inputs.status) updated.status = inputs.status;
-                  if (inputs.notes) updated.notes = inputs.notes;
-                  if (inputs.acceptance_criteria) updated.acceptance_criteria = inputs.acceptance_criteria;
-                  if (inputs.status === 'closed') updated.closed_at = new Date().toISOString();
-                  return updated;
-                }
-                return issue;
-              });
-            });
-            return { content: [{ type: 'text', text: JSON.stringify({ success: true, message: `Updated issue ${inputs.id}` }) }] };
-          } catch (error) {
-            const err = error as Error;
-            return { content: [{ type: 'text', text: JSON.stringify({ success: false, message: `Error updating issue: ${err.message}` }) }] };
-          }
-        }
-      })
-    );
-
-    context.subscriptions.push(
-      vscode.lm.registerTool('cairn_dep_add', {
-        invoke: async (options, token) => {
-          try {
-            const inputs = options.input as any;
-            await storage.updateIssues(issues => {
-              return graph.addDependency(inputs.from, inputs.to, inputs.type, issues);
-            });
-            return { content: [{ type: 'text', text: JSON.stringify({ success: true, message: `Added ${inputs.type} dependency from ${inputs.from} to ${inputs.to}` }) }] };
-          } catch (error) {
-            const err = error as Error;
-            return { content: [{ type: 'text', text: JSON.stringify({ success: false, message: `Error adding dependency: ${err.message}` }) }] };
-          }
-        }
-      })
-    );
-
-    context.subscriptions.push(
-      vscode.lm.registerTool('cairn_comment', {
-        invoke: async (options, token) => {
-          try {
-            const inputs = options.input as any;
-            const comment = await storage.addComment(inputs.issue_id, inputs.author || 'agent', inputs.content);
-            return {
-              content: [{
-                type: 'text',
-                text: JSON.stringify({
-                  success: true,
-                  message: `Added comment to issue ${inputs.issue_id}`,
-                  comment: {
-                    id: comment.id,
-                    author: comment.author,
-                    created_at: comment.created_at
-                  }
-                })
-              }]
-            };
-          } catch (error) {
-            const err = error as Error;
-            return { content: [{ type: 'text', text: JSON.stringify({ success: false, message: `Error adding comment: ${err.message}` }) }] };
-          }
-        }
-      })
-    );
+    context.subscriptions.push(vscode.lm.registerTool('cairn_create', new CairnCreateTool()));
+    context.subscriptions.push(vscode.lm.registerTool('cairn_list_ready', new CairnListReadyTool()));
+    context.subscriptions.push(vscode.lm.registerTool('cairn_update', new CairnUpdateTool()));
+    context.subscriptions.push(vscode.lm.registerTool('cairn_dep_add', new CairnDepAddTool()));
+    context.subscriptions.push(vscode.lm.registerTool('cairn_comment', new CairnCommentTool()));
 
     // Register command to open task list webview
     context.subscriptions.push(
       vscode.commands.registerCommand('cairn.openTaskList', async () => {
-        console.log('=== cairn.openTaskList command called ===');
+        outputChannel.appendLine('=== cairn.openTaskList command called ===');
         try {
-          console.log('Creating task list panel...');
+          outputChannel.appendLine('Creating task list panel...');
           const panel = vscode.window.createWebviewPanel(
             'cairnTaskList',
             'Cairn Task List',
@@ -185,20 +259,20 @@ export function activate(context: vscode.ExtensionContext) {
               localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
             }
           );
-          console.log('Panel created successfully');
-
+        outputChannel.appendLine('Panel created successfully');
+          
           let webviewReady = false;
-
+          
           // Handle messages from webview
           const disposable = panel.webview.onDidReceiveMessage(async (message) => {
-            console.log('Webview message received:', message.type);
+          outputChannel.appendLine(`Webview message received: ${message.type}`);
             try {
               if (message.type === 'webviewReady') {
-                console.log('Task list webview ready');
+                outputChannel.appendLine('Task list webview ready');
                 webviewReady = true;
                 await updateTasks();
               } else if (message.type === 'startTask') {
-                console.log('Starting task:', message.id);
+              outputChannel.appendLine(`Starting task: ${message.id}`);
                 await storage.updateIssues(issues => {
                   return issues.map(issue => {
                     if (issue.id === message.id) {
@@ -209,7 +283,7 @@ export function activate(context: vscode.ExtensionContext) {
                 });
                 await updateTasks();
               } else if (message.type === 'completeTask') {
-                console.log('Completing task:', message.id);
+              outputChannel.appendLine(`Completing task: ${message.id}`);
                 await storage.updateIssues(issues => {
                   return issues.map(issue => {
                     if (issue.id === message.id) {
@@ -220,57 +294,61 @@ export function activate(context: vscode.ExtensionContext) {
                 });
                 await updateTasks();
               } else if (message.type === 'editTicket') {
-                console.log('Edit ticket message received for:', message.id);
+              outputChannel.appendLine(`Edit ticket message received for: ${message.id}`);
                 try {
                   await vscode.commands.executeCommand('cairn.editTicket', message.id);
                 } catch (error) {
-                  console.error('Error executing edit command:', error);
+                  outputChannel.appendLine(`ERROR executing edit command: ${error instanceof Error ? error.message : String(error)}`);
                 }
               } else if (message.type === 'createTicket') {
-                console.log('Create ticket message received');
+                outputChannel.appendLine('Create ticket message received');
                 try {
                   await vscode.commands.executeCommand('cairn.createTicket');
                 } catch (error) {
-                  console.error('Error executing create command:', error);
+                  outputChannel.appendLine(`ERROR executing create command: ${error instanceof Error ? error.message : String(error)}`);
                 }
               } else if (message.type === 'deleteTask') {
-                console.log('Delete task message received for:', message.id);
+                outputChannel.appendLine(`Delete task message received for: ${message.id}`);
                 try {
                   await deleteTask(message.id);
                   await updateTasks();
                 } catch (error) {
-                  console.error('Error deleting task:', error);
+                outputChannel.appendLine(`ERROR deleting task: ${error}`);
                 }
               }
             } catch (error) {
-              console.error('Error handling webview message:', error);
+              outputChannel.appendLine(`ERROR handling webview message: ${error instanceof Error ? error.message : String(error)}`);
+              if (error instanceof Error && error.stack) {
+                outputChannel.appendLine(`Stack: ${error.stack}`);
+              }
             }
           });
           context.subscriptions.push(disposable);
 
           // Load HTML
-          console.log('Loading HTML...');
-          const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'index.html'));
-          console.log('HTML path:', htmlPath.fsPath);
-          if (fs.existsSync(htmlPath.fsPath)) {
-            const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
-            panel.webview.html = htmlContent;
-            console.log('HTML loaded successfully');
-          } else {
-            console.error('HTML file not found:', htmlPath.fsPath);
+        outputChannel.appendLine('Loading HTML...');
+        const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'index.html'));
+        outputChannel.appendLine(`HTML path: ${htmlPath.fsPath}`);
+        if (fs.existsSync(htmlPath.fsPath)) {
+          const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
+          panel.webview.html = htmlContent;
+          outputChannel.appendLine('HTML loaded successfully');
+        } else {
+          outputChannel.appendLine(`ERROR: HTML file not found: ${htmlPath.fsPath}`);
             panel.webview.html = '<html><body><h1>HTML file not found</h1></body></html>';
           }
 
           // Function to update tasks
           const updateTasks = async () => {
             if (!webviewReady) {
-              console.log('Webview not ready yet, skipping updateTasks');
+            outputChannel.appendLine('Webview not ready yet, skipping updateTasks');
               return;
             }
             try {
-              console.log('Loading issues...');
+              outputChannel.appendLine('Loading issues...');
               const issues = await storage.loadIssues();
-              console.log('Loaded', issues.length, 'issues');
+              outputChannel.appendLine(`Loaded ${issues.length} issues`);
+              outputChannel.appendLine(`Issue IDs: ${issues.map(i => i.id).join(', ')}`);
               const allTasks = issues.map(task => ({
                 id: task.id,
                 title: task.title,
@@ -280,35 +358,40 @@ export function activate(context: vscode.ExtensionContext) {
                 type: task.type || 'task',
                 dependencies: task.dependencies || []
               }));
-              console.log('Sending updateTasks with', allTasks.length, 'tasks');
-              panel.webview.postMessage({
+              outputChannel.appendLine(`Sending updateTasks with ${allTasks.length} tasks`);
+              outputChannel.appendLine(`Tasks data: ${JSON.stringify(allTasks.slice(0, 2))}`);
+              const messageResult = panel.webview.postMessage({
                 type: 'updateTasks',
                 tasks: allTasks
               });
+              outputChannel.appendLine(`PostMessage result: ${messageResult}`);
             } catch (error) {
-              console.error('Error updating tasks:', error);
+              outputChannel.appendLine(`ERROR updating tasks: ${error instanceof Error ? error.message : String(error)}`);
+              if (error instanceof Error && error.stack) {
+                outputChannel.appendLine(`Stack: ${error.stack}`);
+              }
             }
           };
 
           // Watch for file changes
           const issuesPath = path.join(cairnDir, 'issues.jsonl');
-          console.log('Watching issues file:', issuesPath);
+          outputChannel.appendLine(`Watching issues file: ${issuesPath}`);
           const watcher = fs.watch(issuesPath, async (eventType) => {
             if (eventType === 'change') {
-              console.log('Issues file changed, updating tasks...');
+              outputChannel.appendLine('Issues file changed, updating tasks...');
               await updateTasks();
             }
           });
 
           // Clean up watcher on panel disposal
           panel.onDidDispose(() => {
-            console.log('Panel disposed, closing watcher');
+            outputChannel.appendLine('Panel disposed, closing watcher');
             watcher.close();
           });
 
-          console.log('Task list setup complete');
+          outputChannel.appendLine('Task list setup complete');
         } catch (error) {
-          console.error('Error in cairn.openTaskList:', error);
+          outputChannel.appendLine(`ERROR in cairn.openTaskList: ${error instanceof Error ? error.message : String(error)}`);
           vscode.window.showErrorMessage(`Failed to open task list: ${error instanceof Error ? error.message : String(error)}`);
         }
       })
@@ -317,7 +400,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Register command to edit a ticket
     context.subscriptions.push(
       vscode.commands.registerCommand('cairn.editTicket', async (id: string, options?: { viewColumn?: vscode.ViewColumn }) => {
-        console.log('cairn.editTicket called with id:', id);
+        outputChannel.appendLine(`cairn.editTicket called with id: ${id}`);
         try {
           // Load ticket data first to get the title for the panel
           const issues = await storage.loadIssues();
@@ -344,7 +427,7 @@ export function activate(context: vscode.ExtensionContext) {
             const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
             panel.webview.html = htmlContent;
           } else {
-            console.error('Edit HTML file not found:', htmlPath.fsPath);
+            outputChannel.appendLine('Edit HTML file not found:', htmlPath.fsPath);
             panel.webview.html = '<html><body><h1>Edit HTML file not found</h1></body></html>';
           }
 
@@ -365,7 +448,7 @@ export function activate(context: vscode.ExtensionContext) {
                   status: ticket.status
                 };
               } else {
-                console.error('Ticket not found:', ticketId, '- sending default data');
+                outputChannel.appendLine('Ticket not found:', ticketId, '- sending default data');
                 safeTicket = {
                   id: ticketId,
                   title: 'New Ticket',
@@ -417,7 +500,7 @@ export function activate(context: vscode.ExtensionContext) {
                 }
               }
 
-              console.log('Sending loadTicket message for:', ticketId);
+              outputChannel.appendLine('Sending loadTicket message for:', ticketId);
               panel.webview.postMessage({
                 type: 'loadTicket',
                 ticket: {
@@ -427,7 +510,7 @@ export function activate(context: vscode.ExtensionContext) {
                 }
               });
             } catch (error) {
-              console.error('Error loading ticket:', error);
+              outputChannel.appendLine('Error loading ticket:', error);
             }
           };
 
@@ -435,23 +518,23 @@ export function activate(context: vscode.ExtensionContext) {
           panel.webview.onDidReceiveMessage(async (message) => {
             try {
               if (message.type === 'webviewReady') {
-                console.log('Webview ready, loading ticket:', pendingTicketId);
+                outputChannel.appendLine('Webview ready, loading ticket:', pendingTicketId);
                 webviewReady = true;
                 await loadTicket(pendingTicketId);
               } else if (message.type === 'getGitUser') {
-                console.log('Getting git user info');
+                outputChannel.appendLine('Getting git user info');
                 const { execSync } = require('child_process');
                 let gitUserName = '';
                 let gitUserEmail = '';
                 try {
                   gitUserName = execSync('git config user.name', { cwd: repoRoot, encoding: 'utf-8' }).trim();
                 } catch (e) {
-                  console.log('Could not get git user.name');
+                  outputChannel.appendLine('Could not get git user.name');
                 }
                 try {
                   gitUserEmail = execSync('git config user.email', { cwd: repoRoot, encoding: 'utf-8' }).trim();
                 } catch (e) {
-                  console.log('Could not get git user.email');
+                  outputChannel.appendLine('Could not get git user.email');
                 }
                 panel.webview.postMessage({
                   type: 'gitUserInfo',
@@ -459,7 +542,7 @@ export function activate(context: vscode.ExtensionContext) {
                   userEmail: gitUserEmail
                 });
               } else if (message.type === 'getAvailableSubtasks') {
-                console.log('Getting available subtasks');
+                outputChannel.appendLine('Getting available subtasks');
                 const issues = await storage.loadIssues();
                 const availableSubtasks = graph.getNonParentedIssues(issues)
                   .filter(issue => issue.id !== pendingTicketId)
@@ -476,7 +559,7 @@ export function activate(context: vscode.ExtensionContext) {
                   subtasks: availableSubtasks
                 });
               } else if (message.type === 'getAvailableDependencies') {
-                console.log('Getting available dependencies');
+                outputChannel.appendLine('Getting available dependencies');
                 const issues = await storage.loadIssues();
                 const availableDependencies = issues
                   .filter(issue => issue.id !== pendingTicketId)
@@ -496,14 +579,14 @@ export function activate(context: vscode.ExtensionContext) {
                 });
               } else if (message.type === 'saveTicket') {
                 saveQueue = saveQueue.then(async () => {
-                  console.log('Received saveTicket message:', message.ticket.id);
+                  outputChannel.appendLine('Received saveTicket message:', message.ticket.id);
                   const ticketData = message.ticket;
 
                   if (ticketData.id) {
                     try {
-                      console.log('Starting save operation...');
+                      outputChannel.appendLine('Starting save operation...');
                       let updatedIssues = await storage.loadIssues();
-                      console.log('Loaded issues, count:', updatedIssues.length);
+                      outputChannel.appendLine('Loaded issues, count:', updatedIssues.length);
 
                       const currentSubtasks = graph.getEpicSubtasks(ticketData.id, updatedIssues);
                       const currentIds = new Set(currentSubtasks.map(s => s.id));
@@ -594,61 +677,61 @@ export function activate(context: vscode.ExtensionContext) {
                       }
 
                       await storage.updateIssues(() => updatedIssues);
-                      console.log('Save operation complete');
+                      outputChannel.appendLine('Save operation complete');
 
                       const updatedTicket = updatedIssues.find(i => i.id === ticketData.id);
                       if (updatedTicket) {
                         panel.title = `${updatedTicket.title} (#${ticketData.id})`;
                       }
                     } catch (saveError) {
-                      console.error('Save operation failed:', saveError);
+                      outputChannel.appendLine('Save operation failed:', saveError);
                       const errorMsg = saveError instanceof Error ? saveError.message : String(saveError);
                       vscode.window.showErrorMessage(`Failed to save ticket ${ticketData.id}: ${errorMsg}`);
                       throw saveError;
                     }
                   } else {
-                    console.error('No ticket ID provided for save operation');
+                    outputChannel.appendLine('No ticket ID provided for save operation');
                   }
                 }).catch(error => {
-                  console.error('Queued save operation failed:', error);
+                  outputChannel.appendLine('Queued save operation failed:', error);
                 });
               } else if (message.type === 'editTicket') {
-                console.log('Edit ticket message received from editor for:', message.id);
+                outputChannel.appendLine('Edit ticket message received from editor for:', message.id);
                 try {
                   await vscode.commands.executeCommand('cairn.editTicket', message.id, { viewColumn: vscode.ViewColumn.Active });
                 } catch (error) {
-                  console.error('Error executing edit command from editor:', error);
+                  outputChannel.appendLine('Error executing edit command from editor:', error);
                 }
               } else if (message.type === 'deleteTask') {
-                console.log('Delete task message received from editor for:', message.id);
+                outputChannel.appendLine('Delete task message received from editor for:', message.id);
                 try {
                   await deleteTask(message.id);
                   panel.dispose();
                 } catch (error) {
-                  console.error('Error deleting task from editor:', error);
+                  outputChannel.appendLine('Error deleting task from editor:', error);
                 }
               } else if (message.type === 'addComment') {
-                console.log('Add comment message received:', message);
+                outputChannel.appendLine('Add comment message received:', message);
                 try {
                   const comment = await storage.addComment(message.issueId, message.author, message.content);
-                  console.log('Comment added successfully:', comment);
+                  outputChannel.appendLine('Comment added successfully:', comment);
                   panel.webview.postMessage({
                     type: 'commentAdded',
                     comment: comment
                   });
                 } catch (error) {
-                  console.error('Error adding comment:', error);
+                  outputChannel.appendLine('Error adding comment:', error);
                   vscode.window.showErrorMessage(`Failed to add comment: ${error instanceof Error ? error.message : String(error)}`);
                 }
               }
             } catch (error) {
-              console.error('Error in message handler:', error);
+              outputChannel.appendLine('Error in message handler:', error);
               const errorMessage = error instanceof Error ? error.message : String(error);
               vscode.window.showErrorMessage(`Failed to save ticket: ${errorMessage}`);
             }
           });
         } catch (error) {
-          console.error('Error in cairn.editTicket:', error);
+          outputChannel.appendLine('Error in cairn.editTicket:', error);
           vscode.window.showErrorMessage(`Failed to edit ticket: ${error instanceof Error ? error.message : String(error)}`);
         }
       })
@@ -657,9 +740,9 @@ export function activate(context: vscode.ExtensionContext) {
     // Register command to create a new ticket
     context.subscriptions.push(
       vscode.commands.registerCommand('cairn.createTicket', async () => {
-        console.log('cairn.createTicket called');
+        outputChannel.appendLine('cairn.createTicket called');
         try {
-          console.log('Creating new ticket...');
+          outputChannel.appendLine('Creating new ticket...');
           const issues = await storage.loadIssues();
           const newId = generateId(issues);
           const newTicket = {
@@ -672,23 +755,23 @@ export function activate(context: vscode.ExtensionContext) {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           };
-          console.log('Saving new ticket:', newId);
+          outputChannel.appendLine('Saving new ticket:', newId);
           await storage.saveIssue(newTicket);
-          console.log('New ticket created successfully');
+          outputChannel.appendLine('New ticket created successfully');
 
           // Now open it for editing
           await vscode.commands.executeCommand('cairn.editTicket', newId);
         } catch (error) {
-          console.error('Error creating ticket:', error);
+          outputChannel.appendLine('Error creating ticket:', error);
           const errorMsg = error instanceof Error ? error.message : String(error);
           vscode.window.showErrorMessage(`Failed to create ticket: ${errorMsg}`);
         }
       })
     );
 
-    console.log('All Cairn commands registered successfully');
+    outputChannel.appendLine('All Cairn commands registered successfully');
   } catch (error) {
-    console.error('Error during extension activation:', error);
+    outputChannel.appendLine('Error during extension activation:', error);
     vscode.window.showErrorMessage(`Cairn extension failed to activate: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
@@ -696,7 +779,7 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() { }
 
 async function deleteTask(taskId: string): Promise<void> {
-  console.log('deleteTask called for:', taskId);
+  outputChannel.appendLine('deleteTask called for:', taskId);
   try {
     const issues = await storage.loadIssues();
     const taskToDelete = issues.find(i => i.id === taskId);
@@ -720,7 +803,7 @@ async function deleteTask(taskId: string): Promise<void> {
       vscode.window.showInformationMessage(`Deleted task ${taskId}`);
     }
   } catch (error) {
-    console.error('Error deleting task:', error);
+    outputChannel.appendLine('Error deleting task:', error);
     const err = error as Error;
     vscode.window.showErrorMessage(`Failed to delete task: ${err.message}`);
     throw error;

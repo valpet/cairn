@@ -38,7 +38,9 @@
   "scripts": {
     "build": "esbuild src/extension.ts --bundle --outfile=dist/src/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
     "prepackage": "if not exist node_modules\\@cairn mkdir node_modules\\@cairn && xcopy ..\\core\\dist node_modules\\@cairn\\core /E /I /Y && copy ..\\core\\package.json node_modules\\@cairn\\core\\",
-    "package": "npx vsce package"
+    "package": "npx vsce package",
+    "package-all": "npm run build && npm run prepackage && npm run package",
+    "install": "npm run package-all && code-insiders --install-extension cairn-extension-1.0.0.vsix"
   },
   "dependencies": {
     "@cairn/core": "file:../core",
@@ -47,6 +49,9 @@
   "engines": {
     "vscode": "^1.90.0"
   },
+  "enabledApiProposals": [
+    "languageModelTools"
+  ],
   "activationEvents": [
     "onCommand:cairn.openTaskList",
     "onCommand:cairn.editTicket",
@@ -54,28 +59,32 @@
     "onLanguageModelTool:cairn_create",
     "onLanguageModelTool:cairn_list_ready",
     "onLanguageModelTool:cairn_update",
-    "onLanguageModelTool:cairn_dep_add"
+    "onLanguageModelTool:cairn_dep_add",
+    "onLanguageModelTool:cairn_comment"
   ],
   "contributes": {
     "commands": [
       {
         "command": "cairn.openTaskList",
-        "title": "Open Cairn Task List"
+        "title": "Cairn: Open Task List"
       },
       {
         "command": "cairn.editTicket",
-        "title": "Edit Ticket"
+        "title": "Cairn: Edit Issue"
       },
       {
         "command": "cairn.createTicket",
-        "title": "Create New Ticket"
+        "title": "Cairn: Create New Issue"
       }
     ],
     "languageModelTools": [
       {
         "name": "cairn_create",
         "displayName": "Create Task",
-        "modelDescription": "Create a new task in Cairn with full configuration options",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "cairn_create",
+        "userDescription": "Create a new task in Cairn task management system",
+        "modelDescription": "Create a new task in Cairn with full configuration options. Use this when the user wants to create a new task, issue, or work item with specific properties like title, description, type (task/bug/feature/epic/chore/docs/refactor), priority (low/medium/high/urgent), status, or parent relationships.",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -133,7 +142,10 @@
       {
         "name": "cairn_list_ready",
         "displayName": "List Ready Tasks",
-        "modelDescription": "List all ready (unblocked) tasks in Cairn",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "cairn_list_ready",
+        "userDescription": "List all unblocked tasks that are ready to work on",
+        "modelDescription": "List all ready (unblocked) tasks in Cairn. Use this to find work that can be started immediately, without any blocking dependencies. Returns tasks with their ID, title, status, and priority.",
         "inputSchema": {
           "type": "object",
           "properties": {}
@@ -142,7 +154,10 @@
       {
         "name": "cairn_update",
         "displayName": "Update Task",
-        "modelDescription": "Update an existing task in Cairn",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "cairn_update",
+        "userDescription": "Update an existing task's status, notes, or acceptance criteria",
+        "modelDescription": "Update an existing task in Cairn. Use this to change task status (open/in_progress/closed/blocked), add notes, or update acceptance criteria. Always provide the task ID.",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -180,7 +195,10 @@
       {
         "name": "cairn_dep_add",
         "displayName": "Add Dependency",
-        "modelDescription": "Add a dependency between tasks in Cairn",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "cairn_dep_add",
+        "userDescription": "Add a dependency relationship between two tasks",
+        "modelDescription": "Add a dependency between tasks in Cairn. Use this to create relationships: 'blocks' (task A blocks task B), 'related' (general relationship), 'parent-child' (epic/subtask), or 'discovered-from' (task discovered while working on another).",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -207,6 +225,36 @@
             "from",
             "to",
             "type"
+          ]
+        }
+      },
+      {
+        "name": "cairn_comment",
+        "displayName": "Add Comment",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "cairn_comment",
+        "userDescription": "Add a comment to a task for collaboration",
+        "modelDescription": "Add a comment to a Cairn task for collaboration and documentation. Use this to record findings, ideas, challenges, solutions, progress updates, or communicate with the developer. Comments preserve project history and context.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "issue_id": {
+              "type": "string",
+              "description": "The ID of the task to add a comment to"
+            },
+            "author": {
+              "type": "string",
+              "description": "Author of the comment (e.g., 'agent' or developer name)"
+            },
+            "content": {
+              "type": "string",
+              "description": "The comment text content"
+            }
+          },
+          "required": [
+            "issue_id",
+            "author",
+            "content"
           ]
         }
       }
