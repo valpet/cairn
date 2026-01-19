@@ -1,12 +1,14 @@
 {
   "name": "cairn-monorepo",
   "version": "1.0.0",
+  "type": "module",
   "bin": {
     "cairn": "packages/cli/dist/index.js"
   },
   "workspaces": [
     "packages/*"
   ],
+  "license": "MIT",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -15,16 +17,20 @@
     "test": "npm run test --workspaces",
     "lint": "eslint . --ext .ts",
     "clean": "rimraf packages/*/dist",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "cairn": "node packages/cli/dist/index.js"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@vitest/coverage-v8": "^1.0.0",
-    "typescript": "^5.0.0",
-    "vitest": "^1.0.0",
-    "eslint": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
-    "rimraf": "^5.0.0"
+    "@vitest/coverage-v8": "^1.0.0",
+    "eslint": "^8.0.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.0",
+    "vitepress": "^1.6.4",
+    "vitest": "^1.0.0"
   }
 }

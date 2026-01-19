@@ -286,6 +286,7 @@
     "@vscode/vsce": "^2.24.0",
     "esbuild": "^0.27.2",
     "eslint": "^8.0.0",
+    "typedoc": "^0.28.16",
     "typescript": "^5.0.0",
     "vitest": "^1.6.1"
   }

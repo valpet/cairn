@@ -427,7 +427,7 @@ export function activate(context: vscode.ExtensionContext) {
             const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
             panel.webview.html = htmlContent;
           } else {
-            outputChannel.appendLine('Edit HTML file not found:', htmlPath.fsPath);
+            outputChannel.appendLine(`Edit HTML file not found: ${htmlPath.fsPath}`);
             panel.webview.html = '<html><body><h1>Edit HTML file not found</h1></body></html>';
           }
 
@@ -448,7 +448,7 @@ export function activate(context: vscode.ExtensionContext) {
                   status: ticket.status
                 };
               } else {
-                outputChannel.appendLine('Ticket not found:', ticketId, '- sending default data');
+                outputChannel.appendLine(`Ticket not found: ${ticketId} - sending default data`);
                 safeTicket = {
                   id: ticketId,
                   title: 'New Ticket',
@@ -500,7 +500,7 @@ export function activate(context: vscode.ExtensionContext) {
                 }
               }
 
-              outputChannel.appendLine('Sending loadTicket message for:', ticketId);
+              outputChannel.appendLine(`Sending loadTicket message for: ${ticketId}`);
               panel.webview.postMessage({
                 type: 'loadTicket',
                 ticket: {
@@ -510,7 +510,7 @@ export function activate(context: vscode.ExtensionContext) {
                 }
               });
             } catch (error) {
-              outputChannel.appendLine('Error loading ticket:', error);
+              outputChannel.appendLine(`Error loading ticket: ${error}`);
             }
           };
 
@@ -518,7 +518,7 @@ export function activate(context: vscode.ExtensionContext) {
           panel.webview.onDidReceiveMessage(async (message) => {
             try {
               if (message.type === 'webviewReady') {
-                outputChannel.appendLine('Webview ready, loading ticket:', pendingTicketId);
+                outputChannel.appendLine(`Webview ready, loading ticket: ${pendingTicketId}`);
                 webviewReady = true;
                 await loadTicket(pendingTicketId);
               } else if (message.type === 'getGitUser') {
@@ -579,14 +579,14 @@ export function activate(context: vscode.ExtensionContext) {
                 });
               } else if (message.type === 'saveTicket') {
                 saveQueue = saveQueue.then(async () => {
-                  outputChannel.appendLine('Received saveTicket message:', message.ticket.id);
+                  outputChannel.appendLine(`Received saveTicket message: ${message.ticket.id}`);
                   const ticketData = message.ticket;
 
                   if (ticketData.id) {
                     try {
                       outputChannel.appendLine('Starting save operation...');
                       let updatedIssues = await storage.loadIssues();
-                      outputChannel.appendLine('Loaded issues, count:', updatedIssues.length);
+                      outputChannel.appendLine(`Loaded issues, count: ${updatedIssues.length}`);
 
                       const currentSubtasks = graph.getEpicSubtasks(ticketData.id, updatedIssues);
                       const currentIds = new Set(currentSubtasks.map(s => s.id));
@@ -684,7 +684,7 @@ export function activate(context: vscode.ExtensionContext) {
                         panel.title = `${updatedTicket.title} (#${ticketData.id})`;
                       }
                     } catch (saveError) {
-                      outputChannel.appendLine('Save operation failed:', saveError);
+                      outputChannel.appendLine(`Save operation failed: ${saveError}`);
                       const errorMsg = saveError instanceof Error ? saveError.message : String(saveError);
                       vscode.window.showErrorMessage(`Failed to save ticket ${ticketData.id}: ${errorMsg}`);
                       throw saveError;
@@ -693,45 +693,45 @@ export function activate(context: vscode.ExtensionContext) {
                     outputChannel.appendLine('No ticket ID provided for save operation');
                   }
                 }).catch(error => {
-                  outputChannel.appendLine('Queued save operation failed:', error);
+                  outputChannel.appendLine(`Queued save operation failed: ${error}`);
                 });
               } else if (message.type === 'editTicket') {
-                outputChannel.appendLine('Edit ticket message received from editor for:', message.id);
+                outputChannel.appendLine(`Edit ticket message received from editor for: ${message.id}`);
                 try {
                   await vscode.commands.executeCommand('cairn.editTicket', message.id, { viewColumn: vscode.ViewColumn.Active });
                 } catch (error) {
-                  outputChannel.appendLine('Error executing edit command from editor:', error);
+                  outputChannel.appendLine(`Error executing edit command from editor: ${error}`);
                 }
               } else if (message.type === 'deleteTask') {
-                outputChannel.appendLine('Delete task message received from editor for:', message.id);
+                outputChannel.appendLine(`Delete task message received from editor for: ${message.id}`);
                 try {
                   await deleteTask(message.id);
                   panel.dispose();
                 } catch (error) {
-                  outputChannel.appendLine('Error deleting task from editor:', error);
+                  outputChannel.appendLine(`Error deleting task from editor: ${error}`);
                 }
               } else if (message.type === 'addComment') {
-                outputChannel.appendLine('Add comment message received:', message);
+                outputChannel.appendLine(`Add comment message received: ${JSON.stringify(message)}`);
                 try {
                   const comment = await storage.addComment(message.issueId, message.author, message.content);
-                  outputChannel.appendLine('Comment added successfully:', comment);
+                  outputChannel.appendLine(`Comment added successfully: ${JSON.stringify(comment)}`);
                   panel.webview.postMessage({
                     type: 'commentAdded',
                     comment: comment
                   });
                 } catch (error) {
-                  outputChannel.appendLine('Error adding comment:', error);
+                  outputChannel.appendLine(`Error adding comment: ${error}`);
                   vscode.window.showErrorMessage(`Failed to add comment: ${error instanceof Error ? error.message : String(error)}`);
                 }
               }
             } catch (error) {
-              outputChannel.appendLine('Error in message handler:', error);
+              outputChannel.appendLine(`Error in message handler: ${error}`);
               const errorMessage = error instanceof Error ? error.message : String(error);
               vscode.window.showErrorMessage(`Failed to save ticket: ${errorMessage}`);
             }
           });
         } catch (error) {
-          outputChannel.appendLine('Error in cairn.editTicket:', error);
+          outputChannel.appendLine(`Error in cairn.editTicket: ${error}`);
           vscode.window.showErrorMessage(`Failed to edit ticket: ${error instanceof Error ? error.message : String(error)}`);
         }
       })
@@ -755,14 +755,14 @@ export function activate(context: vscode.ExtensionContext) {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           };
-          outputChannel.appendLine('Saving new ticket:', newId);
+          outputChannel.appendLine(`Saving new ticket: ${newId}`);
           await storage.saveIssue(newTicket);
           outputChannel.appendLine('New ticket created successfully');
 
           // Now open it for editing
           await vscode.commands.executeCommand('cairn.editTicket', newId);
         } catch (error) {
-          outputChannel.appendLine('Error creating ticket:', error);
+          outputChannel.appendLine(`Error creating ticket: ${error}`);
           const errorMsg = error instanceof Error ? error.message : String(error);
           vscode.window.showErrorMessage(`Failed to create ticket: ${errorMsg}`);
         }
@@ -771,7 +771,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     outputChannel.appendLine('All Cairn commands registered successfully');
   } catch (error) {
-    outputChannel.appendLine('Error during extension activation:', error);
+    outputChannel.appendLine(`Error during extension activation: ${error}`);
     vscode.window.showErrorMessage(`Cairn extension failed to activate: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
@@ -779,7 +779,7 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() { }
 
 async function deleteTask(taskId: string): Promise<void> {
-  outputChannel.appendLine('deleteTask called for:', taskId);
+  outputChannel.appendLine(`deleteTask called for: ${taskId}`);
   try {
     const issues = await storage.loadIssues();
     const taskToDelete = issues.find(i => i.id === taskId);
@@ -803,7 +803,7 @@ async function deleteTask(taskId: string): Promise<void> {
       vscode.window.showInformationMessage(`Deleted task ${taskId}`);
     }
   } catch (error) {
-    outputChannel.appendLine('Error deleting task:', error);
+    outputChannel.appendLine(`Error deleting task: ${error}`);
     const err = error as Error;
     vscode.window.showErrorMessage(`Failed to delete task: ${err.message}`);
     throw error;
