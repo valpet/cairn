@@ -1,15 +1,44 @@
 {
   "name": "cairn-extension",
+  "displayName": "Cairn Task Management",
   "version": "1.0.0",
   "publisher": "local",
-  "description": "VS Code extension for Cairn task management tools",
+  "description": "Persistent memory for AI agents and developers. Replace messy markdown plans with a dependency-aware graph that maintains context across long development sessions.",
+  "readme": "README.md",
+  "author": {
+    "name": "Peter Valtersson"
+  },
+  "license": "MIT",
   "repository": "https://github.com/valpet/cairn",
+  "homepage": "https://github.com/valpet/cairn",
+  "bugs": {
+    "url": "https://github.com/valpet/cairn/issues"
+  },
+  "keywords": [
+    "task",
+    "management",
+    "ai",
+    "collaboration",
+    "productivity",
+    "workflow",
+    "project",
+    "organization"
+  ],
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "preview": true,
+  "icon": "media/cairn-icon.png",
   "main": "dist/src/extension.js",
   "scripts": {
-    "build": "tsc",
-    "test": "vitest --run --passWithNoTests",
-    "lint": "eslint src --ext .ts",
-    "package": "vsce package"
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/src/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "prepackage": "if not exist node_modules\\@cairn mkdir node_modules\\@cairn && xcopy ..\\core\\dist node_modules\\@cairn\\core /E /I /Y && copy ..\\core\\package.json node_modules\\@cairn\\core\\",
+    "package": "npx vsce package"
   },
   "dependencies": {
     "@cairn/core": "file:../core",
@@ -181,6 +210,20 @@
           ]
         }
       }
+    ],
+    "keybindings": [
+      {
+        "command": "cairn.openTaskList",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t",
+        "when": "workspaceFolderCount != 0"
+      },
+      {
+        "command": "cairn.createTicket",
+        "key": "ctrl+shift+n",
+        "mac": "cmd+shift+n",
+        "when": "workspaceFolderCount != 0"
+      }
     ]
   },
   "vsce": {
@@ -191,9 +234,10 @@
     "@types/vscode": "^1.90.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "@vscode/vsce": "^2.24.0",
+    "esbuild": "^0.27.2",
     "eslint": "^8.0.0",
     "typescript": "^5.0.0",
-    "vitest": "^1.6.1",
-    "@vscode/vsce": "^2.24.0"
+    "vitest": "^1.6.1"
   }
 }

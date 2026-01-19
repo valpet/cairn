@@ -70,15 +70,15 @@ program
     }
     const instructionsPath = path.join(githubDir, 'copilot-instructions.md');
     const cairnInstructions = `
-## Cairn Task Management for GitHub Copilot Agents
+## Cairn: Persistent Memory for AI Agents
 
-Cairn is a powerful task management system designed to help AI agents like you maintain long-term memory and collaborate effectively on complex software development projects. By using Cairn, you can:
+Cairn provides structured memory for AI agents and developers working on complex software projects. It replaces messy markdown plans with a dependency-aware graph, allowing agents to handle long-horizon tasks without losing context. By using Cairn, you can:
 
-- **Track progress systematically** across multiple sessions
-- **Maintain context** for complex, multi-step tasks
-- **Collaborate seamlessly** with developers and other agents
-- **Avoid losing track** of work in progress
-- **Document decisions and challenges** for future reference
+- **Replace messy markdown plans** with structured, dependency-aware task graphs
+- **Maintain context across long sessions** without losing track of complex multi-step work
+- **Handle long-horizon tasks** that span multiple development sessions
+- **Collaborate seamlessly** with developers and other agents through shared task context
+- **Preserve decision history** with automatic compaction and git-backed storage
 
 ### Getting Started
 Cairn has been initialized in this project. To see available tasks, use the \`cairn_list_ready\` tool or run \`cairn list --ready\` in the terminal.
@@ -117,20 +117,7 @@ By using Cairn consistently, you'll provide better, more organized assistance an
 
     if (fs.existsSync(instructionsPath)) {
       const existing = await fs.promises.readFile(instructionsPath, 'utf-8');
-      if (!existing.includes('Cairn Task Management for GitHub Copilot Agents')) {
-        await fs.promises.appendFile(instructionsPath, '\n' + cairnInstructions);
-        console.log('Appended Cairn workflow guidelines to existing .github/copilot-instructions.md');
-      } else {
-        console.log('Cairn instructions already present in .github/copilot-instructions.md');
-      }
-    } else {
-      await fs.promises.writeFile(instructionsPath, '<!-- Cairn Task Management Instructions for GitHub Copilot Agents -->\n' + cairnInstructions);
-      console.log('Created .github/copilot-instructions.md with Cairn workflow guidelines');
-    }
-
-    if (fs.existsSync(instructionsPath)) {
-      const existing = await fs.promises.readFile(instructionsPath, 'utf-8');
-      if (!existing.includes('Cairn Task Management for GitHub Copilot Agents')) {
+      if (!existing.includes('Cairn: Persistent Memory for AI Agents')) {
         await fs.promises.appendFile(instructionsPath, '\n' + cairnInstructions);
         console.log('Appended Cairn workflow guidelines to existing .github/copilot-instructions.md');
       } else {

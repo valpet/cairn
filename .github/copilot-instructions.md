@@ -1,5 +1,5 @@
 <!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
-- This is the Cairn project: a modular TypeScript CLI tool for task management with long-cairn memory for GitHub Copilot agents.
+- This is the Cairn project: persistent memory for AI agents and developers. Replace messy markdown plans with a dependency-aware graph that maintains context across long development sessions.
 - Use InversifyJS for dependency injection.
 - Store tasks in .cairn/issues.jsonl, with git integration.
 - Support stealth mode by gitignoring .cairn folder.
@@ -7,15 +7,15 @@
 - CLI provides commands: create, update, list, dep add.
 
 
-## Cairn Task Management for GitHub Copilot Agents
+## Cairn: Persistent Memory for AI Agents
 
-Cairn is a powerful task management system designed to help AI agents like you maintain long-term memory and collaborate effectively on complex software development projects. By using Cairn, you can:
+Cairn provides structured memory for AI agents and developers working on complex software projects. It replaces messy markdown plans with a dependency-aware graph, allowing agents to handle long-horizon tasks without losing context. By using Cairn, you can:
 
-- **Track progress systematically** across multiple sessions
-- **Maintain context** for complex, multi-step tasks
-- **Collaborate seamlessly** with developers and other agents
-- **Avoid losing track** of work in progress
-- **Document decisions and challenges** for future reference
+- **Replace messy markdown plans** with structured, dependency-aware task graphs
+- **Maintain context across long sessions** without losing track of complex multi-step work
+- **Handle long-horizon tasks** that span multiple development sessions
+- **Collaborate seamlessly** with developers and other agents through shared task context
+- **Preserve decision history** with automatic compaction and git-backed storage
 
 ### Getting Started
 Cairn has been initialized in this project. To see available tasks, use the `cairn_list_ready` tool or run `cairn list --ready` in the terminal.
