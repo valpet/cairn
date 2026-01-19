@@ -16,7 +16,7 @@ describe('Core Index Exports', () => {
     // Interfaces are TypeScript compile-time constructs and don't exist at runtime
     // Instead, validate that service classes implement expected interfaces by checking
     // that properly configured service instances have the expected methods
-    const container = CoreExports.createContainer('/tmp/.horizon', '/tmp/repo');
+    const container = CoreExports.createContainer('/tmp/.cairn', '/tmp/repo');
 
     const storageService = container.get(CoreExports.TYPES.IStorageService);
     expect(typeof storageService.loadIssues).toBe('function');

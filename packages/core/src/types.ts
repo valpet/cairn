@@ -38,7 +38,7 @@ export interface Dependency {
 
 export type DependencyType = 'blocks' | 'related' | 'parent-child' | 'discovered-from';
 
-export interface HorizonConfig {
-  horizonDir: string;
+export interface CairnConfig {
+  cairnDir: string;
   gitEnabled: boolean;
 }

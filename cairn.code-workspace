@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../cairn"
+		},
+		{
+			"path": "../cairn/packages/vscode-extension"
+		}
+	],
+	"settings": {
+		"powershell.cwd": "cairn"
+	}
+}

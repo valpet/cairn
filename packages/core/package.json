@@ -1,7 +1,7 @@
 {
-  "name": "@horizon/core",
+  "name": "@cairn/core",
   "version": "1.0.0",
-  "description": "Core library for Horizon task management",
+  "description": "Core library for Cairn task management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

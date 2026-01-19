@@ -2,7 +2,7 @@
 
 import 'reflect-metadata';
 import { Command } from 'commander';
-import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService } from '@horizon/core';
+import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService } from '@cairn/core';
 import { nanoid } from 'nanoid';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -10,19 +10,19 @@ import * as fs from 'fs';
 const program = new Command();
 
 program
-  .name('horizon')
-  .description('CLI for Horizon task management')
+  .name('cairn')
+  .description('CLI for Cairn task management')
   .version('1.0.0');
 
 const cwd = process.cwd();
 
 function setupServices() {
-  const { horizonDir, repoRoot } = findHorizonDir(cwd);
-  if (!fs.existsSync(horizonDir)) {
-    console.error('No .horizon directory found. Run `npx horizon init` in your project root.');
+  const { cairnDir, repoRoot } = findCairnDir(cwd);
+  if (!fs.existsSync(cairnDir)) {
+    console.error('No .cairn directory found. Run `npx cairn init` in your project root.');
     process.exit(1);
   }
-  const container = createContainer(horizonDir, repoRoot);
+  const container = createContainer(cairnDir, repoRoot);
   const storage = container.get<IStorageService>(TYPES.IStorageService);
   const graph = container.get<IGraphService>(TYPES.IGraphService);
   const compaction = container.get<ICompactionService>(TYPES.ICompactionService);
@@ -32,19 +32,19 @@ function setupServices() {
 // Init command
 program
   .command('init')
-  .description('Initialize Horizon in the project')
-  .option('-s, --stealth', 'Enable stealth mode (add .horizon to .gitignore)')
+  .description('Initialize Cairn in the project')
+  .option('-s, --stealth', 'Enable stealth mode (add .cairn to .gitignore)')
   .action(async (options) => {
 
     // Full initialization
-    const horizonDir = path.join(cwd, '.horizon');
-    if (!fs.existsSync(horizonDir)) {
-      fs.mkdirSync(horizonDir, { recursive: true });
-      console.log('Created .horizon directory');
+    const cairnDir = path.join(cwd, '.cairn');
+    if (!fs.existsSync(cairnDir)) {
+      fs.mkdirSync(cairnDir, { recursive: true });
+      console.log('Created .cairn directory');
     }
 
     // Create issues.jsonl if it doesn't exist
-    const issuesPath = path.join(horizonDir, 'issues.jsonl');
+    const issuesPath = path.join(cairnDir, 'issues.jsonl');
     if (!fs.existsSync(issuesPath)) {
       await fs.promises.writeFile(issuesPath, '');
       console.log('Created issues.jsonl');
@@ -56,10 +56,10 @@ program
       if (fs.existsSync(gitignorePath)) {
         gitignore = await fs.promises.readFile(gitignorePath, 'utf-8');
       }
-      if (!gitignore.includes('.horizon')) {
-        gitignore += '\n.horizon\n';
+      if (!gitignore.includes('.cairn')) {
+        gitignore += '\n.cairn\n';
         await fs.promises.writeFile(gitignorePath, gitignore);
-        console.log('Added .horizon to .gitignore for stealth mode');
+        console.log('Added .cairn to .gitignore for stealth mode');
       }
     }
 
@@ -69,10 +69,10 @@ program
       fs.mkdirSync(githubDir, { recursive: true });
     }
     const instructionsPath = path.join(githubDir, 'copilot-instructions.md');
-    const horizonInstructions = `
-## Horizon Task Management for GitHub Copilot Agents
+    const cairnInstructions = `
+## Cairn Task Management for GitHub Copilot Agents
 
-Horizon is a powerful task management system designed to help AI agents like you maintain long-term memory and collaborate effectively on complex software development projects. By using Horizon, you can:
+Cairn is a powerful task management system designed to help AI agents like you maintain long-term memory and collaborate effectively on complex software development projects. By using Cairn, you can:
 
 - **Track progress systematically** across multiple sessions
 - **Maintain context** for complex, multi-step tasks
@@ -81,67 +81,67 @@ Horizon is a powerful task management system designed to help AI agents like you
 - **Document decisions and challenges** for future reference
 
 ### Getting Started
-Horizon has been initialized in this project. To see available tasks, use the \`horizon_list_ready\` tool or run \`horizon list --ready\` in the terminal.
+Cairn has been initialized in this project. To see available tasks, use the \`cairn_list_ready\` tool or run \`cairn list --ready\` in the terminal.
 
 ### Recommended Workflow
-While you're free to work as you see fit, using Horizon will significantly improve your effectiveness on this project. Here's how to integrate it into your work:
+While you're free to work as you see fit, using Cairn will significantly improve your effectiveness on this project. Here's how to integrate it into your work:
 
-- **Check for ready work first**: Before starting new tasks, use \`horizon_list_ready\` to see what tasks are unblocked and ready to work on.
-- **Create tasks for significant work**: For any substantial changes or features, create a Horizon task using \`horizon_create\` (or \`horizon create <title> -d <description> -t <type> -p <priority> -s <status> -r <parent>\` in terminal).
-- **Break down complex tasks**: Use \`horizon_dep_add\` with 'parent-child' type to create subtasks for epics.
+- **Check for ready work first**: Before starting new tasks, use \`cairn_list_ready\` to see what tasks are unblocked and ready to work on.
+- **Create tasks for significant work**: For any substantial changes or features, create a Cairn task using \`cairn_create\` (or \`cairn create <title> -d <description> -t <type> -p <priority> -s <status> -r <parent>\` in terminal).
+- **Break down complex tasks**: Use \`cairn_dep_add\` with 'parent-child' type to create subtasks for epics.
 - **Track discoveries**: When you find new work during development, add it as a 'discovered-from' dependency.
-- **Update progress regularly**: Use \`horizon_update\` to mark tasks as in progress, add notes, or close completed work.
-- **Document your work**: Use \`horizon_comment\` to record findings, ideas, challenges, solutions, and progress as you work on tasks. This helps maintain a detailed record for collaboration and future reference.
-- **Add comments for collaboration**: Use \`horizon_comment\` to document important insights or communicate with the developer.
+- **Update progress regularly**: Use \`cairn_update\` to mark tasks as in progress, add notes, or close completed work.
+- **Document your work**: Use \`cairn_comment\` to record findings, ideas, challenges, solutions, and progress as you work on tasks. This helps maintain a detailed record for collaboration and future reference.
+- **Add comments for collaboration**: Use \`cairn_comment\` to document important insights or communicate with the developer.
 - **Perform self-reviews**: Before closing tasks, review your work quality and ensure all acceptance criteria are met.
 
 ### Available Tools
-- \`horizon_list_ready\`: Get list of unblocked tasks ready to work on
-- \`horizon_create\`: Create a new task
-- \`horizon_update\`: Update task status, notes, or acceptance criteria
-- \`horizon_dep_add\`: Add dependencies between tasks
-- \`horizon_comment\`: Add comments to tasks
+- \`cairn_list_ready\`: Get list of unblocked tasks ready to work on
+- \`cairn_create\`: Create a new task
+- \`cairn_update\`: Update task status, notes, or acceptance criteria
+- \`cairn_dep_add\`: Add dependencies between tasks
+- \`cairn_comment\`: Add comments to tasks
 
 ### Terminal Commands (as backup)
 If the tools aren't available, you can use these terminal commands:
-- \`horizon list --ready\`: List ready tasks
-- \`horizon create <title> -d <description> -p <priority> -t <type> -s <status> -r <parent>\`: Create task
-- \`horizon update <id> -s <status> -n <notes>\`: Update task
-- \`horizon dep add <from> <to> --type <type>\`: Add dependency
-- \`horizon comment <id> <message>\`: Add comment
+- \`cairn list --ready\`: List ready tasks
+- \`cairn create <title> -d <description> -p <priority> -t <type> -s <status> -r <parent>\`: Create task
+- \`cairn update <id> -s <status> -n <notes>\`: Update task
+- \`cairn dep add <from> <to> --type <type>\`: Add dependency
+- \`cairn comment <id> <message>\`: Add comment
 
 ### Memory Management
-Horizon automatically compacts old closed tasks to save context space, but preserves all history in git. This ensures you can always recover full context when needed.
+Cairn automatically compacts old closed tasks to save context space, but preserves all history in git. This ensures you can always recover full context when needed.
 
-By using Horizon consistently, you'll provide better, more organized assistance and maintain continuity across development sessions. The developer will appreciate your structured approach to complex work!`;
+By using Cairn consistently, you'll provide better, more organized assistance and maintain continuity across development sessions. The developer will appreciate your structured approach to complex work!`;
 
     if (fs.existsSync(instructionsPath)) {
       const existing = await fs.promises.readFile(instructionsPath, 'utf-8');
-      if (!existing.includes('Horizon Task Management for GitHub Copilot Agents')) {
-        await fs.promises.appendFile(instructionsPath, '\n' + horizonInstructions);
-        console.log('Appended Horizon workflow guidelines to existing .github/copilot-instructions.md');
+      if (!existing.includes('Cairn Task Management for GitHub Copilot Agents')) {
+        await fs.promises.appendFile(instructionsPath, '\n' + cairnInstructions);
+        console.log('Appended Cairn workflow guidelines to existing .github/copilot-instructions.md');
       } else {
-        console.log('Horizon instructions already present in .github/copilot-instructions.md');
+        console.log('Cairn instructions already present in .github/copilot-instructions.md');
       }
     } else {
-      await fs.promises.writeFile(instructionsPath, '<!-- Horizon Task Management Instructions for GitHub Copilot Agents -->\n' + horizonInstructions);
-      console.log('Created .github/copilot-instructions.md with Horizon workflow guidelines');
+      await fs.promises.writeFile(instructionsPath, '<!-- Cairn Task Management Instructions for GitHub Copilot Agents -->\n' + cairnInstructions);
+      console.log('Created .github/copilot-instructions.md with Cairn workflow guidelines');
     }
 
     if (fs.existsSync(instructionsPath)) {
       const existing = await fs.promises.readFile(instructionsPath, 'utf-8');
-      if (!existing.includes('Horizon Task Management for GitHub Copilot Agents')) {
-        await fs.promises.appendFile(instructionsPath, '\n' + horizonInstructions);
-        console.log('Appended Horizon workflow guidelines to existing .github/copilot-instructions.md');
+      if (!existing.includes('Cairn Task Management for GitHub Copilot Agents')) {
+        await fs.promises.appendFile(instructionsPath, '\n' + cairnInstructions);
+        console.log('Appended Cairn workflow guidelines to existing .github/copilot-instructions.md');
       } else {
-        console.log('Horizon instructions already present in .github/copilot-instructions.md');
+        console.log('Cairn instructions already present in .github/copilot-instructions.md');
       }
     } else {
-      await fs.promises.writeFile(instructionsPath, '<!-- Horizon Task Management Instructions for GitHub Copilot Agents -->\n' + horizonInstructions);
-      console.log('Created .github/copilot-instructions.md with Horizon workflow guidelines');
+      await fs.promises.writeFile(instructionsPath, '<!-- Cairn Task Management Instructions for GitHub Copilot Agents -->\n' + cairnInstructions);
+      console.log('Created .github/copilot-instructions.md with Cairn workflow guidelines');
     }
 
-    console.log('Horizon initialized. Start by creating your first task with \`horizon create <title>\`');
+    console.log('Cairn initialized. Start by creating your first task with \`cairn create <title>\`');
 
   });
 
@@ -363,7 +363,7 @@ program
     console.log('- Error handling: Proper error management');
     console.log('- Tests: Adequate test coverage');
     console.log('- Dependencies: No blockers remain');
-    console.log('Update with: horizon update <id> -n "Review notes" -c "Criteria met"');
+    console.log('Update with: cairn update <id> -n "Review notes" -c "Criteria met"');
   });
 
 // Comment command
@@ -389,24 +389,24 @@ function generateId(issues: any[]): string {
   const existingIds = new Set(issues.map(i => i.id));
   let id;
   do {
-    id = 'h-' + nanoid(8); // Prefix with 'h-' and use 8 chars
+    id = 's-' + nanoid(8); // Prefix with 's-' and use 8 chars
   } while (existingIds.has(id));
   return id;
 }
 
-function findHorizonDir(startDir: string): { horizonDir: string; repoRoot: string } {
+function findCairnDir(startDir: string): { cairnDir: string; repoRoot: string } {
   let currentDir = startDir;
   while (true) {
-    const horizonPath = path.join(currentDir, '.horizon');
-    const issuesPath = path.join(horizonPath, 'issues.jsonl');
-    if (fs.existsSync(horizonPath) && fs.existsSync(issuesPath)) {
-      return { horizonDir: horizonPath, repoRoot: currentDir };
+    const cairnPath = path.join(currentDir, '.cairn');
+    const issuesPath = path.join(cairnPath, 'issues.jsonl');
+    if (fs.existsSync(cairnPath) && fs.existsSync(issuesPath)) {
+      return { cairnDir: cairnPath, repoRoot: currentDir };
     }
     const parentDir = path.dirname(currentDir);
     if (parentDir === currentDir) {
       // Reached root
-      const fallbackHorizon = path.join(startDir, '.horizon');
-      return { horizonDir: fallbackHorizon, repoRoot: startDir };
+      const fallbackCairn = path.join(startDir, '.cairn');
+      return { cairnDir: fallbackCairn, repoRoot: startDir };
     }
     currentDir = parentDir;
   }

@@ -30,7 +30,7 @@ vi.mock('vscode', () => ({
 
 // Mock file system
 vi.mock('fs', () => ({
-  existsSync: vi.fn(() => true), // Mock .horizon directory exists
+  existsSync: vi.fn(() => true), // Mock .cairn directory exists
   readFileSync: vi.fn(() => 'mock html content'),
   watch: vi.fn(() => ({ close: vi.fn() })),
 }));
@@ -46,8 +46,8 @@ vi.mock('nanoid', () => ({
   nanoid: vi.fn(() => 'test-id-123'),
 }));
 
-// Mock @horizon/core
-vi.mock('@horizon/core', () => ({
+// Mock @cairn/core
+vi.mock('@cairn/core', () => ({
   createContainer: vi.fn(),
   TYPES: {
     IStorageService: 'IStorageService',
@@ -57,7 +57,7 @@ vi.mock('@horizon/core', () => ({
 
 // Import after mocking
 import { lm, commands, ExtensionContext } from 'vscode';
-import { createContainer, TYPES } from '@horizon/core';
+import { createContainer, TYPES } from '@cairn/core';
 import { activate } from './extension';
 
 describe('VS Code Extension Tools', () => {
@@ -105,12 +105,12 @@ describe('VS Code Extension Tools', () => {
     activate(mockContext);
   });
 
-  describe('horizon_create tool', () => {
+  describe('cairn_create tool', () => {
     it('should create a task with minimal parameters', async () => {
       mockStorage.loadIssues.mockResolvedValue([]);
 
       const registerToolMock = lm.registerTool as any;
-      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'horizon_create');
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_create');
       const toolHandler = toolRegistration[1].invoke;
 
       const result = await toolHandler({
@@ -121,7 +121,7 @@ describe('VS Code Extension Tools', () => {
 
       expect(mockStorage.loadIssues).toHaveBeenCalled();
       expect(mockStorage.saveIssue).toHaveBeenCalledWith({
-        id: 'h-test-id-123',
+        id: 's-test-id-123',
         title: 'Test Task',
         description: '',
         type: 'task',
@@ -130,7 +130,7 @@ describe('VS Code Extension Tools', () => {
         created_at: expect.any(String),
         updated_at: expect.any(String),
       });
-      expect(result.content[0].text).toContain('Created issue h-test-id-123');
+      expect(result.content[0].text).toContain('Created issue s-test-id-123');
     });
 
     it('should create a task with all parameters including parent', async () => {
@@ -142,7 +142,7 @@ describe('VS Code Extension Tools', () => {
       });
 
       const registerToolMock = lm.registerTool as any;
-      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'horizon_create');
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_create');
       const toolHandler = toolRegistration[1].invoke;
 
       const result = await toolHandler({
@@ -157,7 +157,7 @@ describe('VS Code Extension Tools', () => {
       }, {});
 
       expect(mockStorage.saveIssue).toHaveBeenCalledWith({
-        id: 'h-test-id-123',
+        id: 's-test-id-123',
         title: 'Feature Task',
         description: 'A feature description',
         type: 'feature',
@@ -168,16 +168,16 @@ describe('VS Code Extension Tools', () => {
       });
 
       expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(mockGraph.addDependency).toHaveBeenCalledWith('h-test-id-123', 'epic-123', 'parent-child', mockIssues);
+      expect(mockGraph.addDependency).toHaveBeenCalledWith('s-test-id-123', 'epic-123', 'parent-child', mockIssues);
 
-      expect(result.content[0].text).toContain('Created issue h-test-id-123');
+      expect(result.content[0].text).toContain('Created issue s-test-id-123');
     });
 
     it('should handle errors gracefully', async () => {
       mockStorage.loadIssues.mockRejectedValue(new Error('Storage error'));
 
       const registerToolMock = lm.registerTool as any;
-      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'horizon_create');
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_create');
       const toolHandler = toolRegistration[1].invoke;
 
       const result = await toolHandler({
@@ -191,7 +191,7 @@ describe('VS Code Extension Tools', () => {
     });
   });
 
-  describe('horizon_list_ready tool', () => {
+  describe('cairn_list_ready tool', () => {
     it('should return ready tasks', async () => {
       const mockIssues = [
         { id: 'task-1', title: 'Ready Task', status: 'open', priority: 'high' },
@@ -201,7 +201,7 @@ describe('VS Code Extension Tools', () => {
       mockGraph.getReadyWork.mockReturnValue([mockIssues[0]]);
 
       const registerToolMock = lm.registerTool as any;
-      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'horizon_list_ready');
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_list_ready');
       const toolHandler = toolRegistration[1].invoke;
 
       const result = await toolHandler({}, {});
@@ -213,7 +213,7 @@ describe('VS Code Extension Tools', () => {
     });
   });
 
-  describe('horizon_update tool', () => {
+  describe('cairn_update tool', () => {
     it('should update task status', async () => {
       mockStorage.updateIssues.mockImplementation(async (callback) => {
         const currentIssues = [{ id: 'task-123', status: 'open' }];
@@ -222,7 +222,7 @@ describe('VS Code Extension Tools', () => {
       });
 
       const registerToolMock = lm.registerTool as any;
-      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'horizon_update');
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_update');
       const toolHandler = toolRegistration[1].invoke;
 
       const result = await toolHandler({
@@ -237,7 +237,7 @@ describe('VS Code Extension Tools', () => {
     });
   });
 
-  describe('horizon_dep_add tool', () => {
+  describe('cairn_dep_add tool', () => {
     it('should add dependency between tasks', async () => {
       const mockIssues = [{ id: 'task-1' }, { id: 'task-2' }];
       mockStorage.loadIssues.mockResolvedValue(mockIssues);
@@ -247,7 +247,7 @@ describe('VS Code Extension Tools', () => {
       });
 
       const registerToolMock = lm.registerTool as any;
-      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'horizon_dep_add');
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_dep_add');
       const toolHandler = toolRegistration[1].invoke;
 
       const result = await toolHandler({
@@ -264,7 +264,7 @@ describe('VS Code Extension Tools', () => {
     });
   });
 
-  describe('horizon_comment tool', () => {
+  describe('cairn_comment tool', () => {
     it('should add comment to task', async () => {
       mockStorage.addComment.mockResolvedValue({
         id: 'comment-123',
@@ -274,7 +274,7 @@ describe('VS Code Extension Tools', () => {
       });
 
       const registerToolMock = lm.registerTool as any;
-      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'horizon_comment');
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_comment');
       const toolHandler = toolRegistration[1].invoke;
 
       const result = await toolHandler({

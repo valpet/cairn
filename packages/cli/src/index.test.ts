@@ -40,7 +40,7 @@ vi.mock('commander', () => {
 });
 
 // Mock all dependencies before importing
-vi.mock('@horizon/core', () => ({
+vi.mock('@cairn/core', () => ({
   createContainer: vi.fn(),
   TYPES: {
     IStorageService: Symbol('IStorageService'),
@@ -65,7 +65,7 @@ const mockProcessExit = vi.spyOn(process, 'exit').mockImplementation(() => {
 });
 
 // Import after mocking
-import { createContainer, TYPES } from '@horizon/core';
+import { createContainer, TYPES } from '@cairn/core';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -122,8 +122,8 @@ describe('CLI Commands', () => {
 
     (createContainer as any).mockReturnValue(mockContainer);
     (fs.existsSync as any).mockImplementation((path: string) => {
-      // Mock .horizon directory as existing
-      if (path.includes('.horizon')) return true;
+      // Mock .cairn directory as existing
+      if (path.includes('.cairn')) return true;
       return false;
     });
     (path.join as any).mockImplementation((...args: string[]) => args.join('/'));
@@ -161,7 +161,7 @@ describe('CLI Commands', () => {
 
       expect(mockStorage.loadIssues).toHaveBeenCalled();
       expect(mockStorage.saveIssue).toHaveBeenCalledWith({
-        id: 'h-test-id-123',
+        id: 's-test-id-123',
         title: 'Test Issue',
         description: undefined,
         type: undefined,
@@ -187,7 +187,7 @@ describe('CLI Commands', () => {
       });
 
       expect(mockStorage.saveIssue).toHaveBeenCalledWith({
-        id: 'h-test-id-123',
+        id: 's-test-id-123',
         title: 'Feature Issue',
         description: 'A test description',
         type: 'feature',
@@ -211,7 +211,7 @@ describe('CLI Commands', () => {
       });
 
       expect(mockStorage.saveIssue).toHaveBeenCalledWith({
-        id: 'h-test-id-123',
+        id: 's-test-id-123',
         title: 'In Progress Task',
         description: undefined,
         type: undefined,
@@ -236,7 +236,7 @@ describe('CLI Commands', () => {
       });
 
       expect(mockStorage.saveIssue).toHaveBeenCalledWith({
-        id: 'h-test-id-123',
+        id: 's-test-id-123',
         title: 'Child Task',
         description: undefined,
         type: undefined,
@@ -247,7 +247,7 @@ describe('CLI Commands', () => {
       });
 
       expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(mockGraph.addDependency).toHaveBeenCalledWith('h-test-id-123', 'parent-123', 'parent-child', mockIssues);
+      expect(mockGraph.addDependency).toHaveBeenCalledWith('s-test-id-123', 'parent-123', 'parent-child', mockIssues);
     });
 
     it('should create a new issue with all new parameters combined', async () => {
@@ -268,7 +268,7 @@ describe('CLI Commands', () => {
       });
 
       expect(mockStorage.saveIssue).toHaveBeenCalledWith({
-        id: 'h-test-id-123',
+        id: 's-test-id-123',
         title: 'Complete Feature Task',
         description: 'Full featured task',
         type: 'feature',
@@ -279,7 +279,7 @@ describe('CLI Commands', () => {
       });
 
       expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(mockGraph.addDependency).toHaveBeenCalledWith('h-test-id-123', 'epic-456', 'parent-child', mockIssues);
+      expect(mockGraph.addDependency).toHaveBeenCalledWith('s-test-id-123', 'epic-456', 'parent-child', mockIssues);
     });
   });
 
@@ -449,7 +449,7 @@ describe('CLI Commands', () => {
       await addSubtaskAction('epic-1', 'New Subtask', { description: 'Test desc', priority: 'medium' });
 
       expect(mockStorage.saveIssue).toHaveBeenCalledWith({
-        id: 'h-test-id-123',
+        id: 's-test-id-123',
         title: 'New Subtask',
         description: 'Test desc',
         type: 'task',
@@ -459,7 +459,7 @@ describe('CLI Commands', () => {
         updated_at: expect.any(String),
       });
       expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(mockGraph.addDependency).toHaveBeenCalledWith('h-test-id-123', 'epic-1', 'parent-child', mockIssues);
+      expect(mockGraph.addDependency).toHaveBeenCalledWith('s-test-id-123', 'epic-1', 'parent-child', mockIssues);
     });
   });
 

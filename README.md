@@ -1,20 +1,20 @@
-# Horizon
+# Cairn
 
-A CLI tool for long-horizon memory through task management for GitHub Copilot.
+A CLI tool for long-term memory through task management for GitHub Copilot.
 
 ## Installation
 
 ```bash
-npm install -g @horizon/cli
+npm install -g @cairn/cli
 ```
 
 ## Usage
 
 ```bash
-horizon create "My Task"
-horizon list
-horizon update <id> --status closed
-horizon dep add <child> <parent> --type blocks
+cairn create "My Task"
+cairn list
+cairn update <id> --status closed
+cairn dep add <child> <parent> --type blocks
 ```
 
 ## Development

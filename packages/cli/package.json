@@ -1,9 +1,9 @@
 {
-  "name": "horizon",
+  "name": "cairn",
   "version": "1.0.0",
-  "description": "CLI wrapper for Horizon task management",
+  "description": "CLI wrapper for Cairn task management",
   "bin": {
-    "horizon": "dist/index.js"
+    "cairn": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -11,7 +11,7 @@
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@horizon/core": "file:../core",
+    "@cairn/core": "file:../core",
     "commander": "^11.0.0",
     "inversify": "^6.0.1",
     "nanoid": "^5.1.6",

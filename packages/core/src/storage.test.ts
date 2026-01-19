@@ -9,9 +9,9 @@ describe('StorageService', () => {
   let storage: StorageService;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'horizon-test-'));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cairn-test-'));
     storage = new StorageService({
-      horizonDir: tempDir,
+      cairnDir: tempDir,
       lockMaxRetries: 20,
       lockRetryDelay: 50,
       lockTimeout: 1000 // 1 second for tests

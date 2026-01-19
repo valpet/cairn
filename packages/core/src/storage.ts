@@ -13,7 +13,7 @@ export interface IStorageService {
 }
 
 export interface StorageConfig {
-  horizonDir: string;
+  cairnDir: string;
   lockMaxRetries?: number;
   lockRetryDelay?: number;
   lockTimeout?: number;
@@ -29,8 +29,8 @@ export class StorageService implements IStorageService {
   private lockTimeout: number;
 
   constructor(@inject('config') private config: StorageConfig) {
-    this.issuesFilePath = path.join(config.horizonDir, 'issues.jsonl');
-    this.lockFilePath = path.join(config.horizonDir, 'issues.lock');
+    this.issuesFilePath = path.join(config.cairnDir, 'issues.jsonl');
+    this.lockFilePath = path.join(config.cairnDir, 'issues.lock');
     this.lockMaxRetries = config.lockMaxRetries ?? 50;
     this.lockRetryDelay = config.lockRetryDelay ?? 100;
     this.lockTimeout = config.lockTimeout ?? 30000;

@@ -19,7 +19,7 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@horizon/core": [
+      "@cairn/core": [
         "../core/dist"
       ]
     },

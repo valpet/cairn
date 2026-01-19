@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createContainer, TYPES, IStorageService, IGraphService } from '@horizon/core';
+import { createContainer, TYPES, IStorageService, IGraphService } from '@cairn/core';
 import { nanoid } from 'nanoid';
 
 let container: any;
@@ -9,7 +9,7 @@ let storage: IStorageService;
 let graph: IGraphService;
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Horizon extension activated');
+  console.log('Cairn extension activated');
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
     vscode.window.showErrorMessage('No workspace folder found');
@@ -17,19 +17,19 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   const startDir = workspaceFolder.uri.fsPath;
-  const { horizonDir, repoRoot } = findHorizonDir(startDir);
-  if (!fs.existsSync(horizonDir)) {
-    vscode.window.showErrorMessage('No .horizon directory found. Run `npx horizon init` in your project root.');
+  const { cairnDir, repoRoot } = findCairnDir(startDir);
+  if (!fs.existsSync(cairnDir)) {
+    vscode.window.showErrorMessage('No .cairn directory found. Run `npx cairn init` in your project root.');
     return;
   }
 
-  container = createContainer(horizonDir, repoRoot);
+  container = createContainer(cairnDir, repoRoot);
   storage = container.get(TYPES.IStorageService);
   graph = container.get(TYPES.IGraphService);
 
   // Register tools
   context.subscriptions.push(
-    vscode.lm.registerTool('horizon_create', {
+    vscode.lm.registerTool('cairn_create', {
       invoke: async (options, token) => {
         try {
           const inputs = options.input as any;
@@ -64,7 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.lm.registerTool('horizon_list_ready', {
+    vscode.lm.registerTool('cairn_list_ready', {
       invoke: async (options, token) => {
         try {
           const issues = await storage.loadIssues();
@@ -85,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.lm.registerTool('horizon_update', {
+    vscode.lm.registerTool('cairn_update', {
       invoke: async (options, token) => {
         try {
           const inputs = options.input as any;
@@ -112,7 +112,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.lm.registerTool('horizon_dep_add', {
+    vscode.lm.registerTool('cairn_dep_add', {
       invoke: async (options, token) => {
         try {
           const inputs = options.input as any;
@@ -129,7 +129,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.lm.registerTool('horizon_comment', {
+    vscode.lm.registerTool('cairn_comment', {
       invoke: async (options, token) => {
         try {
           const inputs = options.input as any;
@@ -158,11 +158,11 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register command to open task list webview
   context.subscriptions.push(
-    vscode.commands.registerCommand('horizon.openTaskList', async () => {
+    vscode.commands.registerCommand('cairn.openTaskList', async () => {
       console.log('=== Creating task list panel ===');
       const panel = vscode.window.createWebviewPanel(
-        'horizonTaskList',
-        'Horizon Task List',
+        'cairnTaskList',
+        'Cairn Task List',
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -210,7 +210,7 @@ export function activate(context: vscode.ExtensionContext) {
           } else if (message.type === 'editTicket') {
             console.log('Edit ticket message received for:', message.id);
             try {
-              await vscode.commands.executeCommand('horizon.editTicket', message.id);
+              await vscode.commands.executeCommand('cairn.editTicket', message.id);
               console.log('Edit command executed successfully');
             } catch (error) {
               console.error('Error executing edit command:', error);
@@ -218,7 +218,7 @@ export function activate(context: vscode.ExtensionContext) {
           } else if (message.type === 'createTicket') {
             console.log('Create ticket message received');
             try {
-              await vscode.commands.executeCommand('horizon.createTicket');
+              await vscode.commands.executeCommand('cairn.createTicket');
               console.log('Create command executed successfully');
             } catch (error) {
               console.error('Error executing create command:', error);
@@ -274,7 +274,7 @@ export function activate(context: vscode.ExtensionContext) {
       };
 
       // Watch for file changes
-      const issuesPath = path.join(horizonDir, 'issues.jsonl');
+      const issuesPath = path.join(cairnDir, 'issues.jsonl');
       const watcher = fs.watch(issuesPath, async (eventType) => {
         if (eventType === 'change') {
           await updateTasks();
@@ -290,14 +290,14 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register command to edit a ticket
   context.subscriptions.push(
-    vscode.commands.registerCommand('horizon.editTicket', async (id: string, options?: { viewColumn?: vscode.ViewColumn }) => {
+    vscode.commands.registerCommand('cairn.editTicket', async (id: string, options?: { viewColumn?: vscode.ViewColumn }) => {
       // Load ticket data first to get the title for the panel
       const issues = await storage.loadIssues();
       const ticket = issues.find(i => i.id === id);
       const displayTitle = ticket ? `${ticket.title} (#${id})` : `Edit Ticket #${id}`;
 
       const panel = vscode.window.createWebviewPanel(
-        'horizonEditTicket',
+        'cairnEditTicket',
         displayTitle,
         options?.viewColumn || vscode.ViewColumn.Beside,
         {
@@ -320,7 +320,7 @@ export function activate(context: vscode.ExtensionContext) {
         try {
           const issues = await storage.loadIssues();
           const ticket = issues.find(i => i.id === ticketId);
-          
+
           let safeTicket;
           if (ticket) {
             // Ensure ticket has required fields with defaults
@@ -346,7 +346,7 @@ export function activate(context: vscode.ExtensionContext) {
               updated_at: new Date().toISOString()
             };
           }
-          
+
           // Get subtasks
           const subtasks = ticket ? graph.getEpicSubtasks(ticketId, issues).map(s => ({
             id: s.id,
@@ -355,7 +355,7 @@ export function activate(context: vscode.ExtensionContext) {
             status: s.status,
             priority: s.priority
           })) : [];
-          
+
           // Get dependencies
           const dependencies: any[] = [];
           if (ticket) {
@@ -387,7 +387,7 @@ export function activate(context: vscode.ExtensionContext) {
               });
             }
           }
-          
+
           console.log('Sending loadTicket message for:', ticketId, safeTicket);
           panel.webview.postMessage({
             type: 'loadTicket',
@@ -408,7 +408,8 @@ export function activate(context: vscode.ExtensionContext) {
           if (message.type === 'webviewReady') {
             console.log('Webview ready, loading ticket:', pendingTicketId);
             webviewReady = true;
-            await loadTicket(pendingTicketId);          } else if (message.type === 'getGitUser') {
+            await loadTicket(pendingTicketId);
+          } else if (message.type === 'getGitUser') {
             console.log('Getting git user info');
             const { execSync } = require('child_process');
             let gitUserName = '';
@@ -427,7 +428,8 @@ export function activate(context: vscode.ExtensionContext) {
               type: 'gitUserInfo',
               userName: gitUserName,
               userEmail: gitUserEmail
-            });          } else if (message.type === 'getAvailableSubtasks') {
+            });
+          } else if (message.type === 'getAvailableSubtasks') {
             console.log('Getting available subtasks');
             const issues = await storage.loadIssues();
             const availableSubtasks = graph.getNonParentedIssues(issues)
@@ -501,14 +503,14 @@ export function activate(context: vscode.ExtensionContext) {
                         status: ticketData.status || 'open',
                         updated_at: now
                       };
-                      
+
                       // Handle closed_at timestamp
                       if (ticketData.status === 'closed' && issue.status !== 'closed') {
                         updated.closed_at = now;
                       } else if (ticketData.status !== 'closed' && issue.status === 'closed') {
                         updated.closed_at = undefined;
                       }
-                      
+
                       console.log('Updated issue:', JSON.stringify(updated, null, 2));
                       return updated;
                     }
@@ -544,28 +546,28 @@ export function activate(context: vscode.ExtensionContext) {
                     const newBlockers = ticketData.dependencies.filter((d: any) => d.direction === 'blocks').map((d: any) => d.id);
                     const currentBlockedBy = updatedIssues.filter((i: any) => i.dependencies?.some((d: any) => d.id === ticketData.id && d.type === 'blocks')).map((i: any) => i.id);
                     const newBlockedBy = ticketData.dependencies.filter((d: any) => d.direction === 'blocked_by').map((d: any) => d.id);
-                    
+
                     // Remove blockers that are no longer present
                     for (const blockerId of currentBlockers) {
                       if (!newBlockers.includes(blockerId)) {
                         updatedIssues = graph.removeDependency(ticketData.id, blockerId, updatedIssues);
                       }
                     }
-                    
+
                     // Add new blockers
                     for (const blockerId of newBlockers) {
                       if (!currentBlockers.includes(blockerId)) {
                         updatedIssues = graph.addDependency(ticketData.id, blockerId, 'blocks', updatedIssues);
                       }
                     }
-                    
+
                     // Remove blocked-by that are no longer present
                     for (const blockedId of currentBlockedBy) {
                       if (!newBlockedBy.includes(blockedId)) {
                         updatedIssues = graph.removeDependency(blockedId, ticketData.id, updatedIssues);
                       }
                     }
-                    
+
                     // Add new blocked-by
                     for (const blockedId of newBlockedBy) {
                       if (!currentBlockedBy.includes(blockedId)) {
@@ -613,7 +615,7 @@ export function activate(context: vscode.ExtensionContext) {
           } else if (message.type === 'editTicket') {
             console.log('Edit ticket message received from editor for:', message.id);
             try {
-              await vscode.commands.executeCommand('horizon.editTicket', message.id, { viewColumn: vscode.ViewColumn.Active });
+              await vscode.commands.executeCommand('cairn.editTicket', message.id, { viewColumn: vscode.ViewColumn.Active });
               console.log('Edit command executed successfully from editor');
             } catch (error) {
               console.error('Error executing edit command from editor:', error);
@@ -664,7 +666,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register command to create a new ticket
   context.subscriptions.push(
-    vscode.commands.registerCommand('horizon.createTicket', async () => {
+    vscode.commands.registerCommand('cairn.createTicket', async () => {
       try {
         console.log('=== CREATING NEW TICKET ===');
         // Create ticket immediately with placeholder values
@@ -685,7 +687,7 @@ export function activate(context: vscode.ExtensionContext) {
         console.log('New ticket created successfully');
 
         // Now open it for editing
-        vscode.commands.executeCommand('horizon.editTicket', newId);
+        vscode.commands.executeCommand('cairn.editTicket', newId);
       } catch (error) {
         console.error('=== ERROR CREATING TICKET ===');
         console.error('Error:', error);
@@ -763,23 +765,23 @@ function generateId(issues: any[]): string {
   const existingIds = new Set(issues.map(i => i.id));
   let id;
   do {
-    id = 'h-' + nanoid(8);
+    id = 's-' + nanoid(8);
   } while (existingIds.has(id));
   return id;
 }
 
-function findHorizonDir(startDir: string): { horizonDir: string; repoRoot: string } {
+function findCairnDir(startDir: string): { cairnDir: string; repoRoot: string } {
   let currentDir = startDir;
   while (true) {
-    const horizonPath = path.join(currentDir, '.horizon');
-    const issuesPath = path.join(horizonPath, 'issues.jsonl');
-    if (fs.existsSync(horizonPath) && fs.existsSync(issuesPath)) {
-      return { horizonDir: horizonPath, repoRoot: currentDir };
+    const cairnPath = path.join(currentDir, '.cairn');
+    const issuesPath = path.join(cairnPath, 'issues.jsonl');
+    if (fs.existsSync(cairnPath) && fs.existsSync(issuesPath)) {
+      return { cairnDir: cairnPath, repoRoot: currentDir };
     }
     const parentDir = path.dirname(currentDir);
     if (parentDir === currentDir) {
-      const fallbackHorizon = path.join(startDir, '.horizon');
-      return { horizonDir: fallbackHorizon, repoRoot: startDir };
+      const fallbackCairn = path.join(startDir, '.cairn');
+      return { cairnDir: fallbackCairn, repoRoot: startDir };
     }
     currentDir = parentDir;
   }

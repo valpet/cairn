@@ -1,9 +1,9 @@
 {
-  "name": "horizon-extension",
+  "name": "cairn-extension",
   "version": "1.0.0",
   "publisher": "local",
-  "description": "VS Code extension for Horizon task management tools",
-  "repository": "https://github.com/valpet/horizon",
+  "description": "VS Code extension for Cairn task management tools",
+  "repository": "https://github.com/valpet/cairn",
   "main": "dist/src/extension.js",
   "scripts": {
     "build": "tsc",
@@ -12,41 +12,41 @@
     "package": "vsce package"
   },
   "dependencies": {
-    "@horizon/core": "file:../core",
+    "@cairn/core": "file:../core",
     "nanoid": "^5.0.0"
   },
   "engines": {
     "vscode": "^1.90.0"
   },
   "activationEvents": [
-    "onCommand:horizon.openTaskList",
-    "onCommand:horizon.editTicket",
-    "onCommand:horizon.createTicket",
-    "onLanguageModelTool:horizon_create",
-    "onLanguageModelTool:horizon_list_ready",
-    "onLanguageModelTool:horizon_update",
-    "onLanguageModelTool:horizon_dep_add"
+    "onCommand:cairn.openTaskList",
+    "onCommand:cairn.editTicket",
+    "onCommand:cairn.createTicket",
+    "onLanguageModelTool:cairn_create",
+    "onLanguageModelTool:cairn_list_ready",
+    "onLanguageModelTool:cairn_update",
+    "onLanguageModelTool:cairn_dep_add"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "horizon.openTaskList",
-        "title": "Open Horizon Task List"
+        "command": "cairn.openTaskList",
+        "title": "Open Cairn Task List"
       },
       {
-        "command": "horizon.editTicket",
+        "command": "cairn.editTicket",
         "title": "Edit Ticket"
       },
       {
-        "command": "horizon.createTicket",
+        "command": "cairn.createTicket",
         "title": "Create New Ticket"
       }
     ],
     "languageModelTools": [
       {
-        "name": "horizon_create",
+        "name": "cairn_create",
         "displayName": "Create Task",
-        "modelDescription": "Create a new task in Horizon with full configuration options",
+        "modelDescription": "Create a new task in Cairn with full configuration options",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -102,18 +102,18 @@
         }
       },
       {
-        "name": "horizon_list_ready",
+        "name": "cairn_list_ready",
         "displayName": "List Ready Tasks",
-        "modelDescription": "List all ready (unblocked) tasks in Horizon",
+        "modelDescription": "List all ready (unblocked) tasks in Cairn",
         "inputSchema": {
           "type": "object",
           "properties": {}
         }
       },
       {
-        "name": "horizon_update",
+        "name": "cairn_update",
         "displayName": "Update Task",
-        "modelDescription": "Update an existing task in Horizon",
+        "modelDescription": "Update an existing task in Cairn",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -149,9 +149,9 @@
         }
       },
       {
-        "name": "horizon_dep_add",
+        "name": "cairn_dep_add",
         "displayName": "Add Dependency",
-        "modelDescription": "Add a dependency between tasks in Horizon",
+        "modelDescription": "Add a dependency between tasks in Cairn",
         "inputSchema": {
           "type": "object",
           "properties": {

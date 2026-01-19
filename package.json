@@ -1,8 +1,8 @@
 {
-  "name": "horizon-monorepo",
+  "name": "cairn-monorepo",
   "version": "1.0.0",
   "bin": {
-    "horizon": "packages/cli/dist/index.js"
+    "cairn": "packages/cli/dist/index.js"
   },
   "workspaces": [
     "packages/*"
@@ -15,7 +15,7 @@
     "test": "npm run test --workspaces",
     "lint": "eslint . --ext .ts",
     "clean": "rimraf packages/*/dist",
-    "horizon": "node packages/cli/dist/index.js"
+    "cairn": "node packages/cli/dist/index.js"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

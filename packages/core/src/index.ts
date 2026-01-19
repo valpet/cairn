@@ -14,7 +14,7 @@ export {
   IssueType,
   Priority,
   DependencyType,
-  HorizonConfig
+  CairnConfig
 } from './types';
 export { IStorageService, StorageService } from './storage';
 export { IGraphService, GraphService } from './graph';
