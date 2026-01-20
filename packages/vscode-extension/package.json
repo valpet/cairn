@@ -39,9 +39,9 @@
   "scripts": {
     "build": "esbuild src/extension.ts --bundle --outfile=dist/src/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
     "dev-setup": "cd ../core && npm link && cd ../vscode-extension && npm link @valpet/cairn-core",
-    "prepackage": "if not exist node_modules\\@cairn mkdir node_modules\\@cairn && xcopy ..\\core\\dist node_modules\\@cairn\\core /E /I /Y && copy ..\\core\\package.json node_modules\\@cairn\\core\\",
+    "prepackage": "mkdir -p node_modules/@cairn && cp -r ../core/dist node_modules/@cairn/core && cp ../core/package.json node_modules/@cairn/core/",
     "package": "npx vsce package",
-    "package-all": "npm run build && npm run prepackage && npm run package",
+    "package-all": "npm run prepackage && npm run build && npm run package",
     "install": "npm run package-all && code-insiders --install-extension cairn-extension-1.0.1.vsix",
     "test": "vitest --run --passWithNoTests"
   },
