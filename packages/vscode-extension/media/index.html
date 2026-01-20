@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cairn Task List</title>
+  <title>Cairn Issues</title>
   <style>
     body {
       font-family: var(--vscode-font-family);
@@ -1061,7 +1061,7 @@
 
 <body>
   <div class="header">
-    <h1>Cairn Task List</h1>
+    <h1>Cairn Issues</h1>
   </div>
   <div class="filter-bar">
     <div class="filter-trigger" id="status-filter-trigger">
@@ -1111,7 +1111,7 @@
   <script>
     // Acquire VS Code API once at the beginning
     const vscode = acquireVsCodeApi();
-    console.log('Cairn task list webview script loaded');
+    console.log('Cairn issues webview script loaded');
 
     const expandedTasks = new Set();
     const expandedDescriptions = new Set();

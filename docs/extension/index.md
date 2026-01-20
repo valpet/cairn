@@ -427,7 +427,7 @@ npm run package-all
 - **Language Model Tools**: Stable API, follows VS Code extension guidelines
 - **Commands**: Stable, follows VS Code command patterns
 - **Webview Messages**: Internal API, may change between versions
-- **Core Integration**: Depends on @cairn/core package versioning
+- **Core Integration**: Depends on @valpet/cairn-core package versioning
 
 ## Troubleshooting
 

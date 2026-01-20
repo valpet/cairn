@@ -40,7 +40,7 @@ vi.mock('commander', () => {
 });
 
 // Mock all dependencies before importing
-vi.mock('@cairn/core', () => ({
+vi.mock('@valpet/cairn-core', () => ({
   createContainer: vi.fn(),
   TYPES: {
     IStorageService: Symbol('IStorageService'),
@@ -67,7 +67,7 @@ const mockProcessExit = vi.spyOn(process, 'exit').mockImplementation(() => {
 });
 
 // Import after mocking
-import { createContainer, TYPES, findCairnDir, generateId } from '@cairn/core';
+import { createContainer, TYPES, findCairnDir, generateId } from '@valpet/cairn-core';
 import * as fs from 'fs';
 import * as path from 'path';
 

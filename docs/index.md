@@ -8,7 +8,7 @@ Cairn is a comprehensive task management system designed for AI agents and devel
 
 Cairn consists of three main components:
 
-### Core Library (`@cairn/core`)
+### Core Library (`@valpet/cairn-core`)
 The foundational library providing data structures, storage, and business logic.
 
 - **Storage**: JSONL-based persistence with file locking

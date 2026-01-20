@@ -19,7 +19,7 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@cairn/core": [
+      "@valpet/cairn-core": [
         "../core/dist"
       ]
     },

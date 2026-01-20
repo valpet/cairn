@@ -2,7 +2,7 @@
 
 import 'reflect-metadata';
 import { Command } from 'commander';
-import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService, findCairnDir, generateId } from '@cairn/core';
+import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService, findCairnDir, generateId } from '@valpet/cairn-core';
 import { nanoid } from 'nanoid';
 import * as path from 'path';
 import * as fs from 'fs';

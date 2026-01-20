@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createContainer, TYPES, IStorageService, IGraphService, findCairnDir, generateId } from '@cairn/core';
+import { createContainer, TYPES, IStorageService, IGraphService, findCairnDir, generateId } from '@valpet/cairn-core';
 import { nanoid } from 'nanoid';
 
 let container: any;
@@ -251,7 +251,7 @@ export function activate(context: vscode.ExtensionContext) {
           outputChannel.appendLine('Creating task list panel...');
           const panel = vscode.window.createWebviewPanel(
             'cairnTaskList',
-            'Cairn Task List',
+            'Cairn Issues',
             vscode.ViewColumn.One,
             {
               enableScripts: true,

@@ -7,7 +7,7 @@ The Cairn Core library provides the fundamental data structures and services for
 ## Installation
 
 ```bash
-npm install @cairn/core
+npm install @valpet/cairn-core
 ```
 
 ## Architecture
@@ -410,7 +410,7 @@ function createContainer(cairnDir: string, repoPath: string): Container
 
 **Example:**
 ```typescript
-import { createContainer, TYPES, IStorageService, IGraphService } from '@cairn/core';
+import { createContainer, TYPES, IStorageService, IGraphService } from '@valpet/cairn-core';
 
 const container = createContainer('/path/to/.cairn', '/path/to/repo');
 const storage = container.get<IStorageService>(TYPES.IStorageService);
@@ -422,7 +422,7 @@ const graph = container.get<IGraphService>(TYPES.IGraphService);
 ### Basic Task Management
 
 ```typescript
-import { createContainer, TYPES, IStorageService, IGraphService } from '@cairn/core';
+import { createContainer, TYPES, IStorageService, IGraphService } from '@valpet/cairn-core';
 
 const container = createContainer('./.cairn', './');
 const storage = container.get<IStorageService>(TYPES.IStorageService);

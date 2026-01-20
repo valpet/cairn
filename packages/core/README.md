@@ -1,11 +1,11 @@
-# @cairn/core
+# @valpet/cairn-core
 
 Core library for Cairn task management system.
 
 ## Installation
 
 ```bash
-npm install @cairn/core
+npm install @valpet/cairn-core
 ```
 
 ## Overview
@@ -20,7 +20,7 @@ This package provides the foundational data structures and business logic for Ca
 ## Usage
 
 ```typescript
-import { createContainer, TYPES, IStorageService, IGraphService } from '@cairn/core';
+import { createContainer, TYPES, IStorageService, IGraphService } from '@valpet/cairn-core';
 
 const container = createContainer('/path/to/.cairn', '/path/to/repo');
 const storage = container.get<IStorageService>(TYPES.IStorageService);
