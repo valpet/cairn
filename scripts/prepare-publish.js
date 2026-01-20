@@ -24,11 +24,16 @@ function main() {
     runCommand('npm run clean', 'Cleaning build artifacts');
 
     // Build TypeScript packages
-    runCommand('npm run build', 'Building TypeScript packages');
+    runCommand('npx tsc --project packages/core', 'Building core package');
+    runCommand('npx tsc --project packages/cli', 'Building CLI package');
 
-    // Check if core dist exists
+    // Check if dist directories exist
     if (!fs.existsSync('packages/core/dist')) {
       console.error('ERROR: Core build failed - dist directory not found');
+      process.exit(1);
+    }
+    if (!fs.existsSync('packages/cli/dist')) {
+      console.error('ERROR: CLI build failed - dist directory not found');
       process.exit(1);
     }
 
