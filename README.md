@@ -1,6 +1,6 @@
 # Cairn
 
-A CLI tool for long-term memory through task management for GitHub Copilot.
+A CLI tool and Visual Studio Code Extensin for long-term memory through task management for GitHub Copilot.
 
 ## Installation
 
