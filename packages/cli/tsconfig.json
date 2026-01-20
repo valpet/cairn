@@ -18,7 +18,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "moduleResolution": "node",
-    "composite": true,
+    "composite": false,
     "baseUrl": ".",
     "paths": {
       "@valpet/cairn-core": ["../core/dist"]

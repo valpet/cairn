@@ -47,7 +47,7 @@ vi.mock('nanoid', () => ({
 }));
 
 // Mock @valpet/cairn-core
-vi.mock('@valpet/cairn-core', () => ({
+vi.mock('../../core/dist/index.js', () => ({
   createContainer: vi.fn(),
   TYPES: {
     IStorageService: 'IStorageService',
@@ -57,7 +57,7 @@ vi.mock('@valpet/cairn-core', () => ({
 
 // Import after mocking
 import { lm, commands, ExtensionContext } from 'vscode';
-import { createContainer, TYPES } from '@valpet/cairn-core';
+import { createContainer, TYPES } from '../../core/dist/index.js';
 import { activate } from './extension';
 
 describe('VS Code Extension Tools', () => {

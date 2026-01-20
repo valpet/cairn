@@ -20,24 +20,16 @@ function runCommand(command, description) {
 
 function main() {
   try {
+    // Define package paths
+    const cliPkgPath = 'packages/cli/package.json';
+    const corePkgPath = 'packages/core/package.json';
+    const extPkgPath = 'packages/vscode-extension/package.json';
     // Clean
     runCommand('npm run clean', 'Cleaning build artifacts');
 
     // Build TypeScript packages
     runCommand('npx tsc --project packages/core', 'Building core package');
-
-    // Temporarily change CLI dependency to file reference for build
-    const cliPkgPath = 'packages/cli/package.json';
-    const cliPkg = JSON.parse(fs.readFileSync(cliPkgPath, 'utf8'));
-    const originalCoreDep = cliPkg.dependencies['@valpet/cairn-core'];
-    cliPkg.dependencies['@valpet/cairn-core'] = 'file:../core';
-    fs.writeFileSync(cliPkgPath, JSON.stringify(cliPkg, null, 2));
-
     runCommand('npx tsc --project packages/cli', 'Building CLI package');
-
-    // Restore original dependency
-    cliPkg.dependencies['@valpet/cairn-core'] = originalCoreDep;
-    fs.writeFileSync(cliPkgPath, JSON.stringify(cliPkg, null, 2));
 
     // Check if dist directories exist
     if (!fs.existsSync('packages/core/dist')) {
@@ -65,17 +57,13 @@ function main() {
     // Prepare packages for publishing
     console.log('\nPreparing packages for publishing...');
 
-    const cliPkgPath = 'packages/cli/package.json';
-    const corePkgPath = 'packages/core/package.json';
-    const extPkgPath = 'packages/vscode-extension/package.json';
-
-    const cliPkg = JSON.parse(fs.readFileSync(cliPkgPath, 'utf8'));
+    const cliPkgFresh = JSON.parse(fs.readFileSync(cliPkgPath, 'utf8'));
     const corePkg = JSON.parse(fs.readFileSync(corePkgPath, 'utf8'));
     const extPkg = JSON.parse(fs.readFileSync(extPkgPath, 'utf8'));
 
     // Update CLI dependency to match core version
-    cliPkg.dependencies['@valpet/cairn-core'] = `^${corePkg.version}`;
-    fs.writeFileSync(cliPkgPath, JSON.stringify(cliPkg, null, 2));
+    cliPkgFresh.dependencies['@valpet/cairn-core'] = `^${corePkg.version}`;
+    fs.writeFileSync(cliPkgPath, JSON.stringify(cliPkgFresh, null, 2));
     console.log(`Updated CLI dependency to ^${corePkg.version} for publishing`);
 
     // Success message
