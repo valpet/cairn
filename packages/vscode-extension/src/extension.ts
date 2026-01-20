@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createContainer, TYPES, IStorageService, IGraphService, findCairnDir, generateId } from '../../core/dist/index.js';
-import { nanoid } from 'nanoid';
 
 let container: any;
 let storage: IStorageService;
@@ -109,13 +108,12 @@ class CairnUpdateTool implements vscode.LanguageModelTool<any> {
   ) {
     try {
       const inputs = options.input;
+      
       await storage.updateIssues(issues => {
         return issues.map(issue => {
           if (issue.id === inputs.id) {
             const updated = { ...issue, updated_at: new Date().toISOString() };
             if (inputs.status) updated.status = inputs.status;
-            if (inputs.notes) updated.notes = inputs.notes;
-            if (inputs.acceptance_criteria) updated.acceptance_criteria = inputs.acceptance_criteria;
             if (inputs.status === 'closed') updated.closed_at = new Date().toISOString();
             return updated;
           }
@@ -279,7 +277,9 @@ export function activate(context: vscode.ExtensionContext) {
 
           // Handle messages from webview
           const disposable = panel.webview.onDidReceiveMessage(async (message) => {
-            outputChannel.appendLine(`Webview message received: ${message.type}`);
+            outputChannel.appendLine(`=== WEBVIEW MESSAGE RECEIVED ===`);
+            outputChannel.appendLine(`Message type: ${message.type}`);
+            outputChannel.appendLine(`Full message: ${JSON.stringify(message)}`);
             try {
               if (message.type === 'webviewReady') {
                 outputChannel.appendLine('Task list webview ready');
@@ -345,6 +345,8 @@ export function activate(context: vscode.ExtensionContext) {
           outputChannel.appendLine(`HTML path: ${htmlPath.fsPath}`);
           if (fs.existsSync(htmlPath.fsPath)) {
             const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
+            outputChannel.appendLine(`HTML content length: ${htmlContent.length} characters`);
+            outputChannel.appendLine(`HTML starts with: ${htmlContent.substring(0, 100)}`);
             panel.webview.html = htmlContent;
             outputChannel.appendLine('HTML loaded successfully');
           } else {
@@ -431,8 +433,8 @@ export function activate(context: vscode.ExtensionContext) {
             }
           );
 
+          const pendingTicketId = id;
           let webviewReady = false;
-          let pendingTicketId = id;
           let saveQueue = Promise.resolve();
 
           // Load HTML

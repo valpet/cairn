@@ -152,7 +152,7 @@ Lists all unblocked tasks that are ready to work on.
 
 ### cairn_update
 
-Updates an existing task's status, notes, or acceptance criteria.
+Updates an existing task's status or acceptance criteria.
 
 **Tool Name:** `cairn_update`
 **Display Name:** Update Task
@@ -170,15 +170,6 @@ Updates an existing task's status, notes, or acceptance criteria.
       "type": "string",
       "enum": ["open", "in_progress", "closed", "blocked"],
       "description": "New status for the task"
-    },
-    "notes": {
-      "type": "string",
-      "description": "Optional notes to add"
-    },
-    "acceptance_criteria": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "Acceptance criteria as array of strings"
     }
   },
   "required": ["id"]

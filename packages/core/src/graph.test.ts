@@ -32,6 +32,33 @@ describe('GraphService', () => {
       expect(graph.get('a')?.dependencies).toEqual([{ id: 'b', type: 'blocks' }]);
       expect(graph.get('b')?.dependents).toEqual(['a']);
     });
+
+    it('should handle issues with deprecated fields', () => {
+      const issues: Issue[] = [
+        {
+          id: 'a',
+          title: 'A',
+          status: 'open',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z',
+          dependencies: [{ id: 'b', type: 'blocks' }],
+          notes: 'Legacy notes',
+          acceptance_criteria: ['AC1', 'AC2']
+        } as any,
+        {
+          id: 'b',
+          title: 'B',
+          status: 'open',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z',
+        },
+      ];
+
+      const graph = graphService.buildGraph(issues);
+      expect(graph.get('a')?.dependencies).toEqual([{ id: 'b', type: 'blocks' }]);
+      expect(graph.get('b')?.dependents).toEqual(['a']);
+      // Graph operations should work regardless of deprecated fields
+    });
   });
 
   describe('getReadyWork', () => {

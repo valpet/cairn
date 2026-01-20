@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsc --build",
     "test": "npm run test --workspaces",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "clean": "node -e \"const fs = require('fs'); const path = require('path'); ['packages/core/dist', 'packages/cli/dist', 'packages/vscode-extension/dist'].forEach(d => { try { fs.rmSync(d, { recursive: true, force: true }); console.log('Cleaned:', d); } catch(e) {} }); ['packages/core/src', 'packages/cli/src'].forEach(d => { try { const files = fs.readdirSync(d).filter(f => f.endsWith('.js') || f.endsWith('.d.ts') || f.endsWith('.d.ts.map') || f.endsWith('.js.map')); files.forEach(f => { fs.unlinkSync(path.join(d, f)); console.log('Cleaned compiled file:', path.join(d, f)); }); } catch(e) {} }); try { const vsixFiles = fs.readdirSync('packages/vscode-extension').filter(f => f.endsWith('.vsix')); vsixFiles.forEach(f => { fs.unlinkSync(path.join('packages/vscode-extension', f)); console.log('Cleaned:', f); }); } catch(e) {} console.log('Clean complete');\"",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",

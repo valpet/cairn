@@ -12,10 +12,7 @@ export interface Issue {
   created_at: string;
   updated_at: string;
   closed_at?: string;
-  design?: string;
-  notes?: string; // deprecated: use comments instead
   comments?: Comment[];
-  acceptance_criteria?: string[];
 }
 
 export interface Comment {

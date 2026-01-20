@@ -314,7 +314,6 @@ describe('CLI Commands', () => {
       await updateAction('issue-456', {
         status: 'closed',
         title: 'New Title',
-        notes: 'Updated notes',
         labels: 'bug,urgent'
       });
 

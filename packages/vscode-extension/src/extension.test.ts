@@ -64,7 +64,7 @@ vi.mock('../../core/dist/index.js', () => ({
 }));
 
 // Import after mocking
-import { lm, commands, ExtensionContext } from 'vscode';
+import { lm, ExtensionContext } from 'vscode';
 import { createContainer, TYPES, findCairnDir, generateId } from '../../core/dist/index.js';
 import { activate } from './extension';
 
@@ -243,6 +243,54 @@ describe('VS Code Extension Tools', () => {
       }, {});
 
       expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(result.content[0].text).toContain('Updated issue task-123');
+    });
+
+    it('should ignore notes field and not create comments', async () => {
+      mockStorage.updateIssues.mockImplementation(async (callback) => {
+        const currentIssues = [{ id: 'task-123', status: 'open' }];
+        const updatedIssues = callback(currentIssues);
+        return updatedIssues;
+      });
+
+      const registerToolMock = lm.registerTool as any;
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_update');
+      const toolHandler = toolRegistration[1].invoke;
+
+      const result = await toolHandler({
+        input: {
+          id: 'task-123',
+          status: 'in_progress',
+          notes: 'These notes should be ignored',
+        }
+      }, {});
+
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockStorage.addComment).not.toHaveBeenCalled();
+      expect(result.content[0].text).toContain('Updated issue task-123');
+    });
+
+    it('should ignore acceptance_criteria field and not create comments', async () => {
+      mockStorage.updateIssues.mockImplementation(async (callback) => {
+        const currentIssues = [{ id: 'task-123', status: 'open' }];
+        const updatedIssues = callback(currentIssues);
+        return updatedIssues;
+      });
+
+      const registerToolMock = lm.registerTool as any;
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_update');
+      const toolHandler = toolRegistration[1].invoke;
+
+      const result = await toolHandler({
+        input: {
+          id: 'task-123',
+          status: 'in_progress',
+          acceptance_criteria: ['Criteria 1', 'Criteria 2'],
+        }
+      }, {});
+
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockStorage.addComment).not.toHaveBeenCalled();
       expect(result.content[0].text).toContain('Updated issue task-123');
     });
   });

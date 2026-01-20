@@ -158,8 +158,8 @@
         "displayName": "Update Task",
         "canBeReferencedInPrompt": true,
         "toolReferenceName": "cairn_update",
-        "userDescription": "Update an existing task's status, notes, or acceptance criteria",
-        "modelDescription": "Update an existing task in Cairn. Use this to change task status (open/in_progress/closed/blocked), add notes, or update acceptance criteria. Always provide the task ID.",
+        "userDescription": "Update an existing task's status",
+        "modelDescription": "Update an existing task in Cairn. Use this to change task status (open/in_progress/closed/blocked). Always provide the task ID.",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -176,17 +176,6 @@
                 "blocked"
               ],
               "description": "New status for the task"
-            },
-            "notes": {
-              "type": "string",
-              "description": "Optional notes to add"
-            },
-            "acceptance_criteria": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Acceptance criteria as array of strings"
             }
           },
           "required": [

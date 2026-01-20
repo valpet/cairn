@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -1150,8 +1150,16 @@
       return pill;
     }
 
-    // Simple markdown to HTML converter
+    // Cache for processed markdown to avoid re-processing the same content
+    const markdownCache = new Map();
+
+    // Simple markdown to HTML converter with caching
     function markdownToHtml(markdown) {
+      // Check cache first
+      if (markdownCache.has(markdown)) {
+        return markdownCache.get(markdown);
+      }
+
       let html = markdown;
 
       // Code blocks (before inline code)
@@ -1185,6 +1193,9 @@
         }
         return '<p>' + part.replace(/\n/g, '<br>') + '</p>';
       }).join('\n');
+
+      // Cache the result
+      markdownCache.set(markdown, html);
 
       return html;
     }
@@ -1226,7 +1237,38 @@
       } else {
         expandedDescriptions.add(taskId);
       }
-      renderTasks(allTasks);
+      // Update only the specific description instead of re-rendering everything
+      updateDescriptionDisplay(taskId);
+    }
+
+    // Function to update just the description display for a specific task
+    function updateDescriptionDisplay(taskId) {
+      const task = allTasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      // Find the description cell for this task
+      const descriptionCell = document.querySelector(`tr[data-task-id="${taskId}"] td.description-cell`);
+      if (!descriptionCell) return;
+
+      const descriptionContent = descriptionCell.querySelector('.description-content');
+      if (!descriptionContent) return;
+
+      const isDescExpanded = expandedDescriptions.has(taskId);
+
+      if (task.description && task.description.trim()) {
+        descriptionContent.className = `description-content ${isDescExpanded ? 'expanded' : 'collapsed'}`;
+        if (isDescExpanded) {
+          descriptionContent.innerHTML = markdownToHtml(task.description);
+        } else {
+          descriptionContent.textContent = task.description;
+        }
+        descriptionContent.title = isDescExpanded ? 'Click to collapse' : 'Click to expand';
+        descriptionContent.onclick = () => toggleDescription(taskId);
+        descriptionContent.style.cursor = 'pointer';
+      } else {
+        descriptionContent.className = 'description-empty';
+        descriptionContent.textContent = 'No description';
+      }
     }
 
     // Update filter chips display
@@ -1628,31 +1670,9 @@
         }
         descriptionContent.title = isDescExpanded ? 'Click to collapse' : 'Click to expand';
 
-        // Only add click handler if description is actually truncated (for collapsed state)
-        if (!isDescExpanded) {
-          // Check if content is truncated after DOM insertion
-          setTimeout(() => {
-            // Temporarily remove collapsed class to measure actual content height
-            descriptionContent.classList.remove('collapsed');
-
-            const actualHeight = descriptionContent.scrollHeight;
-            const lineHeight = parseFloat(getComputedStyle(descriptionContent).lineHeight);
-            const maxHeight = lineHeight * 2; // 2 lines max
-
-            // Restore collapsed class
-            descriptionContent.classList.add('collapsed');
-
-            if (actualHeight > maxHeight) {
-              descriptionContent.onclick = () => toggleDescription(task.id);
-              descriptionContent.style.cursor = 'pointer';
-            } else {
-              descriptionContent.style.cursor = 'default';
-            }
-          }, 0);
-        } else {
-          descriptionContent.onclick = () => toggleDescription(task.id);
-          descriptionContent.style.cursor = 'pointer';
-        }
+        // Always add click handler for descriptions with content
+        descriptionContent.onclick = () => toggleDescription(task.id);
+        descriptionContent.style.cursor = 'pointer';
       } else {
         descriptionContent.className = 'description-empty';
         descriptionContent.textContent = 'No description';
@@ -1685,8 +1705,8 @@
       const blockedBy = allTasks.filter(t => t.dependencies?.some(d => d.id === task.id && d.type === 'blocks')).length;
       if (blockers > 0 || blockedBy > 0) {
         const depText = [];
-        if (blockers > 0) depText.push(`${blockers}←`);
-        if (blockedBy > 0) depText.push(`${blockedBy}→`);
+        if (blockers > 0) depText.push(`${blockers}→`);
+        if (blockedBy > 0) depText.push(`${blockedBy}←`);
         dependencyCell.textContent = depText.join(' ');
         dependencyCell.style.fontSize = '12px';
         dependencyCell.style.color = 'var(--vscode-descriptionForeground)';
@@ -2269,21 +2289,42 @@
     }
 
     // Listen for messages from extension
+    console.log('=== SETTING UP MESSAGE HANDLER ===');
     window.addEventListener('message', event => {
+      console.log('=== MESSAGE EVENT RECEIVED ===');
+      console.log('Event origin:', event.origin);
+      console.log('Event source:', event.source);
       const message = event.data;
-      console.log('Received message:', message);
+      console.log('Message data:', message);
       if (message.type === 'updateTasks') {
-        console.log('Updating tasks:', message.tasks.length, 'tasks');
-        allTasks = message.tasks;
+        console.log('=== PROCESSING UPDATETASKS ===');
+        console.log('Tasks count:', message.tasks ? message.tasks.length : 'undefined');
+        allTasks = message.tasks || [];
+        // Clear markdown cache when tasks are updated to ensure fresh processing
+        markdownCache.clear();
+        console.log('allTasks set, calling renderTasks');
         renderTasks(allTasks);
+        console.log('renderTasks completed');
+      } else {
+        console.log('Unknown message type:', message.type);
       }
     });
+    console.log('Message handler setup complete');
 
     // Add event listeners for filter UI
-    document.getElementById('status-filter-trigger').addEventListener('click', (e) => {
-      e.stopPropagation();
-      togglePopover();
-    });
+    console.log('=== SETTING UP EVENT LISTENERS ===');
+    const statusFilterTrigger = document.getElementById('status-filter-trigger');
+    console.log('status-filter-trigger element:', statusFilterTrigger);
+    if (statusFilterTrigger) {
+      console.log('Adding click listener to status filter trigger');
+      statusFilterTrigger.addEventListener('click', (e) => {
+        console.log('Status filter trigger clicked');
+        e.stopPropagation();
+        togglePopover();
+      });
+    } else {
+      console.error('status-filter-trigger element not found!');
+    }
 
     document.querySelectorAll('.popover-option').forEach(option => {
       option.addEventListener('click', (e) => {

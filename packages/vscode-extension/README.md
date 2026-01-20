@@ -48,7 +48,7 @@ Cairn provides native language model tools for GitHub Copilot:
 
 - `cairn_create`: Create tasks with full configuration
 - `cairn_list_ready`: Get unblocked tasks ready for work
-- `cairn_update`: Update status, notes, and acceptance criteria
+- `cairn_update`: Update task status
 - `cairn_dep_add`: Add dependencies between tasks
 
 ## 📦 Installation
