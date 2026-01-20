@@ -26,7 +26,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "npx tsc",
     "test": "vitest --run",
     "lint": "eslint src --ext .ts"
   },
