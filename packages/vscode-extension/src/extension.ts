@@ -259,20 +259,20 @@ export function activate(context: vscode.ExtensionContext) {
               localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
             }
           );
-        outputChannel.appendLine('Panel created successfully');
-          
+          outputChannel.appendLine('Panel created successfully');
+
           let webviewReady = false;
-          
+
           // Handle messages from webview
           const disposable = panel.webview.onDidReceiveMessage(async (message) => {
-          outputChannel.appendLine(`Webview message received: ${message.type}`);
+            outputChannel.appendLine(`Webview message received: ${message.type}`);
             try {
               if (message.type === 'webviewReady') {
                 outputChannel.appendLine('Task list webview ready');
                 webviewReady = true;
                 await updateTasks();
               } else if (message.type === 'startTask') {
-              outputChannel.appendLine(`Starting task: ${message.id}`);
+                outputChannel.appendLine(`Starting task: ${message.id}`);
                 await storage.updateIssues(issues => {
                   return issues.map(issue => {
                     if (issue.id === message.id) {
@@ -283,7 +283,7 @@ export function activate(context: vscode.ExtensionContext) {
                 });
                 await updateTasks();
               } else if (message.type === 'completeTask') {
-              outputChannel.appendLine(`Completing task: ${message.id}`);
+                outputChannel.appendLine(`Completing task: ${message.id}`);
                 await storage.updateIssues(issues => {
                   return issues.map(issue => {
                     if (issue.id === message.id) {
@@ -294,7 +294,7 @@ export function activate(context: vscode.ExtensionContext) {
                 });
                 await updateTasks();
               } else if (message.type === 'editTicket') {
-              outputChannel.appendLine(`Edit ticket message received for: ${message.id}`);
+                outputChannel.appendLine(`Edit ticket message received for: ${message.id}`);
                 try {
                   await vscode.commands.executeCommand('cairn.editTicket', message.id);
                 } catch (error) {
@@ -313,7 +313,7 @@ export function activate(context: vscode.ExtensionContext) {
                   await deleteTask(message.id);
                   await updateTasks();
                 } catch (error) {
-                outputChannel.appendLine(`ERROR deleting task: ${error}`);
+                  outputChannel.appendLine(`ERROR deleting task: ${error}`);
                 }
               }
             } catch (error) {
@@ -326,22 +326,22 @@ export function activate(context: vscode.ExtensionContext) {
           context.subscriptions.push(disposable);
 
           // Load HTML
-        outputChannel.appendLine('Loading HTML...');
-        const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'index.html'));
-        outputChannel.appendLine(`HTML path: ${htmlPath.fsPath}`);
-        if (fs.existsSync(htmlPath.fsPath)) {
-          const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
-          panel.webview.html = htmlContent;
-          outputChannel.appendLine('HTML loaded successfully');
-        } else {
-          outputChannel.appendLine(`ERROR: HTML file not found: ${htmlPath.fsPath}`);
+          outputChannel.appendLine('Loading HTML...');
+          const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'index.html'));
+          outputChannel.appendLine(`HTML path: ${htmlPath.fsPath}`);
+          if (fs.existsSync(htmlPath.fsPath)) {
+            const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
+            panel.webview.html = htmlContent;
+            outputChannel.appendLine('HTML loaded successfully');
+          } else {
+            outputChannel.appendLine(`ERROR: HTML file not found: ${htmlPath.fsPath}`);
             panel.webview.html = '<html><body><h1>HTML file not found</h1></body></html>';
           }
 
           // Function to update tasks
           const updateTasks = async () => {
             if (!webviewReady) {
-            outputChannel.appendLine('Webview not ready yet, skipping updateTasks');
+              outputChannel.appendLine('Webview not ready yet, skipping updateTasks');
               return;
             }
             try {
