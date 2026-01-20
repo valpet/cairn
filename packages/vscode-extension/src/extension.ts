@@ -207,6 +207,20 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(outputChannel);
   outputChannel.appendLine('Cairn extension activated');
 
+  // Utility function to truncate long titles with ellipsis in the middle
+  function truncateTitle(title: string, id: string, maxLength = 30): string {
+    const suffix = ` (#${id})`;
+    const maxTitleLength = maxLength - suffix.length;
+    
+    if (title.length <= maxTitleLength) {
+      return `${title}${suffix}`;
+    }
+    
+    // Show first part and ellipsis, keeping ID at end
+    const truncated = title.substring(0, maxTitleLength - 3) + '...';
+    return `${truncated}${suffix}`;
+  }
+
   try {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     outputChannel.appendLine(`Workspace folders: ${vscode.workspace.workspaceFolders?.map(f => f.uri.fsPath).join(', ')}`);
@@ -405,7 +419,7 @@ export function activate(context: vscode.ExtensionContext) {
           // Load ticket data first to get the title for the panel
           const issues = await storage.loadIssues();
           const ticket = issues.find(i => i.id === id);
-          const displayTitle = ticket ? `${ticket.title} (#${id})` : `Edit Ticket #${id}`;
+          const displayTitle = ticket ? truncateTitle(ticket.title, id) : `Edit Ticket #${id}`;
 
           const panel = vscode.window.createWebviewPanel(
             'cairnEditTicket',
@@ -681,7 +695,7 @@ export function activate(context: vscode.ExtensionContext) {
 
                       const updatedTicket = updatedIssues.find(i => i.id === ticketData.id);
                       if (updatedTicket) {
-                        panel.title = `${updatedTicket.title} (#${ticketData.id})`;
+                        panel.title = truncateTitle(updatedTicket.title, ticketData.id);
                       }
                     } catch (saveError) {
                       outputChannel.appendLine(`Save operation failed: ${saveError}`);
