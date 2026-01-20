@@ -25,7 +25,19 @@ function main() {
 
     // Build TypeScript packages
     runCommand('npx tsc --project packages/core', 'Building core package');
+
+    // Temporarily change CLI dependency to file reference for build
+    const cliPkgPath = 'packages/cli/package.json';
+    const cliPkg = JSON.parse(fs.readFileSync(cliPkgPath, 'utf8'));
+    const originalCoreDep = cliPkg.dependencies['@valpet/cairn-core'];
+    cliPkg.dependencies['@valpet/cairn-core'] = 'file:../core';
+    fs.writeFileSync(cliPkgPath, JSON.stringify(cliPkg, null, 2));
+
     runCommand('npx tsc --project packages/cli', 'Building CLI package');
+
+    // Restore original dependency
+    cliPkg.dependencies['@valpet/cairn-core'] = originalCoreDep;
+    fs.writeFileSync(cliPkgPath, JSON.stringify(cliPkg, null, 2));
 
     // Check if dist directories exist
     if (!fs.existsSync('packages/core/dist')) {
