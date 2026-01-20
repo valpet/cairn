@@ -1,7 +1,7 @@
 {
   "name": "cairn-extension",
   "displayName": "Cairn: Context Keeper",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "valpet",
   "description": "Prevents AI agent 'dementia' in long development sessions. Maintains persistent, structured context through a dependency-aware graph that survives across conversations.",
   "readme": "README.md",
@@ -42,7 +42,7 @@
     "prepackage": "node -e \"const fs = require('fs'); const path = require('path'); const srcDir = path.join(__dirname, '../core/dist'); const destDir = path.join(__dirname, 'node_modules/@cairn/core'); if (!fs.existsSync(path.dirname(destDir))) fs.mkdirSync(path.dirname(destDir), { recursive: true }); fs.cpSync(srcDir, destDir, { recursive: true }); fs.copyFileSync(path.join(__dirname, '../core/package.json'), path.join(destDir, 'package.json')); console.log('Copied core package to node_modules');\"",
     "package": "npx vsce package",
     "package-all": "npm run prepackage && npm run build && npm run package",
-    "install-extension": "npm run package-all && code-insiders --install-extension cairn-extension-1.0.2.vsix",
+    "install-extension": "npm run package-all && code-insiders --install-extension cairn-extension-$(node -p \"require('./package.json').version\").vsix",
     "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {

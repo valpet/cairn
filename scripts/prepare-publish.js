@@ -48,11 +48,7 @@ function main() {
     runCommand('cd packages/vscode-extension && npm run package-all && cd ../..', 'Building and packaging VSCode extension');
 
     // Run tests
-    try {
-      runCommand('npm run test', 'Running tests');
-    } catch (error) {
-      console.log('Some tests failed but continuing...');
-    }
+    runCommand('npm run test', 'Running tests');
 
     // Prepare packages for publishing
     console.log('\nPreparing packages for publishing...');

@@ -39,4 +39,4 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish VSCode Extension
-        run: cd packages/vscode-extension && npx vsce publish -p ${{ secrets.VSCE_PAT }}
+        run: cd packages/vscode-extension && npx vsce publish --allow-proposed-apis languageModelTools -p ${{ secrets.VSCE_PAT }}

@@ -10,6 +10,10 @@ vi.mock('vscode', () => ({
   },
   window: {
     createWebviewPanel: vi.fn(),
+    createOutputChannel: vi.fn(() => ({
+      appendLine: vi.fn(),
+      dispose: vi.fn(),
+    })),
     showErrorMessage: vi.fn(),
     showInformationMessage: vi.fn(),
   },
@@ -26,6 +30,8 @@ vi.mock('vscode', () => ({
   ExtensionContext: class {
     subscriptions: any[] = [];
   },
+  LanguageModelToolResult: vi.fn((parts) => ({ content: parts })),
+  LanguageModelTextPart: vi.fn((text) => ({ text })),
 }));
 
 // Mock file system
@@ -53,11 +59,13 @@ vi.mock('../../core/dist/index.js', () => ({
     IStorageService: 'IStorageService',
     IGraphService: 'IGraphService',
   },
+  findCairnDir: vi.fn(() => ({ cairnDir: '/test/workspace/.cairn', repoRoot: '/test/workspace' })),
+  generateId: vi.fn(() => 's-test-id-123'),
 }));
 
 // Import after mocking
 import { lm, commands, ExtensionContext } from 'vscode';
-import { createContainer, TYPES } from '../../core/dist/index.js';
+import { createContainer, TYPES, findCairnDir, generateId } from '../../core/dist/index.js';
 import { activate } from './extension';
 
 describe('VS Code Extension Tools', () => {
@@ -100,6 +108,8 @@ describe('VS Code Extension Tools', () => {
     mockContext = new ExtensionContext();
 
     (createContainer as any).mockReturnValue(mockContainer);
+    (findCairnDir as any).mockReturnValue({ cairnDir: '/test/workspace/.cairn', repoRoot: '/test/workspace' });
+    (generateId as any).mockReturnValue('s-test-id-123');
 
     // Activate the extension to register tools
     activate(mockContext);
