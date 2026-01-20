@@ -1032,6 +1032,55 @@
       height: 14px;
     }
 
+    .task-id-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+
+    .task-id {
+      font-size: 11px;
+      color: var(--vscode-descriptionForeground);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .metadata-value .task-id {
+      font-size: 13px;
+      color: var(--vscode-editor-foreground);
+
+    }
+
+    .copy-id-btn svg {
+      fill: var(--vscode-editor-foreground);
+    }
+
+    .copy-id-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 2px;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .copy-id-btn:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .copy-id-btn svg {
+      width: 12px;
+      height: 12px;
+      opacity: 0.8;
+    }
+
     #commentInput {
       width: 100%;
       min-height: 80px;
@@ -1057,7 +1106,8 @@
           <div class="collapsible-header" onclick="toggleSection(this)">
             <h3>Overview</h3>
             <svg class="collapsible-caret" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/>
+              <path
+                d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z" />
             </svg>
           </div>
           <div class="collapsible-body">
@@ -1079,70 +1129,98 @@
         <div class="collapsible-header" onclick="toggleSection(this)">
           <h3>Properties</h3>
           <svg class="collapsible-caret" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/>
+            <path
+              d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z" />
           </svg>
         </div>
         <div class="collapsible-body">
           <div class="collapsible-content">
-        
-        <div class="metadata-item">
-          <label class="metadata-label">Type</label>
-          <div class="metadata-value">
-            <select id="type" onchange="saveTicket()">
-              <option value="task">Task</option>
-              <option value="bug">Bug</option>
-              <option value="feature">Feature</option>
-              <option value="epic">Epic</option>
-              <option value="chore">Chore</option>
-              <option value="docs">Docs</option>
-              <option value="refactor">Refactor</option>
-            </select>
-          </div>
-        </div>
 
-        <div class="metadata-item">
-          <label class="metadata-label">Priority</label>
-          <div class="metadata-value">
-            <select id="priority" onchange="saveTicket()">
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="urgent">Urgent</option>
-            </select>
-          </div>
-        </div>
+            <div class="metadata-item">
+              <label class="metadata-label">Type</label>
+              <div class="metadata-value">
+                <select id="type" onchange="saveTicket()">
+                  <option value="task">Task</option>
+                  <option value="bug">Bug</option>
+                  <option value="feature">Feature</option>
+                  <option value="epic">Epic</option>
+                  <option value="chore">Chore</option>
+                  <option value="docs">Docs</option>
+                  <option value="refactor">Refactor</option>
+                </select>
+              </div>
+            </div>
 
-        <div class="metadata-item">
-          <label class="metadata-label">Status</label>
-          <div class="metadata-value">
-            <select id="status" onchange="onStatusChange(); saveTicket()">
-              <option value="open">Open</option>
-              <option value="in_progress">In Progress</option>
-              <option value="closed">Closed</option>
-              <option value="blocked">Blocked</option>
-            </select>
-          </div>
-        </div>
+            <div class="metadata-item">
+              <label class="metadata-label">Priority</label>
+              <div class="metadata-value">
+                <select id="priority" onchange="saveTicket()">
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+            </div>
 
-        <div class="metadata-item">
-          <label class="metadata-label">Created</label>
-          <div class="metadata-value date-value" id="createdDate">-</div>
-        </div>
+            <div class="metadata-item">
+              <label class="metadata-label">Status</label>
+              <div class="metadata-value">
+                <select id="status" onchange="onStatusChange(); saveTicket()">
+                  <option value="open">Open</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="closed">Closed</option>
+                  <option value="blocked">Blocked</option>
+                </select>
+              </div>
+            </div>
 
-        <div class="metadata-item">
-          <label class="metadata-label">Updated</label>
-          <div class="metadata-value date-value" id="updatedDate">-</div>
-        </div>
+            <div class="metadata-item">
+              <label class="metadata-label">Created</label>
+              <div class="metadata-value date-value" id="createdDate">-</div>
+            </div>
 
-        <div class="metadata-item" id="closedDateContainer" style="display: none;">
-          <label class="metadata-label">Closed</label>
-          <div class="metadata-value date-value" id="closedDate">-</div>
-        </div>
+            <div class="metadata-item">
+              <label class="metadata-label">Updated</label>
+              <div class="metadata-value date-value" id="updatedDate">-</div>
+            </div>
 
-        <div class="metadata-item">
-          <label class="metadata-label">ID</label>
-          <div class="metadata-value" id="ticketId">-</div>
-        </div>
+            <div class="metadata-item" id="closedDateContainer" style="display: none;">
+              <label class="metadata-label">Closed</label>
+              <div class="metadata-value date-value" id="closedDate">-</div>
+            </div>
+
+            <div class="metadata-item">
+              <label class="metadata-label">ID</label>
+              <div class="metadata-value">
+                <div class="task-id">
+                  <span id="ticketId">-</span>
+                  <button class="copy-id-btn" title="Copy ID to clipboard"
+                    onclick="navigator.clipboard.writeText(document.getElementById('ticketId').textContent)">
+                    <svg fill="#000000" viewBox="0 0 36 36" version="1.1" preserveAspectRatio="xMidYMid meet"
+                      xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                      <g id="SVGRepo_iconCarrier">
+                        <title>copy-to-clipboard-line</title>
+                        <path
+                          d="M22.6,4H21.55a3.89,3.89,0,0,0-7.31,0H13.4A2.41,2.41,0,0,0,11,6.4V10H25V6.4A2.41,2.41,0,0,0,22.6,4ZM23,8H13V6.25A.25.25,0,0,1,13.25,6h2.69l.12-1.11A1.24,1.24,0,0,1,16.61,4a2,2,0,0,1,3.15,1.18l.09.84h2.9a.25.25,0,0,1,.25.25Z"
+                          class="clr-i-outline clr-i-outline-path-1"></path>
+                        <path
+                          d="M33.25,18.06H21.33l2.84-2.83a1,1,0,1,0-1.42-1.42L17.5,19.06l5.25,5.25a1,1,0,0,0,.71.29,1,1,0,0,0,.71-1.7l-2.84-2.84H33.25a1,1,0,0,0,0-2Z"
+                          class="clr-i-outline clr-i-outline-path-2"></path>
+                        <path d="M29,16h2V6.68A1.66,1.66,0,0,0,29.35,5H27.08V7H29Z"
+                          class="clr-i-outline clr-i-outline-path-3"></path>
+                        <path
+                          d="M29,31H7V7H9V5H6.64A1.66,1.66,0,0,0,5,6.67V31.32A1.66,1.66,0,0,0,6.65,33H29.36A1.66,1.66,0,0,0,31,31.33V22.06H29Z"
+                          class="clr-i-outline clr-i-outline-path-4"></path>
+                        <rect x="0" y="0" width="36" height="36" fill-opacity="0"></rect>
+                      </g>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1151,13 +1229,14 @@
       <div class="collapsible-header" onclick="toggleSection(this)">
         <h3>Sub-issues</h3>
         <svg class="collapsible-caret" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/>
+          <path
+            d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z" />
         </svg>
       </div>
       <div class="collapsible-body">
         <div class="collapsible-content">
-      <div id="subtasksList" class="subtask-list"></div>
-      <button type="button" id="addSubtask" class="secondary">Add Sub-issue</button>
+          <div id="subtasksList" class="subtask-list"></div>
+          <button type="button" id="addSubtask" class="secondary">Add Sub-issue</button>
         </div>
       </div>
     </div>
@@ -1165,20 +1244,21 @@
       <div class="collapsible-header" onclick="toggleSection(this)">
         <h3>Dependencies</h3>
         <svg class="collapsible-caret" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/>
+          <path
+            d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z" />
         </svg>
       </div>
       <div class="collapsible-body">
         <div class="collapsible-content">
-      <div class="dependency-section">
-        <h4>Blocked by</h4>
-        <div id="blockedByList" class="dependency-list"></div>
-      </div>
-      <div class="dependency-section">
-        <h4>This issue is blocking</h4>
-        <div id="blockingList" class="dependency-list"></div>
-      </div>
-      <button type="button" id="addDependency" class="secondary">Add Dependency</button>
+          <div class="dependency-section">
+            <h4>Blocked by</h4>
+            <div id="blockedByList" class="dependency-list"></div>
+          </div>
+          <div class="dependency-section">
+            <h4>This issue is blocking</h4>
+            <div id="blockingList" class="dependency-list"></div>
+          </div>
+          <button type="button" id="addDependency" class="secondary">Add Dependency</button>
         </div>
       </div>
     </div>
@@ -1186,29 +1266,34 @@
       <div class="collapsible-header" onclick="toggleSection(this)">
         <h3 class="comments-header">Comments</h3>
         <svg class="collapsible-caret" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/>
+          <path
+            d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z" />
         </svg>
       </div>
       <div class="collapsible-body">
         <div class="collapsible-content">
-      <div class="comments-thread" id="commentsThread">
-        <div class="comments-empty">No comments yet. Add a comment below to start the conversation.</div>
-      </div>
-      <div class="add-comment-form">
-        <div class="add-comment-header">
-          <svg class="user-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.2"/>
-            <path d="M16.807 19.0112C15.4398 19.9504 13.7841 20.5 12 20.5C10.2159 20.5 8.56023 19.9503 7.193 19.0111C6.58915 18.5963 6.33109 17.8062 6.68219 17.1632C7.41001 15.8302 8.90973 15 12 15C15.0903 15 16.59 15.8303 17.3178 17.1632C17.6689 17.8062 17.4108 18.5964 16.807 19.0112Z" fill="currentColor"/>
-            <path d="M12 12C13.6569 12 15 10.6569 15 9C15 7.34315 13.6569 6 12 6C10.3432 6 9.00004 7.34315 9.00004 9C9.00004 10.6569 10.3432 12 12 12Z" fill="currentColor"/>
-          </svg>
-          <label>Commenting as:</label>
-          <div id="commentAuthorContainer" class="commenting-as-field"></div>
-        </div>
-        <textarea id="commentInput" placeholder="Add a comment..."></textarea>
-        <div class="add-comment-actions">
-          <button type="button" id="addCommentBtn">Add Comment</button>
-        </div>
-      </div>
+          <div class="comments-thread" id="commentsThread">
+            <div class="comments-empty">No comments yet. Add a comment below to start the conversation.</div>
+          </div>
+          <div class="add-comment-form">
+            <div class="add-comment-header">
+              <svg class="user-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.2" />
+                <path
+                  d="M16.807 19.0112C15.4398 19.9504 13.7841 20.5 12 20.5C10.2159 20.5 8.56023 19.9503 7.193 19.0111C6.58915 18.5963 6.33109 17.8062 6.68219 17.1632C7.41001 15.8302 8.90973 15 12 15C15.0903 15 16.59 15.8303 17.3178 17.1632C17.6689 17.8062 17.4108 18.5964 16.807 19.0112Z"
+                  fill="currentColor" />
+                <path
+                  d="M12 12C13.6569 12 15 10.6569 15 9C15 7.34315 13.6569 6 12 6C10.3432 6 9.00004 7.34315 9.00004 9C9.00004 10.6569 10.3432 12 12 12Z"
+                  fill="currentColor" />
+              </svg>
+              <label>Commenting as:</label>
+              <div id="commentAuthorContainer" class="commenting-as-field"></div>
+            </div>
+            <textarea id="commentInput" placeholder="Add a comment..."></textarea>
+            <div class="add-comment-actions">
+              <button type="button" id="addCommentBtn">Add Comment</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1241,7 +1326,8 @@
       </div>
       <div class="modal-body">
         <div style="margin-bottom: 12px;">
-          <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500;">Dependency Direction:</label>
+          <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500;">Dependency
+            Direction:</label>
           <div style="display: flex; gap: 16px;">
             <label style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
               <input type="radio" name="dependencyDirection" value="blocks" checked>
@@ -1282,7 +1368,7 @@
       header.classList.toggle('collapsed');
       const body = header.nextElementSibling;
       body.classList.toggle('collapsed');
-      
+
       if (!body.classList.contains('collapsed')) {
         body.style.maxHeight = body.scrollHeight + 'px';
       }
@@ -1304,7 +1390,7 @@
         this.onSave = options.onSave;
         this.onCancel = options.onCancel;
         this.onDisplayUpdate = options.onDisplayUpdate;
-        
+
         this.container = null;
         this.displayElement = null;
         this.editElement = null;
@@ -1312,24 +1398,24 @@
         this.originalValue = '';
         this.currentValue = '';
         this.isDirty = false;
-        
+
         this.init();
       }
-      
+
       init() {
         // Create container
         this.container = document.createElement('div');
         this.container.className = 'editable-field';
-        
+
         // Create display element
         this.displayElement = document.createElement('div');
         this.displayElement.className = 'field-display';
         this.displayElement.onclick = () => this.enterEditMode();
-        
+
         const textElement = document.createElement('div');
         textElement.className = 'field-text';
         this.displayElement.appendChild(textElement);
-        
+
         const icon = document.createElement('svg');
         icon.className = 'edit-icon';
         icon.setAttribute('viewBox', '0 0 16 16');
@@ -1338,11 +1424,11 @@
         path.setAttribute('d', 'M13.23 1h-1.46L3.52 9.25l-.16.22L2 13.59l4.12-1.36.22-.16L14.59 3.23V1.77L13.23 1zM2.41 13.59l.72-2.17 1.45 1.45-2.17.72zm2.5-2.07L3.53 10.1 10.8 2.83l1.38 1.38-7.27 7.27z');
         icon.appendChild(path);
         this.displayElement.appendChild(icon);
-        
+
         // Create edit element
         this.editElement = document.createElement('div');
         this.editElement.className = 'field-edit hidden';
-        
+
         this.inputElement = document.createElement(this.isTextarea ? 'textarea' : 'input');
         if (!this.isTextarea) {
           this.inputElement.type = 'text';
@@ -1353,16 +1439,16 @@
         }
         this.inputElement.onblur = () => this.handleBlur();
         this.inputElement.onkeydown = (e) => this.handleKeydown(e);
-        
+
         const actions = document.createElement('div');
         actions.className = 'edit-actions';
-        
+
         const acceptBtn = document.createElement('button');
         acceptBtn.type = 'button';
         acceptBtn.className = 'icon-button accept';
         acceptBtn.title = 'Save';
         acceptBtn.onclick = () => this.save();
-        
+
         const acceptSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         acceptSvg.setAttribute('viewBox', '0 0 16 16');
         acceptSvg.setAttribute('fill', 'currentColor');
@@ -1370,13 +1456,13 @@
         acceptPath.setAttribute('d', 'M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z');
         acceptSvg.appendChild(acceptPath);
         acceptBtn.appendChild(acceptSvg);
-        
+
         const cancelBtn = document.createElement('button');
         cancelBtn.type = 'button';
         cancelBtn.className = 'icon-button cancel';
         cancelBtn.title = 'Cancel';
         cancelBtn.onclick = () => this.cancel();
-        
+
         const cancelSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         cancelSvg.setAttribute('viewBox', '0 0 16 16');
         cancelSvg.setAttribute('fill', 'currentColor');
@@ -1384,29 +1470,29 @@
         cancelPath.setAttribute('d', 'M8 8.707l3.646 3.647.708-.707L8.707 8l3.647-3.646-.707-.708L8 7.293 4.354 3.646l-.707.708L7.293 8l-3.646 3.646.707.708L8 8.707z');
         cancelSvg.appendChild(cancelPath);
         cancelBtn.appendChild(cancelSvg);
-        
+
         actions.appendChild(acceptBtn);
         actions.appendChild(cancelBtn);
-        
+
         this.editElement.appendChild(this.inputElement);
         this.editElement.appendChild(actions);
-        
+
         this.container.appendChild(this.displayElement);
         this.container.appendChild(this.editElement);
         console.log('EditableField init completed, container:', this.container);
       }
-      
+
       getElement() {
         console.log('getElement called, container:', this.container);
         return this.container;
       }
-      
+
       setValue(value) {
         this.currentValue = value || '';
         this.originalValue = this.currentValue;
         this.updateDisplay();
       }
-      
+
       updateDisplay() {
         const textElement = this.displayElement.querySelector('.field-text');
         if (!this.currentValue) {
@@ -1416,12 +1502,12 @@
           textElement.textContent = this.currentValue;
           textElement.classList.remove('placeholder');
         }
-        
+
         if (this.onDisplayUpdate) {
           this.onDisplayUpdate(this.currentValue);
         }
       }
-      
+
       enterEditMode() {
         this.displayElement.classList.add('hidden');
         this.editElement.classList.remove('hidden');
@@ -1430,13 +1516,13 @@
         this.inputElement.select();
         this.isDirty = false;
       }
-      
+
       exitEditMode() {
         this.displayElement.classList.remove('hidden');
         this.editElement.classList.add('hidden');
         this.isDirty = false;
       }
-      
+
       handleBlur() {
         // If value hasn't changed, exit edit mode
         if (!this.isDirty) {
@@ -1444,7 +1530,7 @@
         }
         // If value has changed (dirty), stay in edit mode - user must explicitly save/cancel
       }
-      
+
       handleKeydown(e) {
         if (e.key === 'Enter' && !this.isTextarea) {
           e.preventDefault();
@@ -1460,28 +1546,28 @@
           setTimeout(() => this.checkDirty(), 0);
         }
       }
-      
+
       checkDirty() {
         const newValue = this.inputElement.value.trim();
         this.isDirty = newValue !== this.originalValue;
       }
-      
+
       save() {
         const newValue = this.inputElement.value.trim();
         this.currentValue = newValue;
         this.updateDisplay();
         this.exitEditMode();
-        
+
         if (this.onSave) {
           this.onSave(newValue);
         }
       }
-      
+
       cancel() {
         this.currentValue = this.originalValue;
         this.updateDisplay();
         this.exitEditMode();
-        
+
         if (this.onCancel) {
           this.onCancel();
         }
@@ -1540,10 +1626,10 @@
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('viewBox', '0 0 1024 1024');
       svg.setAttribute('fill', 'currentColor');
-      
+
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', 'M195.2 195.2a64 64 0 0 1 90.496 0L512 421.504 738.304 195.2a64 64 0 0 1 90.496 90.496L602.496 512 828.8 738.304a64 64 0 0 1-90.496 90.496L512 602.496 285.696 828.8a64 64 0 0 1-90.496-90.496L421.504 512 195.2 285.696a64 64 0 0 1 0-90.496z');
-      
+
       svg.appendChild(path);
       return svg;
     }
@@ -1570,14 +1656,14 @@
       svg.setAttribute('height', '18');
       svg.style.marginRight = '4px';
       svg.style.flexShrink = '0';
-      
+
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', 'M3 9H21M7 3V5M17 3V5M6 12H10V16H6V12ZM6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z');
       path.setAttribute('stroke', 'currentColor');
       path.setAttribute('stroke-width', '2');
       path.setAttribute('stroke-linecap', 'round');
       path.setAttribute('stroke-linejoin', 'round');
-      
+
       svg.appendChild(path);
       return svg;
     }
@@ -1585,14 +1671,14 @@
     function setDateWithIcon(elementId, isoString) {
       const element = document.getElementById(elementId);
       if (!element) return;
-      
+
       // Clear existing content
       element.innerHTML = '';
-      
+
       // Add calendar icon
       const icon = createCalendarIcon();
       element.appendChild(icon);
-      
+
       // Add date text
       const textNode = document.createTextNode(formatDate(isoString));
       element.appendChild(textNode);
@@ -1617,15 +1703,15 @@
         document.getElementById('status').value = message.ticket.status || 'open';
         subtasks = message.ticket.subtasks || [];
         dependencies = message.ticket.dependencies || [];
-        
+
         // Update closed date display based on status
         onStatusChange();
-        
+
         // Populate metadata
         document.getElementById('ticketId').textContent = message.ticket.id;
         setDateWithIcon('createdDate', message.ticket.created_at);
         setDateWithIcon('updatedDate', message.ticket.updated_at);
-        
+
         const closedContainer = document.getElementById('closedDateContainer');
         const closedDateEl = document.getElementById('closedDate');
         if (message.ticket.closed_at) {
@@ -1634,7 +1720,7 @@
         } else {
           closedContainer.style.display = 'none';
         }
-        
+
         // Initialize editable fields
         if (!titleField) {
           titleField = new EditableField({
@@ -1655,7 +1741,7 @@
           document.getElementById('titleContainer').appendChild(titleField.getElement());
         }
         titleField.setValue(currentTitle);
-        
+
         if (!descriptionField) {
           try {
             descriptionField = new EditableField({
@@ -1692,7 +1778,7 @@
         } catch (error) {
           console.error('Error setting description value:', error);
         }
-        
+
         // Initialize comment author field if not already created
         if (!commentAuthorField) {
           commentAuthorField = new EditableField({
@@ -1712,11 +1798,11 @@
           document.getElementById('commentAuthorContainer').appendChild(commentAuthorField.getElement());
           commentAuthorField.setValue(currentCommentAuthor);
         }
-        
+
         renderComments();
         renderSubtasks();
         renderDependencies();
-        
+
         // Initialize accordion sections after content is loaded
         setTimeout(initializeSections, 50);
       } else if (message.type === 'availableSubtasks') {
@@ -1776,18 +1862,36 @@
         infoDiv.className = 'subtask-info';
 
         const typeBadge = createTypeBadge(subtask.type);
+
+        const titleIdContainer = document.createElement('div');
+        titleIdContainer.className = 'task-id-container';
+
+        const idDiv = document.createElement('div');
+        idDiv.className = 'task-id';
+        const idText = document.createElement('span');
+        idText.textContent = subtask.id;
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-id-btn';
+        copyBtn.title = 'Copy ID to clipboard';
+        copyBtn.innerHTML = '<svg fill="#000000" viewBox="0 0 36 36" version="1.1" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>copy-to-clipboard-line</title> <path d="M22.6,4H21.55a3.89,3.89,0,0,0-7.31,0H13.4A2.41,2.41,0,0,0,11,6.4V10H25V6.4A2.41,2.41,0,0,0,22.6,4ZM23,8H13V6.25A.25.25,0,0,1,13.25,6h2.69l.12-1.11A1.24,1.24,0,0,1,16.61,4a2,2,0,0,1,3.15,1.18l.09.84h2.9a.25.25,0,0,1,.25.25Z" class="clr-i-outline clr-i-outline-path-1"></path><path d="M33.25,18.06H21.33l2.84-2.83a1,1,0,1,0-1.42-1.42L17.5,19.06l5.25,5.25a1,1,0,0,0,.71.29,1,1,0,0,0,.71-1.7l-2.84-2.84H33.25a1,1,0,0,0,0-2Z" class="clr-i-outline clr-i-outline-path-2"></path><path d="M29,16h2V6.68A1.66,1.66,0,0,0,29.35,5H27.08V7H29Z" class="clr-i-outline clr-i-outline-path-3"></path><path d="M29,31H7V7H9V5H6.64A1.66,1.66,0,0,0,5,6.67V31.32A1.66,1.66,0,0,0,6.65,33H29.36A1.66,1.66,0,0,0,31,31.33V22.06H29Z" class="clr-i-outline clr-i-outline-path-4"></path> <rect x="0" y="0" width="36" height="36" fill-opacity="0"></rect> </g></svg>';
+        copyBtn.onclick = (e) => {
+          e.stopPropagation();
+          navigator.clipboard.writeText(subtask.id);
+        };
+        idDiv.appendChild(idText);
+        idDiv.appendChild(copyBtn);
+
         const titleSpan = document.createElement('span');
         titleSpan.className = 'subtask-title';
         titleSpan.textContent = subtask.title;
         titleSpan.style.cursor = 'pointer';
         titleSpan.onclick = () => editTask(subtask.id);
-        const idSpan = document.createElement('span');
-        idSpan.className = 'subtask-id';
-        idSpan.textContent = subtask.id;
+
+        titleIdContainer.appendChild(idDiv);
+        titleIdContainer.appendChild(titleSpan);
 
         infoDiv.appendChild(typeBadge);
-        infoDiv.appendChild(titleSpan);
-        infoDiv.appendChild(idSpan);
+        infoDiv.appendChild(titleIdContainer);
 
         const statusPill = createStatusPill(subtask.status);
         const priorityPill = createPriorityPill(subtask.priority);
@@ -1806,7 +1910,7 @@
 
         list.appendChild(div);
       });
-      
+
       // Update collapsible section height
       const section = list.closest('.collapsible-body');
       if (section && !section.classList.contains('collapsed')) {
@@ -1828,18 +1932,36 @@
         infoDiv.className = 'dependency-info';
 
         const typeBadge = createTypeBadge(dep.type);
+
+        const titleIdContainer = document.createElement('div');
+        titleIdContainer.className = 'task-id-container';
+
+        const idDiv = document.createElement('div');
+        idDiv.className = 'task-id';
+        const idText = document.createElement('span');
+        idText.textContent = dep.id;
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-id-btn';
+        copyBtn.title = 'Copy ID to clipboard';
+        copyBtn.innerHTML = '<svg fill="#000000" viewBox="0 0 36 36" version="1.1" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>copy-to-clipboard-line</title> <path d="M22.6,4H21.55a3.89,3.89,0,0,0-7.31,0H13.4A2.41,2.41,0,0,0,11,6.4V10H25V6.4A2.41,2.41,0,0,0,22.6,4ZM23,8H13V6.25A.25.25,0,0,1,13.25,6h2.69l.12-1.11A1.24,1.24,0,0,1,16.61,4a2,2,0,0,1,3.15,1.18l.09.84h2.9a.25.25,0,0,1,.25.25Z" class="clr-i-outline clr-i-outline-path-1"></path><path d="M33.25,18.06H21.33l2.84-2.83a1,1,0,1,0-1.42-1.42L17.5,19.06l5.25,5.25a1,1,0,0,0,.71.29,1,1,0,0,0,.71-1.7l-2.84-2.84H33.25a1,1,0,0,0,0-2Z" class="clr-i-outline clr-i-outline-path-2"></path><path d="M29,16h2V6.68A1.66,1.66,0,0,0,29.35,5H27.08V7H29Z" class="clr-i-outline clr-i-outline-path-3"></path><path d="M29,31H7V7H9V5H6.64A1.66,1.66,0,0,0,5,6.67V31.32A1.66,1.66,0,0,0,6.65,33H29.36A1.66,1.66,0,0,0,31,31.33V22.06H29Z" class="clr-i-outline clr-i-outline-path-4"></path> <rect x="0" y="0" width="36" height="36" fill-opacity="0"></rect> </g></svg>';
+        copyBtn.onclick = (e) => {
+          e.stopPropagation();
+          navigator.clipboard.writeText(dep.id);
+        };
+        idDiv.appendChild(idText);
+        idDiv.appendChild(copyBtn);
+
         const titleSpan = document.createElement('span');
         titleSpan.className = 'dependency-title';
         titleSpan.textContent = dep.title;
         titleSpan.style.cursor = 'pointer';
         titleSpan.onclick = () => editTask(dep.id);
-        const idSpan = document.createElement('span');
-        idSpan.className = 'dependency-id';
-        idSpan.textContent = dep.id;
+
+        titleIdContainer.appendChild(idDiv);
+        titleIdContainer.appendChild(titleSpan);
 
         infoDiv.appendChild(typeBadge);
-        infoDiv.appendChild(titleSpan);
-        infoDiv.appendChild(idSpan);
+        infoDiv.appendChild(titleIdContainer);
 
         const statusPill = createDependencyStatusPill(dep.status);
         const priorityPill = createDependencyPriorityPill(dep.priority);
@@ -1862,7 +1984,7 @@
           blockingList.appendChild(div);
         }
       });
-      
+
       // Update collapsible section height
       const section = blockedByList.closest('.collapsible-body');
       if (section && !section.classList.contains('collapsed')) {
@@ -1976,16 +2098,34 @@
         infoDiv.className = 'subtask-info';
 
         const typeBadge = createTypeBadge(subtask.type);
+
+        const titleIdContainer = document.createElement('div');
+        titleIdContainer.className = 'task-id-container';
+
+        const idDiv = document.createElement('div');
+        idDiv.className = 'task-id';
+        const idText = document.createElement('span');
+        idText.textContent = subtask.id;
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-id-btn';
+        copyBtn.title = 'Copy ID to clipboard';
+        copyBtn.innerHTML = '<svg fill="#000000" viewBox="0 0 36 36" version="1.1" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>copy-to-clipboard-line</title> <path d="M22.6,4H21.55a3.89,3.89,0,0,0-7.31,0H13.4A2.41,2.41,0,0,0,11,6.4V10H25V6.4A2.41,2.41,0,0,0,22.6,4ZM23,8H13V6.25A.25.25,0,0,1,13.25,6h2.69l.12-1.11A1.24,1.24,0,0,1,16.61,4a2,2,0,0,1,3.15,1.18l.09.84h2.9a.25.25,0,0,1,.25.25Z" class="clr-i-outline clr-i-outline-path-1"></path><path d="M33.25,18.06H21.33l2.84-2.83a1,1,0,1,0-1.42-1.42L17.5,19.06l5.25,5.25a1,1,0,0,0,.71.29,1,1,0,0,0,.71-1.7l-2.84-2.84H33.25a1,1,0,0,0,0-2Z" class="clr-i-outline clr-i-outline-path-2"></path><path d="M29,16h2V6.68A1.66,1.66,0,0,0,29.35,5H27.08V7H29Z" class="clr-i-outline clr-i-outline-path-3"></path><path d="M29,31H7V7H9V5H6.64A1.66,1.66,0,0,0,5,6.67V31.32A1.66,1.66,0,0,0,6.65,33H29.36A1.66,1.66,0,0,0,31,31.33V22.06H29Z" class="clr-i-outline clr-i-outline-path-4"></path> <rect x="0" y="0" width="36" height="36" fill-opacity="0"></rect> </g></svg>';
+        copyBtn.onclick = (e) => {
+          e.stopPropagation();
+          navigator.clipboard.writeText(subtask.id);
+        };
+        idDiv.appendChild(idText);
+        idDiv.appendChild(copyBtn);
+
         const titleSpan = document.createElement('span');
         titleSpan.className = 'subtask-title';
         titleSpan.textContent = subtask.title;
-        const idSpan = document.createElement('span');
-        idSpan.className = 'subtask-id';
-        idSpan.textContent = subtask.id;
+
+        titleIdContainer.appendChild(idDiv);
+        titleIdContainer.appendChild(titleSpan);
 
         infoDiv.appendChild(typeBadge);
-        infoDiv.appendChild(titleSpan);
-        infoDiv.appendChild(idSpan);
+        infoDiv.appendChild(titleIdContainer);
 
         const statusPill = createStatusPill(subtask.status);
         const priorityPill = createPriorityPill(subtask.priority);
@@ -2118,16 +2258,34 @@
         infoDiv.className = 'dependency-info';
 
         const typeBadge = createTypeBadge(dep.type);
+
+        const titleIdContainer = document.createElement('div');
+        titleIdContainer.className = 'task-id-container';
+
+        const idDiv = document.createElement('div');
+        idDiv.className = 'task-id';
+        const idText = document.createElement('span');
+        idText.textContent = dep.id;
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-id-btn';
+        copyBtn.title = 'Copy ID to clipboard';
+        copyBtn.innerHTML = '<svg fill="#000000" viewBox="0 0 36 36" version="1.1" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>copy-to-clipboard-line</title> <path d="M22.6,4H21.55a3.89,3.89,0,0,0-7.31,0H13.4A2.41,2.41,0,0,0,11,6.4V10H25V6.4A2.41,2.41,0,0,0,22.6,4ZM23,8H13V6.25A.25.25,0,0,1,13.25,6h2.69l.12-1.11A1.24,1.24,0,0,1,16.61,4a2,2,0,0,1,3.15,1.18l.09.84h2.9a.25.25,0,0,1,.25.25Z" class="clr-i-outline clr-i-outline-path-1"></path><path d="M33.25,18.06H21.33l2.84-2.83a1,1,0,1,0-1.42-1.42L17.5,19.06l5.25,5.25a1,1,0,0,0,.71.29,1,1,0,0,0,.71-1.7l-2.84-2.84H33.25a1,1,0,0,0,0-2Z" class="clr-i-outline clr-i-outline-path-2"></path><path d="M29,16h2V6.68A1.66,1.66,0,0,0,29.35,5H27.08V7H29Z" class="clr-i-outline clr-i-outline-path-3"></path><path d="M29,31H7V7H9V5H6.64A1.66,1.66,0,0,0,5,6.67V31.32A1.66,1.66,0,0,0,6.65,33H29.36A1.66,1.66,0,0,0,31,31.33V22.06H29Z" class="clr-i-outline clr-i-outline-path-4"></path> <rect x="0" y="0" width="36" height="36" fill-opacity="0"></rect> </g></svg>';
+        copyBtn.onclick = (e) => {
+          e.stopPropagation();
+          navigator.clipboard.writeText(dep.id);
+        };
+        idDiv.appendChild(idText);
+        idDiv.appendChild(copyBtn);
+
         const titleSpan = document.createElement('span');
         titleSpan.className = 'dependency-title';
         titleSpan.textContent = dep.title;
-        const idSpan = document.createElement('span');
-        idSpan.className = 'dependency-id';
-        idSpan.textContent = dep.id;
+
+        titleIdContainer.appendChild(idDiv);
+        titleIdContainer.appendChild(titleSpan);
 
         infoDiv.appendChild(typeBadge);
-        infoDiv.appendChild(titleSpan);
-        infoDiv.appendChild(idSpan);
+        infoDiv.appendChild(titleIdContainer);
 
         const statusPill = createDependencyStatusPill(dep.status);
         const priorityPill = createDependencyPriorityPill(dep.priority);
@@ -2181,22 +2339,22 @@
       svg.setAttribute('class', 'comment-icon');
       svg.setAttribute('viewBox', '0 0 24 24');
       svg.setAttribute('fill', 'none');
-      
+
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       circle.setAttribute('cx', '12');
       circle.setAttribute('cy', '12');
       circle.setAttribute('r', '11');
       circle.setAttribute('fill', 'currentColor');
       circle.setAttribute('opacity', '0.2');
-      
+
       const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path1.setAttribute('d', 'M17.488 20.112C15.8837 21.1504 13.9825 21.75 12 21.75C10.0175 21.75 8.11623 21.1503 6.5117 20.1111C5.81815 19.6463 5.53009 18.7562 5.94819 18.0132C6.79101 16.5302 8.55973 15.5 12 15.5C15.4403 15.5 17.209 16.5303 18.0518 18.0132C18.4699 18.7562 18.1818 19.6464 17.488 20.112Z');
       path1.setAttribute('fill', 'currentColor');
-      
+
       const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path2.setAttribute('d', 'M12 13C14.0711 13 15.75 11.3211 15.75 9.25C15.75 7.17893 14.0711 5.5 12 5.5C9.92893 5.5 8.25 7.17893 8.25 9.25C8.25 11.3211 9.92893 13 12 13Z');
       path2.setAttribute('fill', 'currentColor');
-      
+
       svg.appendChild(circle);
       svg.appendChild(path1);
       svg.appendChild(path2);
@@ -2209,14 +2367,14 @@
       svg.setAttribute('viewBox', '0 0 512 416');
       svg.setAttribute('fill', 'currentColor');
       svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-      
+
       const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path1.setAttribute('d', 'M181.33 266.143c0-11.497 9.32-20.818 20.818-20.818 11.498 0 20.819 9.321 20.819 20.818v38.373c0 11.497-9.321 20.818-20.819 20.818-11.497 0-20.818-9.32-20.818-20.818v-38.373zM308.807 245.325c-11.477 0-20.798 9.321-20.798 20.818v38.373c0 11.497 9.32 20.818 20.798 20.818 11.497 0 20.818-9.32 20.818-20.818v-38.373c0-11.497-9.32-20.818-20.818-20.818z');
       path1.setAttribute('fill-rule', 'nonzero');
-      
+
       const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path2.setAttribute('d', 'M512.002 246.393v57.384c-.02 7.411-3.696 14.638-9.67 19.011C431.767 374.444 344.695 416 256 416c-98.138 0-196.379-56.542-246.33-93.21-5.975-4.374-9.65-11.6-9.671-19.012v-57.384a35.347 35.347 0 016.857-20.922l15.583-21.085c8.336-11.312 20.757-14.31 33.98-14.31 4.988-56.953 16.794-97.604 45.024-127.354C155.194 5.77 226.56 0 256 0c29.441 0 100.807 5.77 154.557 62.722 28.19 29.75 40.036 70.401 45.025 127.354 13.263 0 25.602 2.936 33.958 14.31l15.583 21.127c4.476 6.077 6.878 13.345 6.878 20.88zm-97.666-26.075c-.677-13.058-11.292-18.19-22.338-21.824-11.64 7.309-25.848 10.183-39.46 10.183-14.454 0-41.432-3.47-63.872-25.869-5.667-5.625-9.527-14.454-12.155-24.247a212.902 212.902 0 00-20.469-1.088c-6.098 0-13.099.349-20.551 1.088-2.628 9.793-6.509 18.622-12.155 24.247-22.4 22.4-49.418 25.87-63.872 25.87-13.612 0-27.86-2.855-39.501-10.184-11.005 3.613-21.558 8.828-22.277 21.824-1.17 24.555-1.272 49.11-1.375 73.645-.041 12.318-.082 24.658-.288 36.976.062 7.166 4.374 13.818 10.882 16.774 52.97 24.124 103.045 36.278 149.137 36.278 46.01 0 96.085-12.154 149.014-36.278 6.508-2.956 10.84-9.608 10.881-16.774.637-36.832.124-73.809-1.642-110.62h.041zM107.521 168.97c8.643 8.623 24.966 14.392 42.56 14.392 13.448 0 39.03-2.874 60.156-24.329 9.28-8.951 15.05-31.35 14.413-54.079-.657-18.231-5.769-33.28-13.448-39.665-8.315-7.371-27.203-10.574-48.33-8.644-22.399 2.238-41.267 9.588-50.875 19.833-20.798 22.728-16.323 80.317-4.476 92.492zm130.556-56.008c.637 3.51.965 7.35 1.273 11.517 0 2.875 0 5.77-.308 8.952 6.406-.636 11.847-.636 16.959-.636s10.553 0 16.959.636c-.329-3.182-.329-6.077-.329-8.952.329-4.167.657-8.007 1.294-11.517-6.735-.637-12.812-.965-17.924-.965s-11.21.328-17.924.965zm49.275-8.008c-.637 22.728 5.133 45.128 14.413 54.08 21.105 21.454 46.708 24.328 60.155 24.328 17.596 0 33.918-5.769 42.561-14.392 11.847-12.175 16.322-69.764-4.476-92.492-9.608-10.245-28.476-17.595-50.875-19.833-21.127-1.93-40.015 1.273-48.33 8.644-7.679 6.385-12.791 21.434-13.448 39.665z');
-      
+
       svg.appendChild(path1);
       svg.appendChild(path2);
       return svg;
@@ -2243,7 +2401,7 @@
         header.className = 'comment-header';
 
         const isAgent = comment.author === 'agent' || comment.author === 'developer';
-        
+
         // Add icon
         const icon = isAgent ? createAgentIcon() : createUserIcon();
         header.appendChild(icon);
@@ -2268,7 +2426,7 @@
         item.appendChild(content);
         thread.appendChild(item);
       });
-      
+
       // Update collapsible section height
       const section = thread.closest('.collapsible-body');
       if (section && !section.classList.contains('collapsed')) {
@@ -2301,7 +2459,7 @@
       const status = document.getElementById('status').value;
       const closedContainer = document.getElementById('closedDateContainer');
       const closedDateEl = document.getElementById('closedDate');
-      
+
       if (status === 'closed') {
         closedContainer.style.display = 'block';
         setDateWithIcon('closedDate', new Date().toISOString());

@@ -1017,6 +1017,45 @@
       margin-bottom: -8px;
       opacity: 0.7;
     }
+
+    .task-id-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+
+    .task-id {
+      font-size: 11px;
+      color: var(--vscode-descriptionForeground);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .copy-id-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 2px;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .copy-id-btn:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .copy-id-btn svg {
+      width: 12px;
+      height: 12px;
+      fill: var(--vscode-editor-foreground);
+    }
   </style>
 </head>
 
@@ -1498,7 +1537,7 @@
 
       // Title cell with expand/collapse
       const titleCell = document.createElement('td');
-      
+
       // Store metadata for SVG line rendering
       tr.dataset.taskId = task.id;
       tr.dataset.level = level;
@@ -1523,13 +1562,39 @@
       const typeBadge = createTypeBadge(task.type);
       titleDiv.appendChild(typeBadge);
 
+      // ID and title container
+      const idTitleContainer = document.createElement('div');
+      idTitleContainer.className = 'task-id-container';
+
+      // ID with copy button
+      const idDiv = document.createElement('div');
+      idDiv.className = 'task-id';
+
+      const idText = document.createElement('span');
+      idText.textContent = task.id;
+      idDiv.appendChild(idText);
+
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-id-btn';
+      copyBtn.title = 'Copy ID to clipboard';
+      copyBtn.innerHTML = '<svg fill="#000000" viewBox="0 0 36 36" version="1.1" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>copy-to-clipboard-line</title> <path d="M22.6,4H21.55a3.89,3.89,0,0,0-7.31,0H13.4A2.41,2.41,0,0,0,11,6.4V10H25V6.4A2.41,2.41,0,0,0,22.6,4ZM23,8H13V6.25A.25.25,0,0,1,13.25,6h2.69l.12-1.11A1.24,1.24,0,0,1,16.61,4a2,2,0,0,1,3.15,1.18l.09.84h2.9a.25.25,0,0,1,.25.25Z" class="clr-i-outline clr-i-outline-path-1"></path><path d="M33.25,18.06H21.33l2.84-2.83a1,1,0,1,0-1.42-1.42L17.5,19.06l5.25,5.25a1,1,0,0,0,.71.29,1,1,0,0,0,.71-1.7l-2.84-2.84H33.25a1,1,0,0,0,0-2Z" class="clr-i-outline clr-i-outline-path-2"></path><path d="M29,16h2V6.68A1.66,1.66,0,0,0,29.35,5H27.08V7H29Z" class="clr-i-outline clr-i-outline-path-3"></path><path d="M29,31H7V7H9V5H6.64A1.66,1.66,0,0,0,5,6.67V31.32A1.66,1.66,0,0,0,6.65,33H29.36A1.66,1.66,0,0,0,31,31.33V22.06H29Z" class="clr-i-outline clr-i-outline-path-4"></path> <rect x="0" y="0" width="36" height="36" fill-opacity="0"></rect> </g></svg>';
+      copyBtn.onclick = (e) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(task.id);
+      };
+      idDiv.appendChild(copyBtn);
+
+      idTitleContainer.appendChild(idDiv);
+
       // Title text
       const titleText = document.createElement('span');
       titleText.className = 'task-title-text';
       titleText.textContent = task.title;
       titleText.style.cursor = 'pointer';
       titleText.onclick = () => editTask(task.id);
-      titleDiv.appendChild(titleText);
+      idTitleContainer.appendChild(titleText);
+
+      titleDiv.appendChild(idTitleContainer);
 
       titleCell.appendChild(titleDiv);
       tr.appendChild(titleCell);
@@ -2011,22 +2076,22 @@
       svg.style.height = '100%';
       svg.style.pointerEvents = 'none';
       svg.style.zIndex = '1';
-      
+
       // Build a map of task positions
       const taskPositions = new Map();
       const containerRect = container.getBoundingClientRect();
-      
+
       rows.forEach(row => {
         const taskId = row.dataset.taskId;
         const level = parseInt(row.dataset.level || '0');
         const isLastChild = row.dataset.isLastChild === 'true';
         const hasChildren = row.dataset.hasChildren === 'true';
-        
+
         const rect = row.getBoundingClientRect();
         const relativeTop = rect.top - containerRect.top + container.scrollTop;
         const relativeBottom = rect.bottom - containerRect.top + container.scrollTop;
         const centerY = relativeTop + (rect.height / 2);
-        
+
         taskPositions.set(taskId, {
           level,
           isLastChild,
@@ -2037,11 +2102,11 @@
           height: rect.height
         });
       });
-      
+
       // Build parent-child relationships
       const taskMap = new Map(allTasks.map(t => [t.id, t]));
       const childrenMap = new Map();
-      
+
       allTasks.forEach(task => {
         const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
         if (parentDep) {
@@ -2050,7 +2115,7 @@
           }
           childrenMap.get(parentDep.id).push(task.id);
         }
-        
+
         const blocksDep = (task.dependencies || []).find(dep => dep.type === 'blocks');
         if (blocksDep && !parentDep) {
           if (!childrenMap.has(blocksDep.id)) {
@@ -2059,18 +2124,18 @@
           childrenMap.get(blocksDep.id).push(task.id);
         }
       });
-      
+
       // Draw tree lines
       taskPositions.forEach((pos, taskId) => {
         const { level, isLastChild, hasChildren, centerY } = pos;
         // X position is at the center of the caret icon (16px wide)
         // With padding-left of level * 30, the caret center is at level * 30 + 8
         const x = level * 30 + 8 + 17; // +16 for cell padding
-        
+
         // Draw connection to parent (horizontal line only)
         if (level > 0) {
           const parentX = (level - 1) * 30 + 8 + 18;
-          
+
           // Horizontal line from parent's vertical line to this task's icon
           const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
           hLine.setAttribute('x1', parentX);
@@ -2079,29 +2144,29 @@
           hLine.setAttribute('y2', centerY);
           svg.appendChild(hLine);
         }
-        
+
         // Draw vertical line to children if this task has expanded children
         if (hasChildren && expandedTasks.has(taskId)) {
           const children = childrenMap.get(taskId) || [];
           const visibleChildren = children.filter(childId => taskPositions.has(childId));
-          
+
           if (visibleChildren.length > 0) {
             // Find the last visible child
             const lastChildId = visibleChildren[visibleChildren.length - 1];
             const lastChildPos = taskPositions.get(lastChildId);
-            
+
             // Draw single vertical line from bottom of this task's caret to the last child's center
             // Caret is 16px tall, so bottom is at centerY + 8
             const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             vLine.setAttribute('x1', x);
             vLine.setAttribute('y1', centerY + 8);
             vLine.setAttribute('x2', x);
-            vLine.setAttribute('y2', lastChildPos.centerY+1);
+            vLine.setAttribute('y2', lastChildPos.centerY + 1);
             svg.appendChild(vLine);
           }
         }
       });
-      
+
       // Insert SVG at the beginning of container (behind content)
       container.insertBefore(svg, container.firstChild);
     }
