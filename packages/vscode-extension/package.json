@@ -39,7 +39,7 @@
   "scripts": {
     "build": "esbuild src/extension.ts --bundle --outfile=dist/src/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
     "dev-setup": "cd ../core && npm link && cd ../vscode-extension && npm link @valpet/cairn-core",
-    "prepackage": "mkdir -p node_modules/@cairn && cp -r ../core/dist node_modules/@cairn/core && cp ../core/package.json node_modules/@cairn/core/",
+    "prepackage": "node -e \"const fs = require('fs'); const path = require('path'); const srcDir = path.join(__dirname, '../core/dist'); const destDir = path.join(__dirname, 'node_modules/@cairn/core'); if (!fs.existsSync(path.dirname(destDir))) fs.mkdirSync(path.dirname(destDir), { recursive: true }); fs.cpSync(srcDir, destDir, { recursive: true }); fs.copyFileSync(path.join(__dirname, '../core/package.json'), path.join(destDir, 'package.json')); console.log('Copied core package to node_modules');\"",
     "package": "npx vsce package",
     "package-all": "npm run prepackage && npm run build && npm run package",
     "install": "npm run package-all && code-insiders --install-extension cairn-extension-1.0.1.vsix",
