@@ -1115,7 +1115,7 @@
 
     const expandedTasks = new Set();
     const expandedDescriptions = new Set();
-    let selectedStatuses = new Set(['ready']); // Default filter
+    let selectedStatuses = new Set(['ready', 'open']); // Default filter
     let isPopoverOpen = false;
     let allTasks = [];
 
@@ -1267,6 +1267,19 @@
       }
 
       updatePopoverCheckboxes();
+
+      // Update trigger label to show selected status
+      const statusTriggerLabel = document.querySelector('.filter-trigger-label');
+      if (selectedStatuses.size === 0) {
+        statusTriggerLabel.textContent = 'Status: All';
+      } else if (selectedStatuses.size === 1) {
+        const status = Array.from(selectedStatuses)[0];
+        statusTriggerLabel.textContent = `Status: ${getStatusLabel(status)}`;
+      } else if (selectedStatuses.size === 2 && selectedStatuses.has('ready') && selectedStatuses.has('open')) {
+        statusTriggerLabel.textContent = 'Status: Ready & Open';
+      } else {
+        statusTriggerLabel.textContent = 'Status: Multiple';
+      }
     }
 
     // Get icon for status
@@ -2250,6 +2263,9 @@
       // Placeholder for future filter options
       alert('Additional filters coming soon!\n\nFuture options:\n- Priority\n- Type\n- Assignee\n- Tags\n- Date ranges');
     });
+
+    // Initialize filter UI with default selection
+    updateFilterChips();
   </script>
 </body>
 
