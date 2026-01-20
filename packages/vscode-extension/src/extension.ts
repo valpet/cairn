@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createContainer, TYPES, IStorageService, IGraphService } from '@cairn/core';
+import { createContainer, TYPES, IStorageService, IGraphService, findCairnDir, generateId } from '@cairn/core';
 import { nanoid } from 'nanoid';
 
 let container: any;
@@ -807,31 +807,5 @@ async function deleteTask(taskId: string): Promise<void> {
     const err = error as Error;
     vscode.window.showErrorMessage(`Failed to delete task: ${err.message}`);
     throw error;
-  }
-}
-
-function generateId(issues: any[]): string {
-  const existingIds = new Set(issues.map(i => i.id));
-  let id;
-  do {
-    id = 's-' + nanoid(8);
-  } while (existingIds.has(id));
-  return id;
-}
-
-function findCairnDir(startDir: string): { cairnDir: string; repoRoot: string } {
-  let currentDir = startDir;
-  while (true) {
-    const cairnPath = path.join(currentDir, '.cairn');
-    const issuesPath = path.join(cairnPath, 'issues.jsonl');
-    if (fs.existsSync(cairnPath) && fs.existsSync(issuesPath)) {
-      return { cairnDir: cairnPath, repoRoot: currentDir };
-    }
-    const parentDir = path.dirname(currentDir);
-    if (parentDir === currentDir) {
-      const fallbackCairn = path.join(startDir, '.cairn');
-      return { cairnDir: fallbackCairn, repoRoot: startDir };
-    }
-    currentDir = parentDir;
   }
 }

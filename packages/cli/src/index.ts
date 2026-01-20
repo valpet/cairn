@@ -2,7 +2,7 @@
 
 import 'reflect-metadata';
 import { Command } from 'commander';
-import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService } from '@cairn/core';
+import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService, findCairnDir, generateId } from '@cairn/core';
 import { nanoid } from 'nanoid';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -371,30 +371,3 @@ program
   });
 
 program.parse();
-
-function generateId(issues: any[]): string {
-  const existingIds = new Set(issues.map(i => i.id));
-  let id;
-  do {
-    id = 's-' + nanoid(8); // Prefix with 's-' and use 8 chars
-  } while (existingIds.has(id));
-  return id;
-}
-
-function findCairnDir(startDir: string): { cairnDir: string; repoRoot: string } {
-  let currentDir = startDir;
-  while (true) {
-    const cairnPath = path.join(currentDir, '.cairn');
-    const issuesPath = path.join(cairnPath, 'issues.jsonl');
-    if (fs.existsSync(cairnPath) && fs.existsSync(issuesPath)) {
-      return { cairnDir: cairnPath, repoRoot: currentDir };
-    }
-    const parentDir = path.dirname(currentDir);
-    if (parentDir === currentDir) {
-      // Reached root
-      const fallbackCairn = path.join(startDir, '.cairn');
-      return { cairnDir: fallbackCairn, repoRoot: startDir };
-    }
-    currentDir = parentDir;
-  }
-}

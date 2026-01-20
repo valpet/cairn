@@ -48,6 +48,8 @@ vi.mock('@cairn/core', () => ({
     ICompactionService: Symbol('ICompactionService'),
     IGitService: Symbol('IGitService'),
   },
+  findCairnDir: vi.fn(),
+  generateId: vi.fn(),
 }));
 vi.mock('nanoid', () => ({
   nanoid: vi.fn(() => 'test-id-123'),
@@ -65,7 +67,7 @@ const mockProcessExit = vi.spyOn(process, 'exit').mockImplementation(() => {
 });
 
 // Import after mocking
-import { createContainer, TYPES } from '@cairn/core';
+import { createContainer, TYPES, findCairnDir, generateId } from '@cairn/core';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -121,6 +123,8 @@ describe('CLI Commands', () => {
     };
 
     (createContainer as any).mockReturnValue(mockContainer);
+    (findCairnDir as any).mockReturnValue({ cairnDir: '/test/project/.cairn', repoRoot: '/test/project' });
+    (generateId as any).mockReturnValue('s-test-id-123');
     (fs.existsSync as any).mockImplementation((path: string) => {
       // Mock .cairn directory as existing
       if (path.includes('.cairn')) return true;

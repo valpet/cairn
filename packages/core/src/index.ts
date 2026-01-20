@@ -4,6 +4,7 @@ export * from './storage';
 export * from './graph';
 export * from './compaction';
 export * from './container';
+export * from './utils';
 
 // Explicit re-exports to ensure named exports are available for bundlers and TypeScript declaration generation
 export {
@@ -20,3 +21,4 @@ export { IStorageService, StorageService } from './storage';
 export { IGraphService, GraphService } from './graph';
 export { ICompactionService, CompactionService } from './compaction';
 export { TYPES, createContainer } from './container';
+export { findCairnDir, generateId } from './utils';
