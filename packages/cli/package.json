@@ -1,6 +1,6 @@
 {
   "name": "@valpet/cairn-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "CLI wrapper for Cairn task management",
   "bin": {
     "cairn": "dist/index.js"
@@ -32,7 +32,7 @@
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@valpet/cairn-core": "^1.0.1",
+    "@valpet/cairn-core": "^1.0.2",
     "commander": "^11.0.0",
     "inversify": "^6.0.1",
     "nanoid": "^5.1.6",
