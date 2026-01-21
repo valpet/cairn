@@ -158,8 +158,8 @@
         "displayName": "Update Task",
         "canBeReferencedInPrompt": true,
         "toolReferenceName": "cairn_update",
-        "userDescription": "Update an existing task's status, notes, or acceptance criteria",
-        "modelDescription": "Update an existing task in Cairn. Use this to change task status (open/in_progress/closed/blocked), add notes, or update acceptance criteria. Always provide the task ID.",
+        "userDescription": "Update an existing task's properties like status, description, priority, type, assignee, labels, or acceptance criteria",
+        "modelDescription": "Update an existing task in Cairn. Use this to change task properties including status, description, priority, type, assignee, labels, design notes, or acceptance criteria. Always provide the task ID.",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -177,9 +177,51 @@
               ],
               "description": "New status for the task"
             },
-            "notes": {
+            "title": {
               "type": "string",
-              "description": "Optional notes to add"
+              "description": "Updated title for the task"
+            },
+            "description": {
+              "type": "string",
+              "description": "Updated description for the task"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "task",
+                "bug",
+                "feature",
+                "epic",
+                "chore",
+                "docs",
+                "refactor"
+              ],
+              "description": "Updated type for the task"
+            },
+            "priority": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "urgent"
+              ],
+              "description": "Updated priority level"
+            },
+            "assignee": {
+              "type": "string",
+              "description": "Updated assignee for the task"
+            },
+            "labels": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Updated labels array for the task"
+            },
+            "design": {
+              "type": "string",
+              "description": "Updated design notes for the task"
             },
             "acceptance_criteria": {
               "type": "array",

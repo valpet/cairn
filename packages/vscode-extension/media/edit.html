@@ -1094,6 +1094,76 @@
       display: flex;
       justify-content: flex-end;
     }
+
+    /* Acceptance Criteria section */
+    .acceptance-criteria-section .collapsible-content {
+      background-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .acceptance-criteria-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .acceptance-criteria-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--vscode-list-inactiveSelectionBackground);
+      border-radius: 3px;
+      background-color: var(--vscode-editor-background);
+    }
+
+    .acceptance-criteria-checkbox {
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+      flex-shrink: 0;
+      accent-color: var(--vscode-button-background);
+    }
+
+    .acceptance-criteria-content {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      min-width: 0;
+      /* Allow text to shrink */
+    }
+
+    .acceptance-criteria-text-container {
+      flex: 1;
+      min-width: 0;
+      /* Allow text to shrink */
+    }
+
+    .acceptance-criteria-text-container .editable-field .field-display {
+      padding: 0;
+      min-height: auto;
+      border: none;
+      background: transparent;
+    }
+
+    .acceptance-criteria-text-container .editable-field .field-display:hover {
+      background-color: transparent;
+    }
+
+    .acceptance-criteria-text-container .editable-field .field-text {
+      font-size: 13px;
+      line-height: 1.4;
+      margin: 0;
+      padding: 2px 0;
+    }
+
+    .acceptance-criteria-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
   </style>
 </head>
 
@@ -1222,6 +1292,21 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+    <div class="acceptance-criteria-section collapsible-section">
+      <div class="collapsible-header" onclick="toggleSection(this)">
+        <h3>Acceptance Criteria</h3>
+        <svg class="collapsible-caret" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z" />
+        </svg>
+      </div>
+      <div class="collapsible-body">
+        <div class="collapsible-content">
+          <div id="acceptanceCriteriaList" class="acceptance-criteria-list"></div>
+          <button type="button" id="addAcceptanceCriteria" class="secondary">Add Acceptance Criteria</button>
         </div>
       </div>
     </div>
@@ -1362,6 +1447,7 @@
     let selectedSubtaskIds = new Set();
     let availableDependencies = [];
     let selectedDependencyIds = new Set();
+    let acceptanceCriteria = [];
 
     // Toggle section collapse/expand
     function toggleSection(header) {
@@ -1703,6 +1789,7 @@
         document.getElementById('status').value = message.ticket.status || 'open';
         subtasks = message.ticket.subtasks || [];
         dependencies = message.ticket.dependencies || [];
+        acceptanceCriteria = message.ticket.acceptance_criteria || [];
 
         // Update closed date display based on status
         onStatusChange();
@@ -1802,6 +1889,7 @@
         renderComments();
         renderSubtasks();
         renderDependencies();
+        renderAcceptanceCriteria();
 
         // Initialize accordion sections after content is loaded
         setTimeout(initializeSections, 50);
@@ -1845,7 +1933,8 @@
         priority: document.getElementById('priority').value,
         status: document.getElementById('status').value,
         subtasks: subtasks,
-        dependencies: dependencies
+        dependencies: dependencies,
+        acceptance_criteria: acceptanceCriteria
       };
       console.log('Sending saveTicket message:', ticket);
       vscode.postMessage({ type: 'saveTicket', ticket });
@@ -1992,6 +2081,105 @@
       }
     }
 
+    let acceptanceCriteriaFields = [];
+
+    function renderAcceptanceCriteria() {
+      const list = document.getElementById('acceptanceCriteriaList');
+      list.innerHTML = '';
+
+      // Clear existing field references
+      acceptanceCriteriaFields = [];
+
+      acceptanceCriteria.forEach((criteria, index) => {
+        const div = document.createElement('div');
+        div.className = 'acceptance-criteria-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'acceptance-criteria-checkbox';
+        checkbox.checked = criteria.completed || false;
+        checkbox.onchange = () => toggleAcceptanceCriteria(index);
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'acceptance-criteria-content';
+
+        // Create container for the editable text
+        const textContainer = document.createElement('div');
+        textContainer.className = 'acceptance-criteria-text-container';
+
+        // Create EditableField for the criteria text
+        const criteriaField = new EditableField({
+          fieldName: `acceptance-criteria-${index}`,
+          placeholder: 'Click to add acceptance criteria...',
+          isTextarea: false,
+          onSave: (value) => {
+            acceptanceCriteria[index].text = value;
+            saveTicket();
+          },
+          onCancel: () => {
+            // Cancel handled automatically
+          },
+          onDisplayUpdate: (value) => {
+            // Update display handled automatically
+          }
+        });
+
+        // Set the current value
+        criteriaField.setValue(criteria.text);
+
+        // Append the editable field to the container
+        textContainer.appendChild(criteriaField.getElement());
+
+        // Store reference to the field
+        acceptanceCriteriaFields[index] = criteriaField;
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'acceptance-criteria-actions';
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'icon-button remove';
+        removeBtn.title = 'Remove acceptance criteria';
+        removeBtn.appendChild(createRemoveIcon());
+        removeBtn.onclick = () => removeAcceptanceCriteria(index);
+
+        actionsDiv.appendChild(removeBtn);
+        contentDiv.appendChild(textContainer);
+        div.appendChild(checkbox);
+        div.appendChild(contentDiv);
+        div.appendChild(actionsDiv);
+
+        list.appendChild(div);
+      });
+
+      // Update collapsible section height
+      const section = list.closest('.collapsible-body');
+      if (section && !section.classList.contains('collapsed')) {
+        section.style.maxHeight = section.scrollHeight + 'px';
+      }
+    }
+
+    function toggleAcceptanceCriteria(index) {
+      acceptanceCriteria[index].completed = !acceptanceCriteria[index].completed;
+      renderAcceptanceCriteria();
+      saveTicket();
+    }
+
+    function removeAcceptanceCriteria(index) {
+      acceptanceCriteria.splice(index, 1);
+      renderAcceptanceCriteria();
+      saveTicket();
+    }
+
+    function addAcceptanceCriteria() {
+      acceptanceCriteria.push({
+        text: 'New acceptance criteria',
+        completed: false
+      });
+      renderAcceptanceCriteria();
+      saveTicket();
+    }
+
     function removeSubtask(index) {
       subtasks.splice(index, 1);
       renderSubtasks();
@@ -2010,6 +2198,10 @@
 
     document.getElementById('addDependency').addEventListener('click', () => {
       vscode.postMessage({ type: 'getAvailableDependencies' });
+    });
+
+    document.getElementById('addAcceptanceCriteria').addEventListener('click', () => {
+      addAcceptanceCriteria();
     });
 
     document.getElementById('ticketForm').addEventListener('submit', (e) => {

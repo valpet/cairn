@@ -19,8 +19,6 @@ export class CompactionService implements ICompactionService {
           return {
             ...issue,
             description: issue.description ? issue.description.substring(0, 200) + '...' : undefined,
-            notes: issue.notes ? issue.notes.substring(0, 100) + '...' : undefined,
-            design: undefined, // remove design
             acceptance_criteria: undefined, // remove criteria
           };
         }

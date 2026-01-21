@@ -4,7 +4,7 @@
 - Store tasks in .cairn/issues.jsonl, with git integration.
 - Support stealth mode by gitignoring .cairn folder.
 - Core library handles JSONL storage, dependency graphs, compaction.
-- CLI provides commands: create, update, list, dep add.
+- CLI provides commands: create, update, list, dep add, ac (acceptance criteria).
 
 
 ## Cairn: Persistent Memory for AI Agents
@@ -27,23 +27,48 @@ While you're free to work as you see fit, using Cairn will significantly improve
 - **Create tasks for significant work**: For any substantial changes or features, create a Cairn task using \`cairn_create\` (or \`cairn create <title> -d <description> -t <type> -p <priority> -s <status> -r <parent>\` in terminal).
 - **Break down complex tasks**: Use `cairn_dep_add` with 'parent-child' type to create subtasks for epics.
 - **Track discoveries**: When you find new work during development, add it as a 'discovered-from' dependency.
-- **Update progress regularly**: Use `cairn_update` to mark tasks as in progress, add notes, or close completed work.
+- **Update progress regularly**: Use \`cairn_update\` to mark tasks as in progress or close completed work.
+- **Manage acceptance criteria**: Use the structured acceptance criteria system with inline editing and completion tracking:
+  - **Add criteria**: Use \`cairn_ac_add\` tool with \`issue_id\` and \`text\` parameters, or \`cairn ac add <id> "<text>"\` in terminal
+  - **Update criteria text**: Use \`cairn_ac_update\` tool with \`issue_id\`, \`index\`, and \`text\` parameters, or \`cairn ac update <id> <index> "<new text>"\` in terminal
+  - **Remove criteria**: Use \`cairn_ac_remove\` tool with \`issue_id\` and \`index\` parameters, or \`cairn ac remove <id> <index>\` in terminal
+  - **Toggle completion**: Use \`cairn_ac_toggle\` tool with \`issue_id\` and \`index\` parameters, or \`cairn ac toggle <id> <index>\` in terminal
+  - **List criteria**: Use \`cairn ac list <id>\` in terminal to see current acceptance criteria with completion status
 - **Document your work**: Use `cairn_comment` to record findings, ideas, challenges, solutions, and progress as you work on tasks. This helps maintain a detailed record for collaboration and future reference.
 - **Add comments for collaboration**: Use `cairn_comment` to document important insights or communicate with the developer.
 - **Perform self-reviews**: Before closing tasks, review your work quality and ensure all acceptance criteria are met.
 
+### Acceptance Criteria Best Practices
+When working with acceptance criteria:
+
+1. **Define clear, testable criteria** when creating tasks - these should be specific, measurable outcomes
+2. **Use the UI for interactive editing** - the VSCode extension provides inline editing and checkbox toggling
+3. **Track completion systematically** - toggle criteria as you complete them during development
+4. **Review before closing** - ensure all acceptance criteria are marked complete before closing a task
+5. **Update criteria as needed** - if requirements change, update the criteria text rather than adding new ones
+
 ### Available Tools
 - `cairn_list_ready`: Get list of unblocked tasks ready to work on
-- `cairn_create`: Create a new task
-- `cairn_update`: Update task status, notes, or acceptance criteria
-- `cairn_dep_add`: Add dependencies between tasks
-- `cairn_comment`: Add comments to tasks
+- `cairn_create`: Create a new task (parameters: title, description?, type?, priority?, status?, parent?)
+- `cairn_update`: Update task status or other fields (parameters: id, status?, title?, description?, type?, priority?, acceptance_criteria?)
+- `cairn_dep_add`: Add dependencies between tasks (parameters: from, to, type)
+- `cairn_comment`: Add comments to tasks (parameters: issue_id, author?, content)
+- `cairn_ac_add`: Add acceptance criteria to a task (parameters: issue_id, text)
+- `cairn_ac_update`: Update acceptance criteria text (parameters: issue_id, index, text)
+- `cairn_ac_remove`: Remove acceptance criteria from a task (parameters: issue_id, index)
+- `cairn_ac_toggle`: Toggle acceptance criteria completion status (parameters: issue_id, index)
 
 ### Terminal Commands (as backup)
 If the tools aren't available, you can use these terminal commands:
 - `cairn list --ready`: List ready tasks
 - \`cairn create <title> -d <description> -p <priority> -t <type> -s <status> -r <parent>\`: Create task
-- `cairn update <id> -s <status> -n <notes>`: Update task
+- \`cairn update <id> -s <status>\`: Update task
+- \`cairn update <id> -c "criteria1,criteria2"\`: Add acceptance criteria
+- \`cairn ac list <id>\`: List acceptance criteria with completion status
+- \`cairn ac add <id> "criteria text"\`: Add acceptance criteria
+- \`cairn ac update <id> <index> "new text"\`: Update acceptance criteria
+- \`cairn ac remove <id> <index>\`: Remove acceptance criteria
+- \`cairn ac toggle <id> <index>\`: Toggle completion status
 - `cairn dep add <from> <to> --type <type>`: Add dependency
 - `cairn comment <id> <message>`: Add comment
 

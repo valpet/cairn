@@ -27,18 +27,54 @@ describe('StorageService', () => {
     expect(issues).toEqual([]);
   });
 
-  it('should save and load issues', async () => {
-    const issue = {
+  it('should load issues with deprecated fields gracefully', async () => {
+    // Simulate old data that still contains deprecated fields
+    const oldIssueData = JSON.stringify({
+      id: 'legacy-1',
+      title: 'Legacy Issue',
+      status: 'open',
+      created_at: '2023-01-01T00:00:00Z',
+      updated_at: '2023-01-01T00:00:00Z',
+      notes: 'These are legacy notes',
+      acceptance_criteria: ['Criteria 1', 'Criteria 2']
+    });
+
+    // Write the old format directly to the file
+    const issuesPath = path.join(tempDir, 'issues.jsonl');
+    await fs.promises.writeFile(issuesPath, oldIssueData + '\n');
+
+    const issues = await storage.loadIssues();
+    expect(issues).toHaveLength(1);
+    expect(issues[0].id).toBe('legacy-1');
+    expect(issues[0].title).toBe('Legacy Issue');
+    expect(issues[0].status).toBe('open');
+    // The deprecated fields should be loaded but not cause errors
+    expect((issues[0] as any).notes).toBe('These are legacy notes');
+    expect((issues[0] as any).acceptance_criteria).toEqual(['Criteria 1', 'Criteria 2']);
+  });
+
+  it('should save and reload issues with deprecated fields', async () => {
+    // Create an issue with deprecated fields (simulating migration scenario)
+    const issueWithDeprecated = {
       id: 'test-1',
       title: 'Test Issue',
       status: 'open' as const,
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-01T00:00:00Z',
-    };
+      notes: 'Legacy notes field',
+      acceptance_criteria: ['AC1', 'AC2']
+    } as any; // Cast to any to bypass type checking
 
-    await storage.saveIssue(issue);
+    // Save it (this should work even with deprecated fields)
+    await storage.saveIssue(issueWithDeprecated);
+
+    // Load it back
     const issues = await storage.loadIssues();
-    expect(issues).toEqual([issue]);
+    expect(issues).toHaveLength(1);
+    expect(issues[0].id).toBe('test-1');
+    // The deprecated fields should be preserved
+    expect((issues[0] as any).notes).toBe('Legacy notes field');
+    expect((issues[0] as any).acceptance_criteria).toEqual(['AC1', 'AC2']);
   });
 
   it('should append multiple issues', async () => {

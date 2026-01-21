@@ -571,8 +571,9 @@
 
     .description-content.collapsed {
       overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       cursor: pointer;
     }
 
@@ -607,8 +608,8 @@
     }
 
     .description-content.expanded p {
-      margin: 4px 0;
-      line-height: 1.5;
+      margin: 0;
+      line-height: 1.4;
     }
 
     .description-content.expanded ul,
@@ -1115,7 +1116,7 @@
 
     const expandedTasks = new Set();
     const expandedDescriptions = new Set();
-    let selectedStatuses = new Set(['ready']); // Default filter
+    let selectedStatuses = new Set(['ready', 'open', 'in_progress']); // Default filters are set to show active tasks
     let isPopoverOpen = false;
     let allTasks = [];
 
@@ -1149,8 +1150,16 @@
       return pill;
     }
 
-    // Simple markdown to HTML converter
+    // Cache for processed markdown to avoid re-processing the same content
+    const markdownCache = new Map();
+
+    // Simple markdown to HTML converter with caching
     function markdownToHtml(markdown) {
+      // Check cache first
+      if (markdownCache.has(markdown)) {
+        return markdownCache.get(markdown);
+      }
+
       let html = markdown;
 
       // Code blocks (before inline code)
@@ -1184,6 +1193,9 @@
         }
         return '<p>' + part.replace(/\n/g, '<br>') + '</p>';
       }).join('\n');
+
+      // Cache the result
+      markdownCache.set(markdown, html);
 
       return html;
     }
@@ -1225,7 +1237,38 @@
       } else {
         expandedDescriptions.add(taskId);
       }
-      renderTasks(allTasks);
+      // Update only the specific description instead of re-rendering everything
+      updateDescriptionDisplay(taskId);
+    }
+
+    // Function to update just the description display for a specific task
+    function updateDescriptionDisplay(taskId) {
+      const task = allTasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      // Find the description cell for this task
+      const descriptionCell = document.querySelector(`tr[data-task-id="${taskId}"] td.description-cell`);
+      if (!descriptionCell) return;
+
+      const descriptionContent = descriptionCell.querySelector('.description-content');
+      if (!descriptionContent) return;
+
+      const isDescExpanded = expandedDescriptions.has(taskId);
+
+      if (task.description && task.description.trim()) {
+        descriptionContent.className = `description-content ${isDescExpanded ? 'expanded' : 'collapsed'}`;
+        if (isDescExpanded) {
+          descriptionContent.innerHTML = markdownToHtml(task.description);
+        } else {
+          descriptionContent.textContent = task.description;
+        }
+        descriptionContent.title = isDescExpanded ? 'Click to collapse' : 'Click to expand';
+        descriptionContent.onclick = () => toggleDescription(taskId);
+        descriptionContent.style.cursor = 'pointer';
+      } else {
+        descriptionContent.className = 'description-empty';
+        descriptionContent.textContent = 'No description';
+      }
     }
 
     // Update filter chips display
@@ -1267,6 +1310,19 @@
       }
 
       updatePopoverCheckboxes();
+
+      // Update trigger label to show selected status
+      const statusTriggerLabel = document.querySelector('.filter-trigger-label');
+      if (selectedStatuses.size === 0) {
+        statusTriggerLabel.textContent = 'Status: All';
+      } else if (selectedStatuses.size === 1) {
+        const status = Array.from(selectedStatuses)[0];
+        statusTriggerLabel.textContent = `Status: ${getStatusLabel(status)}`;
+      } else if (selectedStatuses.size === 2 && selectedStatuses.has('ready') && selectedStatuses.has('open')) {
+        statusTriggerLabel.textContent = 'Status: Ready & Open';
+      } else {
+        statusTriggerLabel.textContent = 'Status: Multiple';
+      }
     }
 
     // Get icon for status
@@ -1612,8 +1668,11 @@
         } else {
           descriptionContent.textContent = task.description;
         }
-        descriptionContent.onclick = () => toggleDescription(task.id);
         descriptionContent.title = isDescExpanded ? 'Click to collapse' : 'Click to expand';
+
+        // Always add click handler for descriptions with content
+        descriptionContent.onclick = () => toggleDescription(task.id);
+        descriptionContent.style.cursor = 'pointer';
       } else {
         descriptionContent.className = 'description-empty';
         descriptionContent.textContent = 'No description';
@@ -1646,8 +1705,8 @@
       const blockedBy = allTasks.filter(t => t.dependencies?.some(d => d.id === task.id && d.type === 'blocks')).length;
       if (blockers > 0 || blockedBy > 0) {
         const depText = [];
-        if (blockers > 0) depText.push(`${blockers}←`);
-        if (blockedBy > 0) depText.push(`${blockedBy}→`);
+        if (blockers > 0) depText.push(`${blockers}→`);
+        if (blockedBy > 0) depText.push(`${blockedBy}←`);
         dependencyCell.textContent = depText.join(' ');
         dependencyCell.style.fontSize = '12px';
         dependencyCell.style.color = 'var(--vscode-descriptionForeground)';
@@ -2151,17 +2210,18 @@
           const visibleChildren = children.filter(childId => taskPositions.has(childId));
 
           if (visibleChildren.length > 0) {
-            // Find the last visible child
+            // Find the first and last visible children
+            const firstChildId = visibleChildren[0];
             const lastChildId = visibleChildren[visibleChildren.length - 1];
+            const firstChildPos = taskPositions.get(firstChildId);
             const lastChildPos = taskPositions.get(lastChildId);
 
-            // Draw single vertical line from bottom of this task's caret to the last child's center
-            // Caret is 16px tall, so bottom is at centerY + 8
+            // Draw vertical line from parent caret bottom to last child caret center
             const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             vLine.setAttribute('x1', x);
-            vLine.setAttribute('y1', centerY + 8);
+            vLine.setAttribute('y1', centerY + 8); // Parent caret bottom
             vLine.setAttribute('x2', x);
-            vLine.setAttribute('y2', lastChildPos.centerY + 1);
+            vLine.setAttribute('y2', lastChildPos.centerY); // Last child caret center
             svg.appendChild(vLine);
           }
         }
@@ -2186,13 +2246,25 @@
       });
     }
 
+    // Function to redraw tree lines when layout changes
+    function redrawTreeLines() {
+      const bodyContainer = document.querySelector('.task-body-container');
+      if (bodyContainer && allTasks.length > 0) {
+        renderTreeLinesSVG(bodyContainer, allTasks);
+      }
+    }
+
     // Update height on load and resize
     window.addEventListener('load', updateScrollableHeight);
-    window.addEventListener('resize', updateScrollableHeight);
+    window.addEventListener('resize', () => {
+      updateScrollableHeight();
+      redrawTreeLines();
+    });
 
     // Use ResizeObserver to handle layout changes (like window splits)
     const resizeObserver = new ResizeObserver(() => {
       updateScrollableHeight();
+      redrawTreeLines();
     });
 
     // Observe body for any size changes
@@ -2210,22 +2282,49 @@
 
     observer.observe(document.body, { childList: true, subtree: true });
 
+    // Add scroll listener to redraw lines when container scrolls
+    const bodyContainer = document.querySelector('.task-body-container');
+    if (bodyContainer) {
+      bodyContainer.addEventListener('scroll', redrawTreeLines);
+    }
+
     // Listen for messages from extension
+    console.log('=== SETTING UP MESSAGE HANDLER ===');
     window.addEventListener('message', event => {
+      console.log('=== MESSAGE EVENT RECEIVED ===');
+      console.log('Event origin:', event.origin);
+      console.log('Event source:', event.source);
       const message = event.data;
-      console.log('Received message:', message);
+      console.log('Message data:', message);
       if (message.type === 'updateTasks') {
-        console.log('Updating tasks:', message.tasks.length, 'tasks');
-        allTasks = message.tasks;
+        console.log('=== PROCESSING UPDATETASKS ===');
+        console.log('Tasks count:', message.tasks ? message.tasks.length : 'undefined');
+        allTasks = message.tasks || [];
+        // Clear markdown cache when tasks are updated to ensure fresh processing
+        markdownCache.clear();
+        console.log('allTasks set, calling renderTasks');
         renderTasks(allTasks);
+        console.log('renderTasks completed');
+      } else {
+        console.log('Unknown message type:', message.type);
       }
     });
+    console.log('Message handler setup complete');
 
     // Add event listeners for filter UI
-    document.getElementById('status-filter-trigger').addEventListener('click', (e) => {
-      e.stopPropagation();
-      togglePopover();
-    });
+    console.log('=== SETTING UP EVENT LISTENERS ===');
+    const statusFilterTrigger = document.getElementById('status-filter-trigger');
+    console.log('status-filter-trigger element:', statusFilterTrigger);
+    if (statusFilterTrigger) {
+      console.log('Adding click listener to status filter trigger');
+      statusFilterTrigger.addEventListener('click', (e) => {
+        console.log('Status filter trigger clicked');
+        e.stopPropagation();
+        togglePopover();
+      });
+    } else {
+      console.error('status-filter-trigger element not found!');
+    }
 
     document.querySelectorAll('.popover-option').forEach(option => {
       option.addEventListener('click', (e) => {
@@ -2250,6 +2349,9 @@
       // Placeholder for future filter options
       alert('Additional filters coming soon!\n\nFuture options:\n- Priority\n- Type\n- Assignee\n- Tags\n- Date ranges');
     });
+
+    // Initialize filter UI with default selection
+    updateFilterChips();
   </script>
 </body>
 

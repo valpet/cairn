@@ -17,11 +17,12 @@ export function findCairnDir(startDir: string): { cairnDir: string; repoRoot: st
     const parentDir = path.dirname(currentDir);
     if (parentDir === currentDir) {
       // Reached root
-      const fallbackCairn = path.join(startDir, '.cairn');
-      return { cairnDir: fallbackCairn, repoRoot: startDir };
+      break;
     }
     currentDir = parentDir;
   }
+  const fallbackCairn = path.join(startDir, '.cairn');
+  return { cairnDir: fallbackCairn, repoRoot: startDir };
 }
 
 /**

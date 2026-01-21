@@ -38,8 +38,6 @@ describe('CompactionService', () => {
         updated_at: '2023-01-01T00:00:00Z',
         closed_at: closedDate.toISOString(),
         description: 'This is a very long description that should be truncated to 200 characters or less when compacted after 30 days.',
-        notes: 'Some notes that should also be compacted.',
-        design: 'Design details',
         acceptance_criteria: ['Criteria 1', 'Criteria 2'],
       },
     ];
@@ -47,8 +45,6 @@ describe('CompactionService', () => {
     const compacted = compactionService.compactIssues(issues);
     expect(compacted[0].description?.length).toBeLessThanOrEqual(203); // 200 + '...'
     expect(compacted[0].description?.endsWith('...')).toBe(true);
-    expect(compacted[0].notes?.length).toBeLessThanOrEqual(103); // 100 + '...'
-    expect(compacted[0].design).toBeUndefined();
     expect(compacted[0].acceptance_criteria).toBeUndefined();
   });
 
@@ -70,5 +66,29 @@ describe('CompactionService', () => {
 
     const compacted = compactionService.compactIssues(issues);
     expect(compacted[0].description).toBe('Short desc');
+  });
+
+  it('should handle issues with deprecated fields', () => {
+    const closedDate = new Date();
+    closedDate.setDate(closedDate.getDate() - 31);
+
+    const issues: Issue[] = [
+      {
+        id: 'a',
+        title: 'A',
+        status: 'closed',
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+        closed_at: closedDate.toISOString(),
+        description: 'This is a very long description that should be truncated to 200 characters or less when compacted after 30 days.',
+        notes: 'Legacy notes',
+        acceptance_criteria: ['AC1', 'AC2']
+      } as any,
+    ];
+
+    const compacted = compactionService.compactIssues(issues);
+    expect(compacted[0].description?.length).toBeLessThanOrEqual(203); // 200 + '...'
+    expect(compacted[0].description?.endsWith('...')).toBe(true);
+    // Deprecated fields should be handled gracefully
   });
 });

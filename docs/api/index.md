@@ -46,7 +46,6 @@ interface Issue {
   design?: string;
   notes?: string; // deprecated: use comments instead
   comments?: Comment[];
-  acceptance_criteria?: string[];
 }
 ```
 
@@ -67,7 +66,6 @@ interface Issue {
 - `design`: Design notes or specifications
 - `notes`: Legacy notes field (deprecated, use comments)
 - `comments`: Array of comment objects
-- `acceptance_criteria`: Array of acceptance criteria strings
 
 #### Comment
 
@@ -389,7 +387,7 @@ compactIssues(issues: Issue[]): Issue[]
 
 **Behavior:**
 - Issues closed more than 30 days ago have their description/notes truncated
-- Design and acceptance_criteria fields are removed
+- Design field is removed
 - Other fields are preserved
 
 ### Container Setup
