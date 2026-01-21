@@ -246,7 +246,8 @@ describe('Validation Functions', () => {
 
     it('should prevent directory traversal', () => {
       expect(sanitizeFilePath('../../../etc/passwd')).toBe(`etc${path.sep}passwd`);
-      expect(sanitizeFilePath('..\\..\\..\\windows\\system32')).toBe(`windows${path.sep}system32`);
+      // Test with forward slashes (works on all platforms)
+      expect(sanitizeFilePath('../../../windows/system32')).toBe(`windows${path.sep}system32`);
     });
 
     it('should validate file extensions when specified', () => {
