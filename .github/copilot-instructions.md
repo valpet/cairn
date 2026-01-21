@@ -47,6 +47,15 @@ When working with acceptance criteria:
 4. **Review before closing** - ensure all acceptance criteria are marked complete before closing a task
 5. **Update criteria as needed** - if requirements change, update the criteria text rather than adding new ones
 
+### Changelog Best Practices
+When updating the CHANGELOG.md file:
+
+1. **Focus on user-facing changes** - highlight new features, UI improvements, and bug fixes that users will notice
+2. **Group technical improvements** - summarize internal changes like build optimizations, code refactoring, and configuration updates as "Bug fixes and technical improvements"
+3. **Be selective with details** - users don't need to know about removing BOM from HTML files or updating TypeScript configurations
+4. **Keep it concise** - aim for clarity over completeness; detailed technical changes can be found in git history
+5. **Use standard sections** - Added, Changed, Fixed, Removed following [Keep a Changelog](https://keepachangelog.com/) format
+
 ### Available Tools
 - `cairn_list_ready`: Get list of unblocked tasks ready to work on
 - `cairn_create`: Create a new task (parameters: title, description?, type?, priority?, status?, parent?)
