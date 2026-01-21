@@ -109,6 +109,26 @@ class CairnUpdateTool implements vscode.LanguageModelTool<any> {
     try {
       const inputs = options.input;
 
+      // Check if trying to close an issue with open subtasks
+      if (inputs.status === 'closed') {
+        const issues = await storage.loadIssues();
+        const validation = graph.canCloseIssue(inputs.id, issues);
+        
+        if (!validation.canClose) {
+          const currentIssue = issues.find(i => i.id === inputs.id);
+          const subtaskList = validation.openSubtasks!.map(subtask => 
+            `- ${subtask.title} (${subtask.id}) - ${subtask.status}`
+          ).join('\n');
+          
+          return new vscode.LanguageModelToolResult([
+            new vscode.LanguageModelTextPart(JSON.stringify({ 
+              success: false, 
+              message: `Cannot close issue "${currentIssue?.title || inputs.id}" (${inputs.id}) because it has ${validation.openSubtasks!.length} open subtask(s):\n${subtaskList}\n\nPlease close all subtasks before closing this issue.` 
+            }))
+          ]);
+        }
+      }
+
       await storage.updateIssues(issues => {
         return issues.map(issue => {
           if (issue.id === inputs.id) {
@@ -556,7 +576,14 @@ export function activate(context: vscode.ExtensionContext) {
                 priority: task.priority || 'medium',
                 description: task.description || '',
                 type: task.type || 'task',
-                dependencies: task.dependencies || []
+                dependencies: task.dependencies || [],
+                subtasks: graph.getEpicSubtasks(task.id, issues).map(s => ({
+                  id: s.id,
+                  title: s.title,
+                  type: s.type,
+                  status: s.status,
+                  priority: s.priority
+                }))
               }));
               outputChannel.appendLine(`Sending updateTasks with ${allTasks.length} tasks`);
               outputChannel.appendLine(`Tasks data: ${JSON.stringify(allTasks.slice(0, 2))}`);
@@ -795,6 +822,25 @@ export function activate(context: vscode.ExtensionContext) {
                       const newIds = new Set(newSubtasks.filter(s => s.id).map(s => s.id!));
 
                       const now = new Date().toISOString();
+
+                      // Check if trying to close an issue with open subtasks
+                      if (ticketData.status === 'closed') {
+                        const validation = graph.canCloseIssue(ticketData.id, updatedIssues);
+                        
+                        if (!validation.canClose) {
+                          // Send simplified error message to webview to revert UI state
+                          panel.webview.postMessage({
+                            type: 'saveFailed',
+                            error: 'Cannot close issue as it has open sub-issues.',
+                            errorCode: 'CANNOT_CLOSE_WITH_OPEN_SUBTASKS'
+                          });
+                          
+                          vscode.window.showErrorMessage(
+                            `Cannot close issue "${currentIssue?.title || ticketData.id}" (${ticketData.id}) because it has ${validation.openSubtasks!.length} open subtask(s). Please close all subtasks before closing this issue.`
+                          );
+                          return; // Don't save the ticket
+                        }
+                      }
 
                       // Update main ticket
                       const originalIssue = updatedIssues.find(i => i.id === ticketData.id);

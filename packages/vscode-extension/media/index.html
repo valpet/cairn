@@ -364,6 +364,12 @@
       vertical-align: middle;
     }
 
+    /* Status and Priority columns center their content */
+    .task-grid td:nth-child(3),
+    .task-grid td:nth-child(4) {
+      text-align: center;
+    }
+
     /* Make title and description cells share equally */
     .task-grid td:nth-child(1),
     .task-grid td:nth-child(2) {
@@ -665,6 +671,8 @@
       font-weight: 500;
       display: inline-block;
       text-transform: capitalize;
+      white-space: nowrap;
+      text-align: center;
     }
 
     .status-open {
@@ -1337,7 +1345,7 @@
       return icons[status] || '●';
     }
 
-    // Get display label for status
+    // Get label for status
     function getStatusLabel(status) {
       const labels = {
         'ready': 'Ready',
@@ -1347,6 +1355,48 @@
         'blocked': 'Blocked'
       };
       return labels[status] || status;
+    }
+
+    // Compute sub-issue status based on subtask statuses
+    function computeSubIssueStatus(subtasks) {
+      if (!subtasks || subtasks.length === 0) {
+        return null;
+      }
+
+      // Check if any sub-issue is in-progress
+      const hasInProgress = subtasks.some(subtask => subtask.status === 'in_progress');
+      if (hasInProgress) {
+        return 'in_progress';
+      }
+
+      // Get non-closed subtasks
+      const nonClosedSubtasks = subtasks.filter(subtask => subtask.status !== 'closed');
+      
+      // If all non-closed subtasks are blocked, show blocked
+      if (nonClosedSubtasks.length > 0 && nonClosedSubtasks.every(subtask => subtask.status === 'blocked')) {
+        return 'blocked';
+      }
+
+      // If all subtasks are closed, show closed
+      if (subtasks.every(subtask => subtask.status === 'closed')) {
+        return 'closed';
+      }
+
+      return null;
+    }
+
+    // Get status display text with computed sub-issue status
+    function getStatusDisplayText(issueStatus, subtasks) {
+      const statusLabels = { open: 'Open', in_progress: 'In Progress', closed: 'Closed', blocked: 'Blocked' };
+      const issueStatusText = statusLabels[issueStatus] || issueStatus;
+      
+      const computedStatus = computeSubIssueStatus(subtasks);
+      if (computedStatus && computedStatus !== issueStatus) {
+        const computedStatusText = statusLabels[computedStatus] || computedStatus;
+        return `${issueStatusText} / ${computedStatusText}`;
+      }
+      
+      return issueStatusText;
     }
 
     // Update popover checkbox states
@@ -1682,10 +1732,9 @@
 
       // Check if task is blocked
       const taskIsBlocked = isBlocked(task, allTasks);
-      const displayStatus = taskIsBlocked ? 'blocked' : task.status;
-      const displayText = taskIsBlocked ? 'Blocked' :
-        (task.status === 'in_progress' ? 'In Progress' :
-          (task.status.charAt(0).toUpperCase() + task.status.slice(1)));
+      const computedStatus = computeSubIssueStatus(task.subtasks || []);
+      const displayStatus = taskIsBlocked ? 'blocked' : (computedStatus && computedStatus !== task.status ? computedStatus : task.status);
+      const displayText = taskIsBlocked ? 'Blocked' : getStatusDisplayText(task.status, task.subtasks || []);
 
       // Status cell
       const statusCell = document.createElement('td');

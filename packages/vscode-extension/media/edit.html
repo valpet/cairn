@@ -16,15 +16,101 @@
     }
 
     h1 {
-      font-size: 20px;
+      color: #D4A556;
+      font-size: 24px;
       font-weight: 600;
-      margin: 0 0 24px 0;
+      margin: 0 0 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      gap: 20px;
+    }
+
+    .header-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .header-metadata {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+      align-items: flex-end;
+    }
+
+    .header-metadata-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-metadata-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--vscode-descriptionForeground);
+      min-width: 60px;
+      text-align: right;
+    }
+
+    .header-metadata-value {
+      font-size: 12px;
+      color: var(--vscode-editor-foreground);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .header-metadata-value svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .property-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .property-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 120px;
+    }
+
+    .property-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--vscode-descriptionForeground);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .property-value {
+      position: relative;
+    }
+
+    #headerTicketId {
+      color: var(--vscode-foreground);
     }
 
     h3 {
       font-size: 14px;
       font-weight: 600;
       margin: 0 0 0 0;
+      color: #D4A556;
     }
 
     .editor-layout {
@@ -38,23 +124,6 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-    }
-
-    .metadata-card {
-      width: 280px;
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .metadata-card .collapsible-content {
-      background-color: rgba(0, 0, 0, 0.08);
-    }
-
-    .metadata-card .collapsible-header h3 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 600;
     }
 
     .metadata-item {
@@ -94,6 +163,179 @@
       border-color: var(--vscode-focusBorder);
       outline: 1px solid var(--vscode-focusBorder);
       outline-offset: -1px;
+    }
+
+    /* Dropdown button styling for Type, Priority, Status */
+    .metadata-dropdown-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 6px;
+      padding: 6px 12px;
+      background-color: transparent;
+      border: none;
+      border-radius: 6px;
+      color: var(--vscode-foreground);
+      cursor: pointer;
+      font-size: 13px;
+      position: relative;
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+
+    .metadata-dropdown-button .button-content {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .metadata-dropdown-button .button-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+    }
+
+    .metadata-dropdown-button:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .metadata-dropdown-button.active {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .metadata-dropdown-caret {
+      opacity: 0.5;
+      font-size: 10px;
+      transition: transform 0.15s;
+    }
+
+    .metadata-dropdown-button.active .metadata-dropdown-caret {
+      transform: rotate(180deg);
+    }
+
+    /* Dynamic colors for dropdown buttons based on selection */
+    .metadata-dropdown-button.status-open {
+      background-color: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
+    }
+
+    .metadata-dropdown-button.status-in_progress {
+      background-color: rgba(68, 131, 255, 0.2);
+      color: #58a6ff;
+    }
+
+    .metadata-dropdown-button.status-closed {
+      background-color: rgba(139, 148, 158, 0.2);
+      color: #8b949e;
+    }
+
+    .metadata-dropdown-button.status-blocked {
+      background-color: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+    }
+
+    .metadata-dropdown-button.priority-low {
+      background-color: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
+    }
+
+    .metadata-dropdown-button.priority-medium {
+      background-color: rgba(212, 165, 86, 0.2);
+      color: #D4A556;
+    }
+
+    .metadata-dropdown-button.priority-high {
+      background-color: rgba(251, 133, 0, 0.2);
+      color: #fb8500;
+    }
+
+    .metadata-dropdown-button.priority-urgent {
+      background-color: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+    }
+
+    .metadata-dropdown-button.type-task {
+      background-color: rgba(68, 131, 255, 0.2);
+      color: #58a6ff;
+    }
+
+    .metadata-dropdown-button.type-bug {
+      background-color: rgba(218, 54, 51, 0.2);
+      color: #f85149;
+    }
+
+    .metadata-dropdown-button.type-feature {
+      background-color: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
+    }
+
+    .metadata-dropdown-button.type-epic {
+      background-color: rgba(139, 85, 246, 0.2);
+      color: #a78bfa;
+    }
+
+    .metadata-dropdown-button.type-chore {
+      background-color: rgba(212, 165, 86, 0.2);
+      color: #D4A556;
+    }
+
+    .metadata-dropdown-button.type-docs {
+      background-color: rgba(85, 180, 176, 0.2);
+      color: #56d4dd;
+    }
+
+    .metadata-dropdown-button.type-refactor {
+      background-color: rgba(251, 133, 0, 0.2);
+      color: #fb8500;
+    }
+
+    /* Dropdown menu for metadata selectors */
+    .metadata-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 4px;
+      background-color: var(--vscode-dropdown-background);
+      border: 1px solid var(--vscode-widget-border);
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      overflow: hidden;
+      display: none;
+    }
+
+    .metadata-dropdown-menu.visible {
+      display: block;
+    }
+
+    .metadata-dropdown-item {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: var(--vscode-foreground);
+      text-align: left;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background-color 0.1s;
+    }
+
+    .metadata-dropdown-item:hover {
+      background-color: var(--vscode-list-hoverBackground);
+    }
+
+    .metadata-dropdown-item.selected {
+      background-color: var(--vscode-list-activeSelectionBackground);
+      font-weight: 600;
+    }
+
+    .metadata-value {
+      position: relative;
     }
 
     .metadata-value.date-value {
@@ -422,6 +664,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      justify-content: center;
     }
 
     .dependency-type,
@@ -433,6 +676,8 @@
       font-weight: 500;
       display: inline-block;
       text-transform: capitalize;
+      white-space: nowrap;
+      text-align: center;
     }
 
     .dependency-type {
@@ -652,6 +897,8 @@
       font-weight: 500;
       display: inline-block;
       text-transform: capitalize;
+      white-space: nowrap;
+      text-align: center;
     }
 
     .subtask-type {
@@ -970,6 +1217,16 @@
       text-align: center;
     }
 
+    .acceptance-criteria-empty,
+    .subtasks-empty,
+    .dependencies-empty {
+      color: var(--vscode-input-placeholderForeground);
+      font-style: italic;
+      padding: 12px;
+      text-align: center;
+      opacity: 0.7;
+    }
+
     .add-comment-form {
       display: flex;
       flex-direction: column;
@@ -1168,7 +1425,110 @@
 </head>
 
 <body>
-  <h1>Edit Ticket</h1>
+  <div class="header-row">
+    <div class="header-left">
+      <h1 id="ticketHeader">Edit Issue <span id="headerTicketId">-</span>
+        <button class="copy-id-btn" title="Copy ID to clipboard"
+          onclick="const el = document.getElementById('headerTicketId'); if (el) navigator.clipboard.writeText(el.textContent);">
+          <svg fill="#000000" viewBox="0 0 36 36" version="1.1" preserveAspectRatio="xMidYMid meet"
+            xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <title>copy-to-clipboard-line</title>
+              <path
+                d="M22.6,4H21.55a3.89,3.89,0,0,0-7.31,0H13.4A2.41,2.41,0,0,0,11,6.4V10H25V6.4A2.41,2.41,0,0,0,22.6,4ZM23,8H13V6.25A.25.25,0,0,1,13.25,6h2.69l.12-1.11A1.24,1.24,0,0,1,16.61,4a2,2,0,0,1,3.15,1.18l.09.84h2.9a.25.25,0,0,1,.25.25Z"
+                class="clr-i-outline clr-i-outline-path-1"></path>
+              <path
+                d="M33.25,18.06H21.33l2.84-2.83a1,1,0,1,0-1.42-1.42L17.5,19.06l5.25,5.25a1,1,0,0,0,.71.29,1,1,0,0,0,.71-1.7l-2.84-2.84H33.25a1,1,0,0,0,0-2Z"
+                class="clr-i-outline clr-i-outline-path-2"></path>
+              <path d="M29,16h2V6.68A1.66,1.66,0,0,0,29.35,5H27.08V7H29Z" class="clr-i-outline clr-i-outline-path-3">
+              </path>
+              <path
+                d="M29,31H7V7H9V5H6.64A1.66,1.66,0,0,0,5,6.67V31.32A1.66,1.66,0,0,0,6.65,33H29.36A1.66,1.66,0,0,0,31,31.33V22.06H29Z"
+                class="clr-i-outline clr-i-outline-path-4"></path>
+              <rect x="0" y="0" width="36" height="36" fill-opacity="0"></rect>
+            </g>
+          </svg>
+        </button>
+      </h1>
+    </div>
+    <div class="header-metadata">
+      <div class="header-metadata-item">
+        <span class="header-metadata-label">Created:</span>
+        <div class="header-metadata-value" id="createdDate">-</div>
+      </div>
+      <div class="header-metadata-item">
+        <span class="header-metadata-label">Updated:</span>
+        <div class="header-metadata-value" id="updatedDate">-</div>
+      </div>
+      <div class="header-metadata-item" id="closedDateContainer" style="display: none;">
+        <span class="header-metadata-label">Closed:</span>
+        <div class="header-metadata-value" id="closedDate">-</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="property-row">
+    <div class="property-item">
+      <label class="property-label">Type</label>
+      <div class="property-value">
+        <button type="button" class="metadata-dropdown-button" id="typeButton" onclick="toggleMetadataDropdown('type')">
+          <span class="button-content">
+            <span class="button-icon" id="typeIcon">•</span>
+            <span id="typeLabel">Task</span>
+          </span>
+          <span class="metadata-dropdown-caret">▼</span>
+        </button>
+        <div class="metadata-dropdown-menu" id="typeDropdown">
+          <button type="button" class="metadata-dropdown-item" data-value="task" onclick="selectMetadata('type', 'task', 'Task')">Task</button>
+          <button type="button" class="metadata-dropdown-item" data-value="bug" onclick="selectMetadata('type', 'bug', 'Bug')">Bug</button>
+          <button type="button" class="metadata-dropdown-item" data-value="feature" onclick="selectMetadata('type', 'feature', 'Feature')">Feature</button>
+          <button type="button" class="metadata-dropdown-item" data-value="epic" onclick="selectMetadata('type', 'epic', 'Epic')">Epic</button>
+          <button type="button" class="metadata-dropdown-item" data-value="chore" onclick="selectMetadata('type', 'chore', 'Chore')">Chore</button>
+          <button type="button" class="metadata-dropdown-item" data-value="docs" onclick="selectMetadata('type', 'docs', 'Docs')">Docs</button>
+          <button type="button" class="metadata-dropdown-item" data-value="refactor" onclick="selectMetadata('type', 'refactor', 'Refactor')">Refactor</button>
+        </div>
+      </div>
+    </div>
+    <div class="property-item">
+      <label class="property-label">Priority</label>
+      <div class="property-value">
+        <button type="button" class="metadata-dropdown-button" id="priorityButton" onclick="toggleMetadataDropdown('priority')">
+          <span class="button-content">
+            <span class="button-icon" id="priorityIcon">◆</span>
+            <span id="priorityLabel">Medium</span>
+          </span>
+          <span class="metadata-dropdown-caret">▼</span>
+        </button>
+        <div class="metadata-dropdown-menu" id="priorityDropdown">
+          <button type="button" class="metadata-dropdown-item" data-value="low" onclick="selectMetadata('priority', 'low', 'Low')">Low</button>
+          <button type="button" class="metadata-dropdown-item" data-value="medium" onclick="selectMetadata('priority', 'medium', 'Medium')">Medium</button>
+          <button type="button" class="metadata-dropdown-item" data-value="high" onclick="selectMetadata('priority', 'high', 'High')">High</button>
+          <button type="button" class="metadata-dropdown-item" data-value="urgent" onclick="selectMetadata('priority', 'urgent', 'Urgent')">Urgent</button>
+        </div>
+      </div>
+    </div>
+    <div class="property-item">
+      <label class="property-label">Status</label>
+      <div class="property-value">
+        <button type="button" class="metadata-dropdown-button" id="statusButton" onclick="toggleMetadataDropdown('status')">
+          <span class="button-content">
+            <span class="button-icon" id="statusIcon">●</span>
+            <span id="statusLabel">Open</span>
+          </span>
+          <span class="metadata-dropdown-caret">▼</span>
+        </button>
+        <div class="metadata-dropdown-menu" id="statusDropdown">
+          <button type="button" class="metadata-dropdown-item" data-value="open" onclick="selectMetadata('status', 'open', 'Open')">Open</button>
+          <button type="button" class="metadata-dropdown-item" data-value="in_progress" onclick="selectMetadata('status', 'in_progress', 'In Progress')">In Progress</button>
+          <button type="button" class="metadata-dropdown-item" data-value="closed" onclick="selectMetadata('status', 'closed', 'Closed')">Closed</button>
+          <button type="button" class="metadata-dropdown-item" data-value="blocked" onclick="selectMetadata('status', 'blocked', 'Blocked')">Blocked</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <form id="ticketForm">
     <div class="editor-layout">
       <div class="main-content">
@@ -1194,106 +1554,6 @@
           </div>
         </div>
       </div>
-
-      <div class="metadata-card collapsible-section">
-        <div class="collapsible-header" onclick="toggleSection(this)">
-          <h3>Properties</h3>
-          <svg class="collapsible-caret" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z" />
-          </svg>
-        </div>
-        <div class="collapsible-body">
-          <div class="collapsible-content">
-
-            <div class="metadata-item">
-              <label class="metadata-label">Type</label>
-              <div class="metadata-value">
-                <select id="type" onchange="saveTicket()">
-                  <option value="task">Task</option>
-                  <option value="bug">Bug</option>
-                  <option value="feature">Feature</option>
-                  <option value="epic">Epic</option>
-                  <option value="chore">Chore</option>
-                  <option value="docs">Docs</option>
-                  <option value="refactor">Refactor</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="metadata-item">
-              <label class="metadata-label">Priority</label>
-              <div class="metadata-value">
-                <select id="priority" onchange="saveTicket()">
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="metadata-item">
-              <label class="metadata-label">Status</label>
-              <div class="metadata-value">
-                <select id="status" onchange="onStatusChange(); saveTicket()">
-                  <option value="open">Open</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="closed">Closed</option>
-                  <option value="blocked">Blocked</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="metadata-item">
-              <label class="metadata-label">Created</label>
-              <div class="metadata-value date-value" id="createdDate">-</div>
-            </div>
-
-            <div class="metadata-item">
-              <label class="metadata-label">Updated</label>
-              <div class="metadata-value date-value" id="updatedDate">-</div>
-            </div>
-
-            <div class="metadata-item" id="closedDateContainer" style="display: none;">
-              <label class="metadata-label">Closed</label>
-              <div class="metadata-value date-value" id="closedDate">-</div>
-            </div>
-
-            <div class="metadata-item">
-              <label class="metadata-label">ID</label>
-              <div class="metadata-value">
-                <div class="task-id">
-                  <span id="ticketId">-</span>
-                  <button class="copy-id-btn" title="Copy ID to clipboard"
-                    onclick="navigator.clipboard.writeText(document.getElementById('ticketId').textContent)">
-                    <svg fill="#000000" viewBox="0 0 36 36" version="1.1" preserveAspectRatio="xMidYMid meet"
-                      xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                      <g id="SVGRepo_iconCarrier">
-                        <title>copy-to-clipboard-line</title>
-                        <path
-                          d="M22.6,4H21.55a3.89,3.89,0,0,0-7.31,0H13.4A2.41,2.41,0,0,0,11,6.4V10H25V6.4A2.41,2.41,0,0,0,22.6,4ZM23,8H13V6.25A.25.25,0,0,1,13.25,6h2.69l.12-1.11A1.24,1.24,0,0,1,16.61,4a2,2,0,0,1,3.15,1.18l.09.84h2.9a.25.25,0,0,1,.25.25Z"
-                          class="clr-i-outline clr-i-outline-path-1"></path>
-                        <path
-                          d="M33.25,18.06H21.33l2.84-2.83a1,1,0,1,0-1.42-1.42L17.5,19.06l5.25,5.25a1,1,0,0,0,.71.29,1,1,0,0,0,.71-1.7l-2.84-2.84H33.25a1,1,0,0,0,0-2Z"
-                          class="clr-i-outline clr-i-outline-path-2"></path>
-                        <path d="M29,16h2V6.68A1.66,1.66,0,0,0,29.35,5H27.08V7H29Z"
-                          class="clr-i-outline clr-i-outline-path-3"></path>
-                        <path
-                          d="M29,31H7V7H9V5H6.64A1.66,1.66,0,0,0,5,6.67V31.32A1.66,1.66,0,0,0,6.65,33H29.36A1.66,1.66,0,0,0,31,31.33V22.06H29Z"
-                          class="clr-i-outline clr-i-outline-path-4"></path>
-                        <rect x="0" y="0" width="36" height="36" fill-opacity="0"></rect>
-                      </g>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
     <div class="acceptance-criteria-section collapsible-section">
       <div class="collapsible-header" onclick="toggleSection(this)">
@@ -1306,6 +1566,7 @@
       <div class="collapsible-body">
         <div class="collapsible-content">
           <div id="acceptanceCriteriaList" class="acceptance-criteria-list"></div>
+          <div class="acceptance-criteria-empty">No acceptance criteria yet. Add criteria to define what needs to be completed.</div>
           <button type="button" id="addAcceptanceCriteria" class="secondary">Add Acceptance Criteria</button>
         </div>
       </div>
@@ -1321,6 +1582,7 @@
       <div class="collapsible-body">
         <div class="collapsible-content">
           <div id="subtasksList" class="subtask-list"></div>
+          <div class="subtasks-empty">No sub-issues yet. Break this task down into smaller, manageable pieces.</div>
           <button type="button" id="addSubtask" class="secondary">Add Sub-issue</button>
         </div>
       </div>
@@ -1338,10 +1600,12 @@
           <div class="dependency-section">
             <h4>Blocked by</h4>
             <div id="blockedByList" class="dependency-list"></div>
+            <div class="dependencies-empty" id="blockedByEmpty">No blocking dependencies. This issue can be worked on independently.</div>
           </div>
           <div class="dependency-section">
             <h4>This issue is blocking</h4>
             <div id="blockingList" class="dependency-list"></div>
+            <div class="dependencies-empty" id="blockingEmpty">This issue doesn't block any other work.</div>
           </div>
           <button type="button" id="addDependency" class="secondary">Add Dependency</button>
         </div>
@@ -1708,6 +1972,48 @@
       return pill;
     }
 
+    // Compute sub-issue status based on subtask statuses
+    function computeSubIssueStatus(subtasks) {
+      if (!subtasks || subtasks.length === 0) {
+        return null;
+      }
+
+      // Check if any sub-issue is in-progress
+      const hasInProgress = subtasks.some(subtask => subtask.status === 'in_progress');
+      if (hasInProgress) {
+        return 'in_progress';
+      }
+
+      // Get non-closed subtasks
+      const nonClosedSubtasks = subtasks.filter(subtask => subtask.status !== 'closed');
+      
+      // If all non-closed subtasks are blocked, show blocked
+      if (nonClosedSubtasks.length > 0 && nonClosedSubtasks.every(subtask => subtask.status === 'blocked')) {
+        return 'blocked';
+      }
+
+      // If all subtasks are closed, show closed
+      if (subtasks.every(subtask => subtask.status === 'closed')) {
+        return 'closed';
+      }
+
+      return null;
+    }
+
+    // Get status display text with computed sub-issue status
+    function getStatusDisplayText(issueStatus, subtasks) {
+      const statusLabels = { open: 'Open', in_progress: 'In Progress', closed: 'Closed', blocked: 'Blocked' };
+      const issueStatusText = statusLabels[issueStatus] || issueStatus;
+      
+      const computedStatus = computeSubIssueStatus(subtasks);
+      if (computedStatus && computedStatus !== issueStatus) {
+        const computedStatusText = statusLabels[computedStatus] || computedStatus;
+        return `${issueStatusText} / ${computedStatusText}`;
+      }
+      
+      return issueStatusText;
+    }
+
     function createRemoveIcon() {
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('viewBox', '0 0 1024 1024');
@@ -1770,6 +2076,162 @@
       element.appendChild(textNode);
     }
 
+    // Metadata dropdown state
+    let currentType = 'task';
+    let currentPriority = 'medium';
+    let currentStatus = 'open';
+    let previousStatus = 'open'; // Track previous status for reverting on save failure
+    let activeDropdown = null;
+
+    // Toggle metadata dropdown
+    function toggleMetadataDropdown(type) {
+      const dropdown = document.getElementById(`${type}Dropdown`);
+      const button = document.getElementById(`${type}Button`);
+      
+      // Close any other open dropdown
+      if (activeDropdown && activeDropdown !== dropdown) {
+        activeDropdown.classList.remove('visible');
+        const otherButtons = document.querySelectorAll('.metadata-dropdown-button.active');
+        otherButtons.forEach(btn => btn.classList.remove('active'));
+      }
+      
+      // Toggle current dropdown
+      const isVisible = dropdown.classList.contains('visible');
+      if (isVisible) {
+        dropdown.classList.remove('visible');
+        button.classList.remove('active');
+        activeDropdown = null;
+      } else {
+        dropdown.classList.add('visible');
+        button.classList.add('active');
+        activeDropdown = dropdown;
+      }
+    }
+
+    // Icon mappings
+    const typeIcons = {
+      task: '•',
+      bug: '🐛',
+      feature: '✨',
+      epic: '⚡',
+      chore: '🔧',
+      docs: '📝',
+      refactor: '♻️'
+    };
+
+    const priorityIcons = {
+      low: '●',
+      medium: '◆',
+      high: '▲',
+      urgent: '⚠️'
+    };
+
+    const statusIcons = {
+      open: '●',
+      in_progress: '◐',
+      closed: '✓',
+      blocked: '⛔'
+    };
+
+    // Select metadata value from dropdown
+    function selectMetadata(type, value, label) {
+      const button = document.getElementById(`${type}Button`);
+      const labelElement = document.getElementById(`${type}Label`);
+      const iconElement = document.getElementById(`${type}Icon`);
+      const dropdown = document.getElementById(`${type}Dropdown`);
+      
+      // Update the button appearance
+      if (type === 'status') {
+        // For status, use the newly selected value when computing the display text
+        labelElement.textContent = getStatusDisplayText(value, subtasks);
+      } else {
+        // For other metadata types, use the provided label
+        labelElement.textContent = label;
+      }
+      
+      // Update icon
+      if (type === 'type' && typeIcons[value]) {
+        iconElement.textContent = typeIcons[value];
+      } else if (type === 'priority' && priorityIcons[value]) {
+        iconElement.textContent = priorityIcons[value];
+      } else if (type === 'status' && statusIcons[value]) {
+        iconElement.textContent = statusIcons[value];
+      }
+      
+      // Remove all type/priority/status classes from button
+      button.className = 'metadata-dropdown-button';
+      
+      // Add the selected value class
+      if (type === 'status') {
+        // Use computed status for button color when it differs from actual status
+        const computedStatus = computeSubIssueStatus(subtasks);
+        const statusClass = computedStatus && computedStatus !== currentStatus ? computedStatus : currentStatus;
+        button.classList.add(`status-${statusClass}`);
+      } else {
+        button.classList.add(`${type}-${value}`);
+      }
+      
+      // Update selected state in dropdown items
+      const items = dropdown.querySelectorAll('.metadata-dropdown-item');
+      items.forEach(item => {
+        if (item.dataset.value === value) {
+          item.classList.add('selected');
+        } else {
+          item.classList.remove('selected');
+        }
+      });
+      
+      // Update current value
+      if (type === 'type') {
+        currentType = value;
+      } else if (type === 'priority') {
+        currentPriority = value;
+      } else if (type === 'status') {
+        previousStatus = currentStatus; // Track previous status before updating
+        currentStatus = value;
+        onStatusChange();
+      }
+      
+      // Close dropdown
+      dropdown.classList.remove('visible');
+      button.classList.remove('active');
+      activeDropdown = null;
+      
+      // Save ticket
+      saveTicket();
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.metadata-value') && !e.target.closest('.property-value')) {
+        if (activeDropdown) {
+          activeDropdown.classList.remove('visible');
+          const buttons = document.querySelectorAll('.metadata-dropdown-button.active');
+          buttons.forEach(btn => btn.classList.remove('active'));
+          activeDropdown = null;
+        }
+      }
+    });
+
+    // Initialize dropdown selected states
+    function initializeDropdownStates() {
+      // Set initial selected states for all dropdown items
+      const dropdowns = ['type', 'priority', 'status'];
+      dropdowns.forEach(dropdownType => {
+        const dropdown = document.getElementById(`${dropdownType}Dropdown`);
+        const currentValue = dropdownType === 'type' ? currentType : 
+                            dropdownType === 'priority' ? currentPriority : currentStatus;
+        const items = dropdown.querySelectorAll('.metadata-dropdown-item');
+        items.forEach(item => {
+          if (item.dataset.value === currentValue) {
+            item.classList.add('selected');
+          } else {
+            item.classList.remove('selected');
+          }
+        });
+      });
+    }
+
     // Notify extension that webview is ready
     vscode.postMessage({ type: 'webviewReady' });
     vscode.postMessage({ type: 'getGitUser' });
@@ -1784,18 +2246,56 @@
         currentDescription = message.ticket.description || '';
         comments = message.ticket.comments || [];
         console.log('Loaded ticket:', ticketId, 'title:', currentTitle, 'desc:', currentDescription);
-        document.getElementById('type').value = message.ticket.type || 'task';
-        document.getElementById('priority').value = message.ticket.priority || 'medium';
-        document.getElementById('status').value = message.ticket.status || 'open';
+        
+        // Update dropdown values
+        currentType = message.ticket.type || 'task';
+        currentPriority = message.ticket.priority || 'medium';
+        currentStatus = message.ticket.status || 'open';
+        previousStatus = currentStatus; // Initialize previous status when loading
+        
+        // Initialize ticket-related collections before computing derived status
         subtasks = message.ticket.subtasks || [];
         dependencies = message.ticket.dependencies || [];
         acceptanceCriteria = message.ticket.acceptance_criteria || [];
+        
+        // Update dropdown button displays
+        const typeLabel = { task: 'Task', bug: 'Bug', feature: 'Feature', epic: 'Epic', chore: 'Chore', docs: 'Docs', refactor: 'Refactor' };
+        const priorityLabel = { low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent' };
+        
+        document.getElementById('typeLabel').textContent = typeLabel[currentType];
+        document.getElementById('priorityLabel').textContent = priorityLabel[currentPriority];
+        document.getElementById('statusLabel').textContent = getStatusDisplayText(currentStatus, subtasks);
+        
+        // Update icons
+        document.getElementById('typeIcon').textContent = typeIcons[currentType] || '\u2022';
+        document.getElementById('priorityIcon').textContent = priorityIcons[currentPriority] || '\u25c6';
+        document.getElementById('statusIcon').textContent = statusIcons[currentStatus] || '\u25cf';
+        
+        // Update button classes for colors
+        const typeButton = document.getElementById('typeButton');
+        const priorityButton = document.getElementById('priorityButton');
+        const statusButton = document.getElementById('statusButton');
+        
+        typeButton.className = 'metadata-dropdown-button';
+        typeButton.classList.add(`type-${currentType}`);
+        
+        priorityButton.className = 'metadata-dropdown-button';
+        priorityButton.classList.add(`priority-${currentPriority}`);
+        
+        // Use computed status for button color when it differs from actual status
+        const computedStatus = computeSubIssueStatus(subtasks);
+        const statusClass = computedStatus && computedStatus !== currentStatus ? computedStatus : currentStatus;
+        statusButton.className = 'metadata-dropdown-button';
+        statusButton.classList.add(`status-${statusClass}`);
 
         // Update closed date display based on status
         onStatusChange();
 
         // Populate metadata
-        document.getElementById('ticketId').textContent = message.ticket.id;
+        const headerTicketIdEl = document.getElementById('headerTicketId');
+        if (headerTicketIdEl) {
+          headerTicketIdEl.textContent = `#${message.ticket.id}`;
+        }
         setDateWithIcon('createdDate', message.ticket.created_at);
         setDateWithIcon('updatedDate', message.ticket.updated_at);
 
@@ -1891,6 +2391,9 @@
         renderDependencies();
         renderAcceptanceCriteria();
 
+        // Initialize dropdown selected states
+        initializeDropdownStates();
+
         // Initialize accordion sections after content is loaded
         setTimeout(initializeSections, 50);
       } else if (message.type === 'availableSubtasks') {
@@ -1919,6 +2422,69 @@
         if (commentAuthorField) {
           commentAuthorField.setValue(authorName);
         }
+      } else if (message.type === 'saveFailed') {
+        console.log('Save failed, reverting status:', message);
+        // Revert the status back to the previous value
+        currentStatus = previousStatus;
+        
+        // Update the UI to reflect the reverted status
+        document.getElementById('statusLabel').textContent = getStatusDisplayText(currentStatus, subtasks);
+        document.getElementById('statusIcon').textContent = statusIcons[currentStatus] || '';
+        
+        const statusButton = document.getElementById('statusButton');
+        // Use computed status for button color when it differs from actual status
+        const computedStatus = computeSubIssueStatus(subtasks);
+        const statusClass = computedStatus && computedStatus !== currentStatus ? computedStatus : currentStatus;
+        statusButton.className = 'metadata-dropdown-button';
+        statusButton.classList.add(`status-${statusClass}`);
+        
+        // Update selected state in dropdown items
+        const dropdown = document.getElementById('statusDropdown');
+        const items = dropdown.querySelectorAll('.metadata-dropdown-item');
+        items.forEach(item => {
+          if (item.dataset.value === currentStatus) {
+            item.classList.add('selected');
+          } else {
+            item.classList.remove('selected');
+          }
+        });
+        
+        // Update closed date display
+        onStatusChange();
+        
+        // Show error message to user
+        let errorMessage = message.error;
+        if (message.errorCode === 'CANNOT_CLOSE_WITH_OPEN_SUBTASKS') {
+          errorMessage = 'Cannot close issue as it has open sub-issues.';
+        }
+        
+        if (errorMessage) {
+          // Create a temporary error notification
+          const errorDiv = document.createElement('div');
+          errorDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #f85149;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            max-width: 400px;
+            font-size: 13px;
+            line-height: 1.4;
+          `;
+          errorDiv.textContent = errorMessage;
+          document.body.appendChild(errorDiv);
+          
+          // Remove after 5 seconds
+          setTimeout(() => {
+            if (errorDiv.parentNode) {
+              errorDiv.parentNode.removeChild(errorDiv);
+            }
+          }, 5000);
+        }
       }
     });
 
@@ -1929,9 +2495,9 @@
         title: currentTitle,
         description: currentDescription,
         comments: comments,
-        type: document.getElementById('type').value,
-        priority: document.getElementById('priority').value,
-        status: document.getElementById('status').value,
+        type: currentType,
+        priority: currentPriority,
+        status: currentStatus,
         subtasks: subtasks,
         dependencies: dependencies,
         acceptance_criteria: acceptanceCriteria
@@ -1942,7 +2508,15 @@
 
     function renderSubtasks() {
       const list = document.getElementById('subtasksList');
+      const empty = document.querySelector('.subtasks-empty');
       list.innerHTML = '';
+
+      if (!subtasks || subtasks.length === 0) {
+        empty.style.display = 'block';
+      } else {
+        empty.style.display = 'none';
+      }
+
       subtasks.forEach((subtask, index) => {
         const div = document.createElement('div');
         div.className = 'subtask';
@@ -2005,13 +2579,33 @@
       if (section && !section.classList.contains('collapsed')) {
         section.style.maxHeight = section.scrollHeight + 'px';
       }
+
+      // Update status display in case computed status changed
+      document.getElementById('statusLabel').textContent = getStatusDisplayText(currentStatus, subtasks);
     }
 
     function renderDependencies() {
       const blockedByList = document.getElementById('blockedByList');
       const blockingList = document.getElementById('blockingList');
+      const blockedByEmpty = document.getElementById('blockedByEmpty');
+      const blockingEmpty = document.getElementById('blockingEmpty');
       blockedByList.innerHTML = '';
       blockingList.innerHTML = '';
+
+      const blockedByDeps = dependencies.filter(dep => dep.direction === 'blocks');
+      const blockingDeps = dependencies.filter(dep => dep.direction === 'blocked_by');
+
+      if (blockedByDeps.length === 0) {
+        blockedByEmpty.style.display = 'block';
+      } else {
+        blockedByEmpty.style.display = 'none';
+      }
+
+      if (blockingDeps.length === 0) {
+        blockingEmpty.style.display = 'block';
+      } else {
+        blockingEmpty.style.display = 'none';
+      }
 
       dependencies.forEach((dep, index) => {
         const div = document.createElement('div');
@@ -2085,10 +2679,17 @@
 
     function renderAcceptanceCriteria() {
       const list = document.getElementById('acceptanceCriteriaList');
+      const empty = document.querySelector('.acceptance-criteria-empty');
       list.innerHTML = '';
 
       // Clear existing field references
       acceptanceCriteriaFields = [];
+
+      if (!acceptanceCriteria || acceptanceCriteria.length === 0) {
+        empty.style.display = 'block';
+      } else {
+        empty.style.display = 'none';
+      }
 
       acceptanceCriteria.forEach((criteria, index) => {
         const div = document.createElement('div');
@@ -2648,7 +3249,7 @@
     }
 
     function onStatusChange() {
-      const status = document.getElementById('status').value;
+      const status = currentStatus;
       const closedContainer = document.getElementById('closedDateContainer');
       const closedDateEl = document.getElementById('closedDate');
 

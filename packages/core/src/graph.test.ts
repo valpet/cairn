@@ -555,6 +555,107 @@ describe('GraphService', () => {
         expect(shouldClose).toBe(false);
       });
     });
+    describe('canCloseIssue', () => {
+      it('should return canClose: true when issue has no subtasks', () => {
+        const issues: Issue[] = [
+          {
+            id: 'task-1',
+            title: 'Task 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+        ];
+
+        const result = graphService.canCloseIssue('task-1', issues);
+        expect(result.canClose).toBe(true);
+        expect(result.openSubtasks).toBeUndefined();
+      });
+
+      it('should return canClose: true when all subtasks are closed', () => {
+        const issues: Issue[] = [
+          {
+            id: 'epic-1',
+            title: 'Epic 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+          {
+            id: 'sub-1',
+            title: 'Subtask 1',
+            status: 'closed',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            closed_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+          },
+          {
+            id: 'sub-2',
+            title: 'Subtask 2',
+            status: 'closed',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            closed_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+          },
+        ];
+
+        const result = graphService.canCloseIssue('epic-1', issues);
+        expect(result.canClose).toBe(true);
+        expect(result.openSubtasks).toBeUndefined();
+      });
+
+      it('should return canClose: false with open subtasks when some subtasks are still open', () => {
+        const issues: Issue[] = [
+          {
+            id: 'epic-1',
+            title: 'Epic 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+          {
+            id: 'sub-1',
+            title: 'Subtask 1',
+            status: 'closed',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            closed_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+          },
+          {
+            id: 'sub-2',
+            title: 'Subtask 2',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+          },
+          {
+            id: 'sub-3',
+            title: 'Subtask 3',
+            status: 'in_progress',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+          },
+        ];
+
+        const result = graphService.canCloseIssue('epic-1', issues);
+        expect(result.canClose).toBe(false);
+        expect(result.openSubtasks).toHaveLength(2);
+        expect(result.openSubtasks!.map(s => s.id)).toEqual(['sub-2', 'sub-3']);
+      });
+
+      it('should return canClose: false with open subtasks when issue does not exist', () => {
+        const issues: Issue[] = [];
+
+        const result = graphService.canCloseIssue('nonexistent', issues);
+        expect(result.canClose).toBe(false);
+        expect(result.openSubtasks).toHaveLength(0);
+      });
+    });
   });
 
   describe('getNonParentedIssues', () => {

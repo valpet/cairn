@@ -1,10 +1,11 @@
 {
   "name": "cairn-extension",
   "displayName": "Cairn: Context Keeper",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "publisher": "valpet",
   "description": "Prevents AI agent 'dementia' in long development sessions. Maintains persistent, structured context through a dependency-aware graph that survives across conversations.",
   "readme": "README.md",
+  "changelog": "CHANGELOG.md",
   "author": {
     "name": "Peter Valtersson",
     "email": "peter.valtersson@gmail.com"
@@ -62,7 +63,11 @@
     "onLanguageModelTool:cairn_list_ready",
     "onLanguageModelTool:cairn_update",
     "onLanguageModelTool:cairn_dep_add",
-    "onLanguageModelTool:cairn_comment"
+    "onLanguageModelTool:cairn_comment",
+    "onLanguageModelTool:cairn_ac_add",
+    "onLanguageModelTool:cairn_ac_update",
+    "onLanguageModelTool:cairn_ac_remove",
+    "onLanguageModelTool:cairn_ac_toggle"
   ],
   "contributes": {
     "commands": [
@@ -299,6 +304,111 @@
             "issue_id",
             "author",
             "content"
+          ]
+        }
+      },
+      {
+        "name": "cairn_ac_add",
+        "displayName": "Add Acceptance Criteria",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "cairn_ac_add",
+        "userDescription": "Add acceptance criteria to a task",
+        "modelDescription": "Add acceptance criteria to a Cairn task. Use this to define specific, testable outcomes that must be met for the task to be considered complete.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "issue_id": {
+              "type": "string",
+              "description": "The ID of the task to add acceptance criteria to"
+            },
+            "text": {
+              "type": "string",
+              "description": "The acceptance criteria text"
+            }
+          },
+          "required": [
+            "issue_id",
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "cairn_ac_update",
+        "displayName": "Update Acceptance Criteria",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "cairn_ac_update",
+        "userDescription": "Update the text of acceptance criteria for a task",
+        "modelDescription": "Update the text of specific acceptance criteria for a Cairn task. Use this when requirements change or when clarifying acceptance criteria.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "issue_id": {
+              "type": "string",
+              "description": "The ID of the task containing the acceptance criteria"
+            },
+            "index": {
+              "type": "number",
+              "description": "The index of the acceptance criteria to update (0-based)"
+            },
+            "text": {
+              "type": "string",
+              "description": "The new acceptance criteria text"
+            }
+          },
+          "required": [
+            "issue_id",
+            "index",
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "cairn_ac_remove",
+        "displayName": "Remove Acceptance Criteria",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "cairn_ac_remove",
+        "userDescription": "Remove acceptance criteria from a task",
+        "modelDescription": "Remove specific acceptance criteria from a Cairn task. Use this when acceptance criteria are no longer relevant or were added in error.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "issue_id": {
+              "type": "string",
+              "description": "The ID of the task containing the acceptance criteria"
+            },
+            "index": {
+              "type": "number",
+              "description": "The index of the acceptance criteria to remove (0-based)"
+            }
+          },
+          "required": [
+            "issue_id",
+            "index"
+          ]
+        }
+      },
+      {
+        "name": "cairn_ac_toggle",
+        "displayName": "Toggle Acceptance Criteria Completion",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "cairn_ac_toggle",
+        "userDescription": "Toggle the completion status of acceptance criteria",
+        "modelDescription": "Toggle the completion status of specific acceptance criteria for a Cairn task. Use this to mark criteria as complete or incomplete as work progresses.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "issue_id": {
+              "type": "string",
+              "description": "The ID of the task containing the acceptance criteria"
+            },
+            "index": {
+              "type": "number",
+              "description": "The index of the acceptance criteria to toggle (0-based)"
+            }
+          },
+          "required": [
+            "issue_id",
+            "index"
           ]
         }
       }
