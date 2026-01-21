@@ -38,12 +38,14 @@ describe('CompactionService', () => {
         updated_at: '2023-01-01T00:00:00Z',
         closed_at: closedDate.toISOString(),
         description: 'This is a very long description that should be truncated to 200 characters or less when compacted after 30 days.',
+        acceptance_criteria: ['Criteria 1', 'Criteria 2'],
       },
     ];
 
     const compacted = compactionService.compactIssues(issues);
     expect(compacted[0].description?.length).toBeLessThanOrEqual(203); // 200 + '...'
     expect(compacted[0].description?.endsWith('...')).toBe(true);
+    expect(compacted[0].acceptance_criteria).toBeUndefined();
   });
 
   it('should not compact recently closed issues', () => {

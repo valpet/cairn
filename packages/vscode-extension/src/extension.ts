@@ -108,12 +108,19 @@ class CairnUpdateTool implements vscode.LanguageModelTool<any> {
   ) {
     try {
       const inputs = options.input;
-      
+
       await storage.updateIssues(issues => {
         return issues.map(issue => {
           if (issue.id === inputs.id) {
             const updated = { ...issue, updated_at: new Date().toISOString() };
             if (inputs.status) updated.status = inputs.status;
+            if (inputs.title) updated.title = inputs.title;
+            if (inputs.description) updated.description = inputs.description;
+            if (inputs.type) updated.type = inputs.type;
+            if (inputs.priority) updated.priority = inputs.priority;
+            if (inputs.assignee) updated.assignee = inputs.assignee;
+            if (inputs.labels) updated.labels = inputs.labels;
+            if (inputs.acceptance_criteria) updated.acceptance_criteria = inputs.acceptance_criteria;
             if (inputs.status === 'closed') updated.closed_at = new Date().toISOString();
             return updated;
           }
@@ -209,11 +216,11 @@ export function activate(context: vscode.ExtensionContext) {
   function truncateTitle(title: string, id: string, maxLength = 30): string {
     const suffix = ` (#${id})`;
     const maxTitleLength = maxLength - suffix.length;
-    
+
     if (title.length <= maxTitleLength) {
       return `${title}${suffix}`;
     }
-    
+
     // Show first part and ellipsis, keeping ID at end
     const truncated = title.substring(0, maxTitleLength - 3) + '...';
     return `${truncated}${suffix}`;
@@ -461,7 +468,8 @@ export function activate(context: vscode.ExtensionContext) {
                   description: ticket.description,
                   type: ticket.type,
                   priority: ticket.priority,
-                  status: ticket.status
+                  status: ticket.status,
+                  acceptance_criteria: ticket.acceptance_criteria
                 };
               } else {
                 outputChannel.appendLine(`Ticket not found: ${ticketId} - sending default data`);
@@ -623,6 +631,7 @@ export function activate(context: vscode.ExtensionContext) {
                             type: ticketData.type || 'task',
                             priority: ticketData.priority || 'medium',
                             status: ticketData.status || 'open',
+                            acceptance_criteria: ticketData.acceptance_criteria,
                             updated_at: now
                           };
 

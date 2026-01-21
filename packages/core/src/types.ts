@@ -13,6 +13,7 @@ export interface Issue {
   updated_at: string;
   closed_at?: string;
   comments?: Comment[];
+  acceptance_criteria?: string[];
 }
 
 export interface Comment {
