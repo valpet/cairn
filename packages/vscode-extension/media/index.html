@@ -1345,6 +1345,18 @@
       return icons[status] || '●';
     }
 
+    // Get label for status
+    function getStatusLabel(status) {
+      const labels = {
+        'ready': 'Ready',
+        'open': 'Open',
+        'in_progress': 'In Progress',
+        'closed': 'Closed',
+        'blocked': 'Blocked'
+      };
+      return labels[status] || status;
+    }
+
     // Compute sub-issue status based on subtask statuses
     function computeSubIssueStatus(subtasks) {
       if (!subtasks || subtasks.length === 0) {

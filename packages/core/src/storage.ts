@@ -1,9 +1,10 @@
-import { injectable, inject } from 'inversify';
+import { injectable, inject, optional } from 'inversify';
 import * as fs from 'fs';
 import * as path from 'path';
 import { nanoid } from 'nanoid';
 import { Issue, Comment } from './types';
 import { validateIssue } from './utils';
+import { ILogger, ConsoleLogger, LogLevel } from './logger';
 
 export interface IStorageService {
   loadIssues(): Promise<Issue[]>;
@@ -28,13 +29,20 @@ export class StorageService implements IStorageService {
   private lockMaxRetries: number;
   private lockRetryDelay: number;
   private lockTimeout: number;
+  private logger: ILogger;
 
-  constructor(@inject('config') private config: StorageConfig) {
+  constructor(
+    @inject('config') private config: StorageConfig,
+    @inject('ILogger') @optional() logger?: ILogger
+  ) {
     this.issuesFilePath = path.join(config.cairnDir, 'issues.jsonl');
     this.lockFilePath = path.join(config.cairnDir, 'issues.lock');
     this.lockMaxRetries = config.lockMaxRetries ?? 50;
     this.lockRetryDelay = config.lockRetryDelay ?? 100;
     this.lockTimeout = config.lockTimeout ?? 30000;
+
+    // Fallback to console logger if not injected
+    this.logger = logger || new ConsoleLogger(LogLevel.INFO);
   }
 
   async loadIssues(): Promise<Issue[]> {
@@ -68,9 +76,9 @@ export class StorageService implements IStorageService {
     
     // Log validation errors but don't fail the load - allow partial recovery
     if (errors.length > 0) {
-      console.error(`Found ${errors.length} validation errors in ${this.issuesFilePath}:`);
-      errors.forEach(error => console.error(`  ${error}`));
-      console.error('Invalid issues were skipped. Consider repairing the data file.');
+      this.logger.error(`Found ${errors.length} validation errors in ${this.issuesFilePath}:`);
+      errors.forEach(error => this.logger.error(`  ${error}`));
+      this.logger.error('Invalid issues were skipped. Consider repairing the data file.');
     }
     
     return issues;
@@ -97,20 +105,20 @@ export class StorageService implements IStorageService {
         await fs.promises.appendFile(this.issuesFilePath, line);
       });
     }).catch(err => {
-      console.error('saveIssue queued operation failed:', err);
+      this.logger.error('saveIssue queued operation failed:', err);
       throw err;
     });
     return this.writeQueue;
   }
 
   async updateIssues(updater: (issues: Issue[]) => Issue[]): Promise<void> {
-    console.error('=== Storage updateIssues CALLED ===');
+    this.logger.debug('=== Storage updateIssues CALLED ===');
     // Queue this write operation
     this.writeQueue = this.writeQueue.then(async () => {
       await this.withLock(async () => {
-        console.error('Storage updateIssues: Inside lock');
+        this.logger.debug('Storage updateIssues: Inside lock');
         const issues = await this.loadIssuesInternal();
-        console.error('Storage updateIssues loaded issues count:', issues.length);
+        this.logger.debug('Storage updateIssues loaded issues count:', issues.length);
         const updatedIssues = updater(issues);
         
         // Validate all updated issues
@@ -126,18 +134,18 @@ export class StorageService implements IStorageService {
           throw new Error(`Invalid issue data in update: ${validationErrors.join('; ')}`);
         }
         
-        console.error('Storage updateIssues updated issues count:', updatedIssues.length);
+        this.logger.debug('Storage updateIssues updated issues count:', updatedIssues.length);
         const content = updatedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
-        console.error('Storage writing to', this.issuesFilePath);
+        this.logger.debug('Storage writing to', this.issuesFilePath);
         await fs.promises.writeFile(this.issuesFilePath, content);
-        console.error('Storage writeFile done');
+        this.logger.debug('Storage writeFile done');
       });
     }).catch(err => {
-      console.error('updateIssues queued operation failed:', err);
+      this.logger.error('updateIssues queued operation failed:', err);
       throw err;
     });
     await this.writeQueue;
-    console.error('=== Storage updateIssues COMPLETE ===');
+    this.logger.debug('=== Storage updateIssues COMPLETE ===');
   }
 
   getIssuesFilePath(): string {
