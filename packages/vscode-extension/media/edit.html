@@ -16,9 +16,17 @@
     }
 
     h1 {
-      font-size: 20px;
+      color: #D4A556;
+      font-size: 24px;
       font-weight: 600;
-      margin: 0 0 24px 0;
+      margin: 0 0 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #headerTicketId {
+      color: var(--vscode-foreground);
     }
 
     h3 {
@@ -1168,7 +1176,30 @@
 </head>
 
 <body>
-  <h1>Edit Ticket</h1>
+  <h1 id="ticketHeader">Edit Issue <span id="headerTicketId">-</span>
+    <button class="copy-id-btn" title="Copy ID to clipboard"
+      onclick="const el = document.getElementById('headerTicketId'); if (el) navigator.clipboard.writeText(el.textContent);">
+      <svg fill="#000000" viewBox="0 0 36 36" version="1.1" preserveAspectRatio="xMidYMid meet"
+        xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_iconCarrier">
+          <title>copy-to-clipboard-line</title>
+          <path
+            d="M22.6,4H21.55a3.89,3.89,0,0,0-7.31,0H13.4A2.41,2.41,0,0,0,11,6.4V10H25V6.4A2.41,2.41,0,0,0,22.6,4ZM23,8H13V6.25A.25.25,0,0,1,13.25,6h2.69l.12-1.11A1.24,1.24,0,0,1,16.61,4a2,2,0,0,1,3.15,1.18l.09.84h2.9a.25.25,0,0,1,.25.25Z"
+            class="clr-i-outline clr-i-outline-path-1"></path>
+          <path
+            d="M33.25,18.06H21.33l2.84-2.83a1,1,0,1,0-1.42-1.42L17.5,19.06l5.25,5.25a1,1,0,0,0,.71.29,1,1,0,0,0,.71-1.7l-2.84-2.84H33.25a1,1,0,0,0,0-2Z"
+            class="clr-i-outline clr-i-outline-path-2"></path>
+          <path d="M29,16h2V6.68A1.66,1.66,0,0,0,29.35,5H27.08V7H29Z" class="clr-i-outline clr-i-outline-path-3"></path>
+          <path
+            d="M29,31H7V7H9V5H6.64A1.66,1.66,0,0,0,5,6.67V31.32A1.66,1.66,0,0,0,6.65,33H29.36A1.66,1.66,0,0,0,31,31.33V22.06H29Z"
+            class="clr-i-outline clr-i-outline-path-4"></path>
+          <rect x="0" y="0" width="36" height="36" fill-opacity="0"></rect>
+        </g>
+      </svg>
+    </button>
+  </h1>
   <form id="ticketForm">
     <div class="editor-layout">
       <div class="main-content">
@@ -1258,38 +1289,6 @@
             <div class="metadata-item" id="closedDateContainer" style="display: none;">
               <label class="metadata-label">Closed</label>
               <div class="metadata-value date-value" id="closedDate">-</div>
-            </div>
-
-            <div class="metadata-item">
-              <label class="metadata-label">ID</label>
-              <div class="metadata-value">
-                <div class="task-id">
-                  <span id="ticketId">-</span>
-                  <button class="copy-id-btn" title="Copy ID to clipboard"
-                    onclick="navigator.clipboard.writeText(document.getElementById('ticketId').textContent)">
-                    <svg fill="#000000" viewBox="0 0 36 36" version="1.1" preserveAspectRatio="xMidYMid meet"
-                      xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                      <g id="SVGRepo_iconCarrier">
-                        <title>copy-to-clipboard-line</title>
-                        <path
-                          d="M22.6,4H21.55a3.89,3.89,0,0,0-7.31,0H13.4A2.41,2.41,0,0,0,11,6.4V10H25V6.4A2.41,2.41,0,0,0,22.6,4ZM23,8H13V6.25A.25.25,0,0,1,13.25,6h2.69l.12-1.11A1.24,1.24,0,0,1,16.61,4a2,2,0,0,1,3.15,1.18l.09.84h2.9a.25.25,0,0,1,.25.25Z"
-                          class="clr-i-outline clr-i-outline-path-1"></path>
-                        <path
-                          d="M33.25,18.06H21.33l2.84-2.83a1,1,0,1,0-1.42-1.42L17.5,19.06l5.25,5.25a1,1,0,0,0,.71.29,1,1,0,0,0,.71-1.7l-2.84-2.84H33.25a1,1,0,0,0,0-2Z"
-                          class="clr-i-outline clr-i-outline-path-2"></path>
-                        <path d="M29,16h2V6.68A1.66,1.66,0,0,0,29.35,5H27.08V7H29Z"
-                          class="clr-i-outline clr-i-outline-path-3"></path>
-                        <path
-                          d="M29,31H7V7H9V5H6.64A1.66,1.66,0,0,0,5,6.67V31.32A1.66,1.66,0,0,0,6.65,33H29.36A1.66,1.66,0,0,0,31,31.33V22.06H29Z"
-                          class="clr-i-outline clr-i-outline-path-4"></path>
-                        <rect x="0" y="0" width="36" height="36" fill-opacity="0"></rect>
-                      </g>
-                    </svg>
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -1795,7 +1794,10 @@
         onStatusChange();
 
         // Populate metadata
-        document.getElementById('ticketId').textContent = message.ticket.id;
+        const headerTicketIdEl = document.getElementById('headerTicketId');
+        if (headerTicketIdEl) {
+          headerTicketIdEl.textContent = `#${message.ticket.id}`;
+        }
         setDateWithIcon('createdDate', message.ticket.created_at);
         setDateWithIcon('updatedDate', message.ticket.updated_at);
 
