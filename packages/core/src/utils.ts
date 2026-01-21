@@ -169,7 +169,7 @@ export function validateIssue(issue: any): { isValid: boolean; errors: string[] 
   if (issue.labels !== undefined) {
     if (!Array.isArray(issue.labels)) {
       errors.push('Issue labels must be an array if provided');
-    } else if (!issue.labels.every(label => typeof label === 'string')) {
+    } else if (!issue.labels.every((label: string) => typeof label === 'string')) {
       errors.push('All issue labels must be strings');
     }
   }
@@ -178,7 +178,7 @@ export function validateIssue(issue: any): { isValid: boolean; errors: string[] 
     if (!Array.isArray(issue.dependencies)) {
       errors.push('Issue dependencies must be an array if provided');
     } else {
-      issue.dependencies.forEach((dep, index) => {
+      issue.dependencies.forEach((dep: any, index: number) => {
         if (!isValidDependency(dep)) {
           errors.push(`Issue dependency at index ${index} is invalid`);
         }
@@ -190,7 +190,7 @@ export function validateIssue(issue: any): { isValid: boolean; errors: string[] 
     if (!Array.isArray(issue.comments)) {
       errors.push('Issue comments must be an array if provided');
     } else {
-      issue.comments.forEach((comment, index) => {
+      issue.comments.forEach((comment: any, index: number) => {
         if (!isValidComment(comment)) {
           errors.push(`Issue comment at index ${index} is invalid`);
         }
@@ -202,7 +202,7 @@ export function validateIssue(issue: any): { isValid: boolean; errors: string[] 
     if (!Array.isArray(issue.acceptance_criteria)) {
       errors.push('Issue acceptance_criteria must be an array if provided');
     } else {
-      issue.acceptance_criteria.forEach((criteria, index) => {
+      issue.acceptance_criteria.forEach((criteria: any, index: number) => {
         if (!isValidAcceptanceCriteria(criteria)) {
           errors.push(`Issue acceptance_criteria at index ${index} is invalid`);
         }

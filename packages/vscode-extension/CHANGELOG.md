@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive input validation for JSONL storage system with type guards and runtime validation
 - File path sanitization to prevent directory traversal attacks
 - Detailed error reporting for invalid issue data with specific validation messages
+- Validation to prevent closing issues with open sub-issues across all interfaces
+- Computed sub-issue status display showing "Issue Status / Computed Status" when computed status differs from actual status
+- Status pill colors that reflect computed sub-issue status when it differs from the issue's own status
 
 ### Changed
 - Redesigned edit view layout with header/property row structure for improved information hierarchy
@@ -22,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated "In Progress" status icon from ▶ to ◐ for better consistency
 - Made section/accordion titles match "Edit Issue" title color for visual consistency
 - Lowered opacity of empty states for more subtle visual presence
+- Status pills now prevent text wrapping with white-space: nowrap for single-line display
+- Type, Status, and Priority pills are now horizontally centered within their containers
+- Pills in edit view are centered within their flex containers for improved alignment
 
 ### Security
 - Enhanced data integrity validation for all Issue object properties

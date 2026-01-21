@@ -93,6 +93,7 @@ describe('VS Code Extension Tools', () => {
     mockGraph = {
       addDependency: vi.fn(),
       getReadyWork: vi.fn(),
+      getCascadingStatusUpdates: vi.fn(() => []),
     };
 
     mockContainer = {

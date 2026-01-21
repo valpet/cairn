@@ -552,6 +552,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      justify-content: center;
     }
 
     .dependencies-section .collapsible-content {
@@ -664,6 +665,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      justify-content: center;
     }
 
     .dependency-type,
@@ -675,6 +677,8 @@
       font-weight: 500;
       display: inline-block;
       text-transform: capitalize;
+      white-space: nowrap;
+      text-align: center;
     }
 
     .dependency-type {
@@ -894,6 +898,8 @@
       font-weight: 500;
       display: inline-block;
       text-transform: capitalize;
+      white-space: nowrap;
+      text-align: center;
     }
 
     .subtask-type {
@@ -1967,6 +1973,48 @@
       return pill;
     }
 
+    // Compute sub-issue status based on subtask statuses
+    function computeSubIssueStatus(subtasks) {
+      if (!subtasks || subtasks.length === 0) {
+        return null;
+      }
+
+      // Check if any sub-issue is in-progress
+      const hasInProgress = subtasks.some(subtask => subtask.status === 'in_progress');
+      if (hasInProgress) {
+        return 'in_progress';
+      }
+
+      // Get non-closed subtasks
+      const nonClosedSubtasks = subtasks.filter(subtask => subtask.status !== 'closed');
+      
+      // If all non-closed subtasks are blocked, show blocked
+      if (nonClosedSubtasks.length > 0 && nonClosedSubtasks.every(subtask => subtask.status === 'blocked')) {
+        return 'blocked';
+      }
+
+      // If all subtasks are closed, show closed
+      if (subtasks.every(subtask => subtask.status === 'closed')) {
+        return 'closed';
+      }
+
+      return null;
+    }
+
+    // Get status display text with computed sub-issue status
+    function getStatusDisplayText(issueStatus, subtasks) {
+      const statusLabels = { open: 'Open', in_progress: 'In Progress', closed: 'Closed', blocked: 'Blocked' };
+      const issueStatusText = statusLabels[issueStatus] || issueStatus;
+      
+      const computedStatus = computeSubIssueStatus(subtasks);
+      if (computedStatus && computedStatus !== issueStatus) {
+        const computedStatusText = statusLabels[computedStatus] || computedStatus;
+        return `${issueStatusText} / ${computedStatusText}`;
+      }
+      
+      return issueStatusText;
+    }
+
     function createRemoveIcon() {
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('viewBox', '0 0 1024 1024');
@@ -2033,6 +2081,7 @@
     let currentType = 'task';
     let currentPriority = 'medium';
     let currentStatus = 'open';
+    let previousStatus = 'open'; // Track previous status for reverting on save failure
     let activeDropdown = null;
 
     // Toggle metadata dropdown
@@ -2093,7 +2142,7 @@
       const dropdown = document.getElementById(`${type}Dropdown`);
       
       // Update the button appearance
-      labelElement.textContent = label;
+      labelElement.textContent = getStatusDisplayText(currentStatus, subtasks);
       
       // Update icon
       if (type === 'type' && typeIcons[value]) {
@@ -2108,7 +2157,14 @@
       button.className = 'metadata-dropdown-button';
       
       // Add the selected value class
-      button.classList.add(`${type}-${value}`);
+      if (type === 'status') {
+        // Use computed status for button color when it differs from actual status
+        const computedStatus = computeSubIssueStatus(subtasks);
+        const statusClass = computedStatus && computedStatus !== currentStatus ? computedStatus : currentStatus;
+        button.classList.add(`status-${statusClass}`);
+      } else {
+        button.classList.add(`${type}-${value}`);
+      }
       
       // Update selected state in dropdown items
       const items = dropdown.querySelectorAll('.metadata-dropdown-item');
@@ -2126,6 +2182,7 @@
       } else if (type === 'priority') {
         currentPriority = value;
       } else if (type === 'status') {
+        previousStatus = currentStatus; // Track previous status before updating
         currentStatus = value;
         onStatusChange();
       }
@@ -2189,6 +2246,7 @@
         currentType = message.ticket.type || 'task';
         currentPriority = message.ticket.priority || 'medium';
         currentStatus = message.ticket.status || 'open';
+        previousStatus = currentStatus; // Initialize previous status when loading
         
         // Update dropdown button displays
         const typeLabel = { task: 'Task', bug: 'Bug', feature: 'Feature', epic: 'Epic', chore: 'Chore', docs: 'Docs', refactor: 'Refactor' };
@@ -2197,7 +2255,7 @@
         
         document.getElementById('typeLabel').textContent = typeLabel[currentType];
         document.getElementById('priorityLabel').textContent = priorityLabel[currentPriority];
-        document.getElementById('statusLabel').textContent = statusLabel[currentStatus];
+        document.getElementById('statusLabel').textContent = getStatusDisplayText(currentStatus, subtasks);
         
         // Update icons
         document.getElementById('typeIcon').textContent = typeIcons[currentType] || '\u2022';
@@ -2215,8 +2273,11 @@
         priorityButton.className = 'metadata-dropdown-button';
         priorityButton.classList.add(`priority-${currentPriority}`);
         
+        // Use computed status for button color when it differs from actual status
+        const computedStatus = computeSubIssueStatus(subtasks);
+        const statusClass = computedStatus && computedStatus !== currentStatus ? computedStatus : currentStatus;
         statusButton.className = 'metadata-dropdown-button';
-        statusButton.classList.add(`status-${currentStatus}`);
+        statusButton.classList.add(`status-${statusClass}`);
         
         subtasks = message.ticket.subtasks || [];
         dependencies = message.ticket.dependencies || [];
@@ -2356,6 +2417,72 @@
         if (commentAuthorField) {
           commentAuthorField.setValue(authorName);
         }
+      } else if (message.type === 'saveFailed') {
+        console.log('Save failed, reverting status:', message);
+        // Revert the status back to the previous value
+        currentStatus = previousStatus;
+        
+        // Update the UI to reflect the reverted status
+        const statusLabel = { open: 'Open', in_progress: 'In Progress', closed: 'Closed', blocked: 'Blocked' };
+        const statusIcon = { open: '\u25cf', in_progress: '\u25cf', closed: '\u25cf', blocked: '\u25cf' };
+        
+        document.getElementById('statusLabel').textContent = getStatusDisplayText(currentStatus, subtasks);
+        document.getElementById('statusIcon').textContent = statusIcon[currentStatus];
+        
+        const statusButton = document.getElementById('statusButton');
+        // Use computed status for button color when it differs from actual status
+        const computedStatus = computeSubIssueStatus(subtasks);
+        const statusClass = computedStatus && computedStatus !== currentStatus ? computedStatus : currentStatus;
+        statusButton.className = 'metadata-dropdown-button';
+        statusButton.classList.add(`status-${statusClass}`);
+        
+        // Update selected state in dropdown items
+        const dropdown = document.getElementById('statusDropdown');
+        const items = dropdown.querySelectorAll('.metadata-dropdown-item');
+        items.forEach(item => {
+          if (item.dataset.value === currentStatus) {
+            item.classList.add('selected');
+          } else {
+            item.classList.remove('selected');
+          }
+        });
+        
+        // Update closed date display
+        onStatusChange();
+        
+        // Show error message to user
+        let errorMessage = message.error;
+        if (message.errorCode === 'CANNOT_CLOSE_WITH_OPEN_SUBTASKS') {
+          errorMessage = 'Cannot close issue as it has open sub-issues.';
+        }
+        
+        if (errorMessage) {
+          // Create a temporary error notification
+          const errorDiv = document.createElement('div');
+          errorDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #f85149;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            max-width: 400px;
+            font-size: 13px;
+            line-height: 1.4;
+          `;
+          errorDiv.textContent = errorMessage;
+          document.body.appendChild(errorDiv);
+          
+          // Remove after 5 seconds
+          setTimeout(() => {
+            if (errorDiv.parentNode) {
+              errorDiv.parentNode.removeChild(errorDiv);
+            }
+          }, 5000);
+        }
       }
     });
 
@@ -2450,6 +2577,9 @@
       if (section && !section.classList.contains('collapsed')) {
         section.style.maxHeight = section.scrollHeight + 'px';
       }
+
+      // Update status display in case computed status changed
+      document.getElementById('statusLabel').textContent = getStatusDisplayText(currentStatus, subtasks);
     }
 
     function renderDependencies() {
