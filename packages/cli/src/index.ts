@@ -165,7 +165,7 @@ program
   .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
   .option('-s, --status <status>', 'Status: open, in_progress, closed, blocked')
   .option('-r, --parent <parent>', 'Parent issue ID for parent-child dependency')
-  .action(async (title, options) => {
+  .action(async (title: string, options) => {
     const { storage, graph } = setupServices();
     const issues = await storage.loadIssues();
     const id = generateId(issues);
@@ -203,7 +203,7 @@ program
   .option('-a, --assignee <assignee>', 'Assignee')
   .option('-l, --labels <labels>', 'Labels (comma-separated)')
   .option('-c, --acceptance-criteria <criteria>', 'Add acceptance criteria (comma-separated for multiple)')
-  .action(async (id, options) => {
+  .action(async (id: string, options) => {
     const { storage } = setupServices();
     const issues = await storage.loadIssues();
     const issue = issues.find(i => i.id === id);
@@ -214,7 +214,7 @@ program
 
     // Handle acceptance criteria
     if (options.acceptanceCriteria) {
-      const criteriaTexts = options.acceptanceCriteria.split(',').map((text) => text.trim());
+      const criteriaTexts = options.acceptanceCriteria.split(',').map((text: string) => text.trim());
       await storage.updateIssues(issues => {
         return issues.map(issue => {
           if (issue.id === id) {
@@ -293,7 +293,7 @@ depCmd
   .command('add <from> <to>')
   .description('Add dependency')
   .option('-t, --type <type>', 'Type: blocks, related, parent-child, discovered-from', 'blocks')
-  .action(async (from, to, options) => {
+  .action(async (from: string, to: string, options) => {
     const { storage, graph } = setupServices();
     await storage.updateIssues(issues => {
       return graph.addDependency(from, to, options.type, issues);
@@ -306,7 +306,7 @@ const epicCmd = program.command('epic');
 epicCmd
   .command('subtasks <epicId>')
   .description('List all subtasks of an epic')
-  .action(async (epicId) => {
+  .action(async (epicId: string) => {
     const { storage, graph } = setupServices();
     const issues = await storage.loadIssues();
     const subtasks = graph.getEpicSubtasks(epicId, issues);
@@ -323,7 +323,7 @@ epicCmd
 epicCmd
   .command('progress <epicId>')
   .description('Show progress of an epic')
-  .action(async (epicId) => {
+  .action(async (epicId: string) => {
     const { storage, graph } = setupServices();
     const issues = await storage.loadIssues();
     const progress = graph.calculateEpicProgress(epicId, issues);
@@ -345,7 +345,7 @@ epicCmd
   .description('Create a new subtask for an epic')
   .option('-d, --description <desc>', 'Description')
   .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
-  .action(async (epicId, title, options) => {
+  .action(async (epicId: string, title: string, options) => {
     const { storage, graph } = setupServices();
     const issues = await storage.loadIssues();
     const epic = issues.find(i => i.id === epicId);
@@ -382,7 +382,7 @@ epicCmd
 program
   .command('review <id>')
   .description('Perform self-review on a task')
-  .action(async (id) => {
+  .action(async (id: string) => {
     const { storage } = setupServices();
     const issues = await storage.loadIssues();
     const issue = issues.find(i => i.id === id);
@@ -405,7 +405,7 @@ program
   .command('comment <id> <message>')
   .description('Add a comment to an issue')
   .option('-a, --author <author>', 'Comment author', 'user')
-  .action(async (id, message, options) => {
+  .action(async (id: string, message: string, options) => {
     const { storage } = setupServices();
     const issues = await storage.loadIssues();
     const issue = issues.find(i => i.id === id);
@@ -422,7 +422,7 @@ const acCmd = program.command('ac');
 acCmd
   .command('list <id>')
   .description('List acceptance criteria for an issue')
-  .action(async (id) => {
+  .action(async (id: string) => {
     const { storage } = setupServices();
     const issues = await storage.loadIssues();
     const issue = issues.find(i => i.id === id);
@@ -445,7 +445,7 @@ acCmd
 acCmd
   .command('add <id> <text>')
   .description('Add acceptance criteria to an issue')
-  .action(async (id, text) => {
+  .action(async (id: string, text: string) => {
     const { storage } = setupServices();
     const issues = await storage.loadIssues();
     const issue = issues.find(i => i.id === id);
@@ -472,7 +472,7 @@ acCmd
 acCmd
   .command('update <id> <index> <text>')
   .description('Update acceptance criteria text')
-  .action(async (id, indexStr, text) => {
+  .action(async (id: string, indexStr: string, text: string) => {
     const { storage } = setupServices();
     const index = parseInt(indexStr);
     if (isNaN(index)) {
@@ -501,7 +501,7 @@ acCmd
 acCmd
   .command('remove <id> <index>')
   .description('Remove acceptance criteria from an issue')
-  .action(async (id, indexStr) => {
+  .action(async (id: string, indexStr: string) => {
     const { storage } = setupServices();
     const index = parseInt(indexStr);
     if (isNaN(index)) {
@@ -530,7 +530,7 @@ acCmd
 acCmd
   .command('toggle <id> <index>')
   .description('Toggle acceptance criteria completion status')
-  .action(async (id, indexStr) => {
+  .action(async (id: string, indexStr: string) => {
     const { storage } = setupServices();
     const index = parseInt(indexStr);
     if (isNaN(index)) {
