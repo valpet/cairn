@@ -43,11 +43,6 @@ const mockWindow = {
 global.document = mockDocument as any;
 global.window = mockWindow as any;
 
-// Mock the createRemoveIcon function
-function createRemoveIcon() {
-  return createMockElement('svg');
-}
-
 // Mock the EditableField class
 class EditableField {
   constructor(options: any) {
