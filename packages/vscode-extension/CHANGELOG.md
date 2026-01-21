@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Empty states for Acceptance Criteria, Sub-issues, Blocked by and Blocking sections with helpful guidance messages
 - Dropdown button styling for Type, Priority, and Status selectors with dynamic color coding
 - Consistent icons for dropdown buttons and status indicators for better visual recognition
+- Comprehensive input validation for JSONL storage system with type guards and runtime validation
+- File path sanitization to prevent directory traversal attacks
+- Detailed error reporting for invalid issue data with specific validation messages
 
 ### Changed
 - Redesigned edit view layout with header/property row structure for improved information hierarchy
@@ -19,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated "In Progress" status icon from ▶ to ◐ for better consistency
 - Made section/accordion titles match "Edit Issue" title color for visual consistency
 - Lowered opacity of empty states for more subtle visual presence
+
+### Security
+- Enhanced data integrity validation for all Issue object properties
+- Runtime type checking for status, priority, type, and dependency fields
+- ISO date string validation to prevent malformed timestamp data
 
 ## [1.0.4] - 2024-01-21
 

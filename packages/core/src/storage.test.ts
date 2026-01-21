@@ -33,10 +33,13 @@ describe('StorageService', () => {
       id: 'legacy-1',
       title: 'Legacy Issue',
       status: 'open',
-      created_at: '2023-01-01T00:00:00Z',
-      updated_at: '2023-01-01T00:00:00Z',
+      created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
       notes: 'These are legacy notes',
-      acceptance_criteria: ['Criteria 1', 'Criteria 2']
+      acceptance_criteria: [
+        { text: 'Criteria 1', completed: false },
+        { text: 'Criteria 2', completed: true }
+      ]
     });
 
     // Write the old format directly to the file
@@ -50,7 +53,10 @@ describe('StorageService', () => {
     expect(issues[0].status).toBe('open');
     // The deprecated fields should be loaded but not cause errors
     expect((issues[0] as any).notes).toBe('These are legacy notes');
-    expect((issues[0] as any).acceptance_criteria).toEqual(['Criteria 1', 'Criteria 2']);
+    expect((issues[0] as any).acceptance_criteria).toEqual([
+      { text: 'Criteria 1', completed: false },
+      { text: 'Criteria 2', completed: true }
+    ]);
   });
 
   it('should save and reload issues with deprecated fields', async () => {
@@ -59,10 +65,13 @@ describe('StorageService', () => {
       id: 'test-1',
       title: 'Test Issue',
       status: 'open' as const,
-      created_at: '2023-01-01T00:00:00Z',
-      updated_at: '2023-01-01T00:00:00Z',
+      created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
       notes: 'Legacy notes field',
-      acceptance_criteria: ['AC1', 'AC2']
+      acceptance_criteria: [
+        { text: 'AC1', completed: false },
+        { text: 'AC2', completed: true }
+      ]
     } as any; // Cast to any to bypass type checking
 
     // Save it (this should work even with deprecated fields)
@@ -74,7 +83,10 @@ describe('StorageService', () => {
     expect(issues[0].id).toBe('test-1');
     // The deprecated fields should be preserved
     expect((issues[0] as any).notes).toBe('Legacy notes field');
-    expect((issues[0] as any).acceptance_criteria).toEqual(['AC1', 'AC2']);
+    expect((issues[0] as any).acceptance_criteria).toEqual([
+      { text: 'AC1', completed: false },
+      { text: 'AC2', completed: true }
+    ]);
   });
 
   it('should append multiple issues', async () => {
@@ -82,16 +94,16 @@ describe('StorageService', () => {
       id: 'test-1',
       title: 'Test Issue 1',
       status: 'open' as const,
-      created_at: '2023-01-01T00:00:00Z',
-      updated_at: '2023-01-01T00:00:00Z',
+      created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
     };
     const issue2 = {
       id: 'test-2',
       title: 'Test Issue 2',
       status: 'closed' as const,
-      created_at: '2023-01-01T00:00:00Z',
-      updated_at: '2023-01-01T00:00:00Z',
-      closed_at: '2023-01-01T00:00:00Z',
+      created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      closed_at: '2023-01-01T00:00:00.000Z',
     };
 
     await storage.saveIssue(issue1);
@@ -110,15 +122,15 @@ describe('StorageService', () => {
         id: 'test-1',
         title: 'Test Issue 1',
         status: 'open' as const,
-        created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
       };
       const issue2 = {
         id: 'test-2',
         title: 'Test Issue 2',
         status: 'open' as const,
-        created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
       };
 
       // Start both saves simultaneously
@@ -138,8 +150,8 @@ describe('StorageService', () => {
         id: 'test-1',
         title: 'Test Issue 1',
         status: 'open' as const,
-        created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
       };
       await storage.saveIssue(issue1);
 
@@ -147,13 +159,13 @@ describe('StorageService', () => {
       await Promise.all([
         storage.updateIssues(issues => issues.map(i => ({ ...i, title: 'Updated 1' }))),
         storage.updateIssues(issues => issues.map(i => ({ ...i, status: 'closed' as const }))),
-        storage.updateIssues(issues => issues.map(i => ({ ...i, updated_at: '2023-01-02T00:00:00Z' })))
+        storage.updateIssues(issues => issues.map(i => ({ ...i, updated_at: '2023-01-02T00:00:00.000Z' })))
       ]);
 
       const issues = await storage.loadIssues();
       expect(issues).toHaveLength(1);
       // The last update in the queue should win
-      expect(issues[0].updated_at).toBe('2023-01-02T00:00:00Z');
+      expect(issues[0].updated_at).toBe('2023-01-02T00:00:00.000Z');
     });
 
     it('should clean up stale locks', async () => {
@@ -170,8 +182,8 @@ describe('StorageService', () => {
         id: 'test-1',
         title: 'Test Issue',
         status: 'open' as const,
-        created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
       };
 
       // This should clean up the stale lock and succeed
@@ -196,8 +208,8 @@ describe('StorageService', () => {
         id: 'test-1',
         title: 'Test Issue',
         status: 'open' as const,
-        created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
       };
 
       // Release the lock after 100ms to simulate another process finishing
@@ -235,8 +247,8 @@ describe('StorageService', () => {
         id: 'test-1',
         title: 'Test Issue',
         status: 'open' as const,
-        created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
       };
 
       // Release the lock after 300ms (before it becomes stale at 1000ms)
@@ -260,8 +272,8 @@ describe('StorageService', () => {
         id: 'test-1',
         title: 'Test Issue',
         status: 'open' as const,
-        created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
       };
 
       await storage.saveIssue(issue);
@@ -282,8 +294,8 @@ describe('StorageService', () => {
         id: 'test-1',
         title: 'Test Issue',
         status: 'open' as const,
-        created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
       };
 
       await storage.saveIssue(issue);
@@ -303,8 +315,8 @@ describe('StorageService', () => {
         id: 'test-1',
         title: 'Test Issue',
         status: 'open' as const,
-        created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
       };
 
       await storage.saveIssue(issue);

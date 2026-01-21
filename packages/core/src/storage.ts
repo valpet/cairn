@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { nanoid } from 'nanoid';
 import { Issue, Comment } from './types';
+import { validateIssue } from './utils';
 
 export interface IStorageService {
   loadIssues(): Promise<Issue[]>;
@@ -46,10 +47,42 @@ export class StorageService implements IStorageService {
     }
     const content = await fs.promises.readFile(this.issuesFilePath, 'utf-8');
     const lines = content.trim().split('\n').filter(line => line.trim());
-    return lines.map(line => JSON.parse(line) as Issue);
+    
+    const issues: Issue[] = [];
+    const errors: string[] = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      try {
+        const issue = JSON.parse(lines[i]);
+        const validation = validateIssue(issue);
+        
+        if (validation.isValid) {
+          issues.push(issue);
+        } else {
+          errors.push(`Line ${i + 1}: ${validation.errors.join(', ')}`);
+        }
+      } catch (parseError) {
+        errors.push(`Line ${i + 1}: Invalid JSON - ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+      }
+    }
+    
+    // Log validation errors but don't fail the load - allow partial recovery
+    if (errors.length > 0) {
+      console.error(`Found ${errors.length} validation errors in ${this.issuesFilePath}:`);
+      errors.forEach(error => console.error(`  ${error}`));
+      console.error('Invalid issues were skipped. Consider repairing the data file.');
+    }
+    
+    return issues;
   }
 
   async saveIssue(issue: Issue): Promise<void> {
+    // Validate the issue before saving
+    const validation = validateIssue(issue);
+    if (!validation.isValid) {
+      throw new Error(`Invalid issue data: ${validation.errors.join(', ')}`);
+    }
+
     // Queue this write operation
     this.writeQueue = this.writeQueue.then(async () => {
       await this.withLock(async () => {
@@ -79,6 +112,20 @@ export class StorageService implements IStorageService {
         const issues = await this.loadIssuesInternal();
         console.error('Storage updateIssues loaded issues count:', issues.length);
         const updatedIssues = updater(issues);
+        
+        // Validate all updated issues
+        const validationErrors: string[] = [];
+        updatedIssues.forEach((issue, index) => {
+          const validation = validateIssue(issue);
+          if (!validation.isValid) {
+            validationErrors.push(`Issue ${index} (${issue.id}): ${validation.errors.join(', ')}`);
+          }
+        });
+        
+        if (validationErrors.length > 0) {
+          throw new Error(`Invalid issue data in update: ${validationErrors.join('; ')}`);
+        }
+        
         console.error('Storage updateIssues updated issues count:', updatedIssues.length);
         const content = updatedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
         console.error('Storage writing to', this.issuesFilePath);
