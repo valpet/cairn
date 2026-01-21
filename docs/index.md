@@ -293,7 +293,7 @@ See individual package READMEs for development setup.
 
 ## License
 
-MIT License - see [LICENSE](../LICENSE) file for details.
+MIT License - see the LICENSE file in the repository root for details.
 
 ## Disclaimer
 
