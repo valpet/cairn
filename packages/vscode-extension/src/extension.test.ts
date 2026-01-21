@@ -64,6 +64,7 @@ vi.mock('../../core/dist/index.js', () => ({
 }));
 
 // Import after mocking
+import * as vscode from 'vscode';
 import { lm, ExtensionContext } from 'vscode';
 import { createContainer, TYPES, findCairnDir, generateId } from '../../core/dist/index.js';
 import { activate } from './extension';
@@ -94,6 +95,9 @@ describe('VS Code Extension Tools', () => {
       addDependency: vi.fn(),
       getReadyWork: vi.fn(),
       getCascadingStatusUpdates: vi.fn(() => []),
+      canCloseIssue: vi.fn(),
+      getEpicSubtasks: vi.fn(() => []),
+      getNonParentedIssues: vi.fn(() => []),
     };
 
     mockContainer = {
@@ -294,6 +298,155 @@ describe('VS Code Extension Tools', () => {
       expect(mockStorage.addComment).not.toHaveBeenCalled();
       expect(result.content[0].text).toContain('Updated issue task-123');
     });
+
+    it('should prevent closing an issue with open subtasks', async () => {
+      const mockIssues = [
+        { id: 'parent-123', title: 'Parent Task', status: 'open' },
+        { id: 'subtask-1', title: 'Open Subtask', status: 'open' },
+      ];
+      
+      mockStorage.loadIssues.mockResolvedValue(mockIssues);
+      mockGraph.canCloseIssue.mockReturnValue({
+        canClose: false,
+        openSubtasks: [{ id: 'subtask-1', title: 'Open Subtask', status: 'open' }],
+      });
+
+      const registerToolMock = lm.registerTool as any;
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_update');
+      const toolHandler = toolRegistration[1].invoke;
+
+      const result = await toolHandler({
+        input: {
+          id: 'parent-123',
+          status: 'closed',
+        }
+      }, {});
+
+      expect(mockStorage.loadIssues).toHaveBeenCalled();
+      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('parent-123', mockIssues);
+      expect(mockStorage.updateIssues).not.toHaveBeenCalled();
+      
+      const resultText = result.content[0].text;
+      expect(resultText).toContain('success');
+      expect(resultText).toContain('false');
+      expect(resultText).toContain('Cannot close issue');
+      expect(resultText).toContain('Parent Task');
+      expect(resultText).toContain('parent-123');
+      expect(resultText).toContain('Open Subtask');
+      expect(resultText).toContain('subtask-1');
+      expect(resultText).toContain('open subtask(s)');
+    });
+
+    it('should allow closing an issue with no subtasks', async () => {
+      const mockIssues = [
+        { id: 'task-123', title: 'Task No Subtasks', status: 'open' },
+      ];
+      
+      mockStorage.loadIssues.mockResolvedValue(mockIssues);
+      mockGraph.canCloseIssue.mockReturnValue({
+        canClose: true,
+        openSubtasks: [],
+      });
+      
+      mockStorage.updateIssues.mockImplementation(async (callback) => {
+        const updatedIssues = callback(mockIssues);
+        return updatedIssues;
+      });
+
+      const registerToolMock = lm.registerTool as any;
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_update');
+      const toolHandler = toolRegistration[1].invoke;
+
+      const result = await toolHandler({
+        input: {
+          id: 'task-123',
+          status: 'closed',
+        }
+      }, {});
+
+      expect(mockStorage.loadIssues).toHaveBeenCalled();
+      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('task-123', mockIssues);
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(result.content[0].text).toContain('Updated issue task-123');
+    });
+
+    it('should allow closing an issue with all closed subtasks', async () => {
+      const mockIssues = [
+        { id: 'parent-123', title: 'Parent Task', status: 'open' },
+        { id: 'subtask-1', title: 'Closed Subtask 1', status: 'closed' },
+        { id: 'subtask-2', title: 'Closed Subtask 2', status: 'closed' },
+      ];
+      
+      mockStorage.loadIssues.mockResolvedValue(mockIssues);
+      mockGraph.canCloseIssue.mockReturnValue({
+        canClose: true,
+        openSubtasks: [],
+      });
+      
+      mockStorage.updateIssues.mockImplementation(async (callback) => {
+        const updatedIssues = callback(mockIssues);
+        return updatedIssues;
+      });
+
+      const registerToolMock = lm.registerTool as any;
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_update');
+      const toolHandler = toolRegistration[1].invoke;
+
+      const result = await toolHandler({
+        input: {
+          id: 'parent-123',
+          status: 'closed',
+        }
+      }, {});
+
+      expect(mockStorage.loadIssues).toHaveBeenCalled();
+      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('parent-123', mockIssues);
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(result.content[0].text).toContain('Updated issue parent-123');
+    });
+
+    it('should prevent closing issue with multiple open subtasks and list all of them', async () => {
+      const mockIssues = [
+        { id: 'parent-123', title: 'Parent Epic', status: 'in_progress' },
+        { id: 'subtask-1', title: 'Open Subtask 1', status: 'open' },
+        { id: 'subtask-2', title: 'Open Subtask 2', status: 'in_progress' },
+        { id: 'subtask-3', title: 'Blocked Subtask', status: 'blocked' },
+      ];
+      
+      mockStorage.loadIssues.mockResolvedValue(mockIssues);
+      mockGraph.canCloseIssue.mockReturnValue({
+        canClose: false,
+        openSubtasks: [
+          { id: 'subtask-1', title: 'Open Subtask 1', status: 'open' },
+          { id: 'subtask-2', title: 'Open Subtask 2', status: 'in_progress' },
+          { id: 'subtask-3', title: 'Blocked Subtask', status: 'blocked' },
+        ],
+      });
+
+      const registerToolMock = lm.registerTool as any;
+      const toolRegistration = registerToolMock.mock.calls.find(call => call[0] === 'cairn_update');
+      const toolHandler = toolRegistration[1].invoke;
+
+      const result = await toolHandler({
+        input: {
+          id: 'parent-123',
+          status: 'closed',
+        }
+      }, {});
+
+      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('parent-123', mockIssues);
+      expect(mockStorage.updateIssues).not.toHaveBeenCalled();
+      
+      const resultText = result.content[0].text;
+      expect(resultText).toContain('Cannot close issue');
+      expect(resultText).toContain('3 open subtask(s)');
+      expect(resultText).toContain('Open Subtask 1');
+      expect(resultText).toContain('subtask-1');
+      expect(resultText).toContain('Open Subtask 2');
+      expect(resultText).toContain('subtask-2');
+      expect(resultText).toContain('Blocked Subtask');
+      expect(resultText).toContain('subtask-3');
+    });
   });
 
   describe('cairn_dep_add tool', () => {
@@ -347,4 +500,10 @@ describe('VS Code Extension Tools', () => {
       expect(result.content[0].text).toContain('Added comment to issue task-123');
     });
   });
+
+  // Note: Webview saveTicket message handler for canCloseIssue validation
+  // The webview command 'cairn.openEditView' contains additional canCloseIssue validation
+  // that prevents closing issues with open subtasks from the UI.
+  // This validation logic mirrors the tool validation tested above but is integrated into
+  // the webview message flow. Consider adding integration tests for the full webview flow.
 });

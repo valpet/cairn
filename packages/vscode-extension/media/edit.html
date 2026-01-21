@@ -2141,7 +2141,13 @@
       const dropdown = document.getElementById(`${type}Dropdown`);
       
       // Update the button appearance
-      labelElement.textContent = getStatusDisplayText(currentStatus, subtasks);
+      if (type === 'status') {
+        // For status, use the newly selected value when computing the display text
+        labelElement.textContent = getStatusDisplayText(value, subtasks);
+      } else {
+        // For other metadata types, use the provided label
+        labelElement.textContent = label;
+      }
       
       // Update icon
       if (type === 'type' && typeIcons[value]) {
@@ -2247,10 +2253,14 @@
         currentStatus = message.ticket.status || 'open';
         previousStatus = currentStatus; // Initialize previous status when loading
         
+        // Initialize ticket-related collections before computing derived status
+        subtasks = message.ticket.subtasks || [];
+        dependencies = message.ticket.dependencies || [];
+        acceptanceCriteria = message.ticket.acceptance_criteria || [];
+        
         // Update dropdown button displays
         const typeLabel = { task: 'Task', bug: 'Bug', feature: 'Feature', epic: 'Epic', chore: 'Chore', docs: 'Docs', refactor: 'Refactor' };
         const priorityLabel = { low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent' };
-        const statusLabel = { open: 'Open', in_progress: 'In Progress', closed: 'Closed', blocked: 'Blocked' };
         
         document.getElementById('typeLabel').textContent = typeLabel[currentType];
         document.getElementById('priorityLabel').textContent = priorityLabel[currentPriority];
@@ -2277,10 +2287,6 @@
         const statusClass = computedStatus && computedStatus !== currentStatus ? computedStatus : currentStatus;
         statusButton.className = 'metadata-dropdown-button';
         statusButton.classList.add(`status-${statusClass}`);
-        
-        subtasks = message.ticket.subtasks || [];
-        dependencies = message.ticket.dependencies || [];
-        acceptanceCriteria = message.ticket.acceptance_criteria || [];
 
         // Update closed date display based on status
         onStatusChange();
@@ -2422,11 +2428,8 @@
         currentStatus = previousStatus;
         
         // Update the UI to reflect the reverted status
-        const statusLabel = { open: 'Open', in_progress: 'In Progress', closed: 'Closed', blocked: 'Blocked' };
-        const statusIcon = { open: '\u25cf', in_progress: '\u25cf', closed: '\u25cf', blocked: '\u25cf' };
-        
         document.getElementById('statusLabel').textContent = getStatusDisplayText(currentStatus, subtasks);
-        document.getElementById('statusIcon').textContent = statusIcon[currentStatus];
+        document.getElementById('statusIcon').textContent = statusIcons[currentStatus] || '';
         
         const statusButton = document.getElementById('statusButton');
         // Use computed status for button color when it differs from actual status

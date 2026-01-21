@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import * as path from 'path';
 import {
   isValidIssueStatus,
   isValidPriority,
@@ -240,12 +241,12 @@ describe('Validation Functions', () => {
   describe('sanitizeFilePath', () => {
     it('should sanitize basic paths', () => {
       expect(sanitizeFilePath('file.txt')).toBe('file.txt');
-      expect(sanitizeFilePath('path/to/file.txt')).toBe('path\\to\\file.txt'); // Windows path normalization
+      expect(sanitizeFilePath('path/to/file.txt')).toBe(`path${path.sep}to${path.sep}file.txt`);
     });
 
     it('should prevent directory traversal', () => {
-      expect(sanitizeFilePath('../../../etc/passwd')).toBe('etc\\passwd');
-      expect(sanitizeFilePath('..\\..\\..\\windows\\system32')).toBe('windows\\system32');
+      expect(sanitizeFilePath('../../../etc/passwd')).toBe(`etc${path.sep}passwd`);
+      expect(sanitizeFilePath('..\\..\\..\\windows\\system32')).toBe(`windows${path.sep}system32`);
     });
 
     it('should validate file extensions when specified', () => {

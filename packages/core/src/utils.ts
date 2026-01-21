@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { nanoid } from 'nanoid';
-import { Issue, IssueStatus, Priority, IssueType, Dependency, DependencyType, Comment, AcceptanceCriteria } from './types';
+import { IssueStatus, Priority, IssueType, Dependency, DependencyType, Comment, AcceptanceCriteria } from './types';
 
 /**
  * Finds the .cairn directory by walking up the directory tree from startDir.

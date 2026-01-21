@@ -2,7 +2,7 @@ import { Container } from 'inversify';
 import { IStorageService, StorageService } from './storage';
 import { IGraphService, GraphService } from './graph';
 import { ICompactionService, CompactionService } from './compaction';
-import { ILogger, ConsoleLogger, LogLevel } from './logger';
+import { ILogger, ConsoleLogger } from './logger';
 
 export const TYPES = {
   IStorageService: Symbol.for('IStorageService'),
