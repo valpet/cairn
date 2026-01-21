@@ -1,3 +1,8 @@
+export interface AcceptanceCriteria {
+  text: string;
+  completed: boolean;
+}
+
 export interface Issue {
   id: string;
   title: string;
@@ -13,7 +18,7 @@ export interface Issue {
   updated_at: string;
   closed_at?: string;
   comments?: Comment[];
-  acceptance_criteria?: string[];
+  acceptance_criteria?: AcceptanceCriteria[];
 }
 
 export interface Comment {

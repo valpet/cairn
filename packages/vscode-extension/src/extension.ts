@@ -207,6 +207,179 @@ class CairnCommentTool implements vscode.LanguageModelTool<any> {
   }
 }
 
+class CairnAcAddTool implements vscode.LanguageModelTool<any> {
+  async prepareInvocation(
+    options: vscode.LanguageModelToolInvocationPrepareOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    return {
+      invocationMessage: `Adding acceptance criteria to issue ${options.input.issue_id}`,
+    };
+  }
+
+  async invoke(
+    options: vscode.LanguageModelToolInvocationOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    try {
+      const inputs = options.input;
+      await storage.updateIssues(issues => {
+        return issues.map(issue => {
+          if (issue.id === inputs.issue_id) {
+            const acceptance_criteria = issue.acceptance_criteria || [];
+            return {
+              ...issue,
+              acceptance_criteria: [...acceptance_criteria, { text: inputs.text, completed: false }],
+              updated_at: new Date().toISOString()
+            };
+          }
+          return issue;
+        });
+      });
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Added acceptance criteria to issue ${inputs.issue_id}` }))
+      ]);
+    } catch (error) {
+      const err = error as Error;
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error adding acceptance criteria: ${err.message}` }))
+      ]);
+    }
+  }
+}
+
+class CairnAcUpdateTool implements vscode.LanguageModelTool<any> {
+  async prepareInvocation(
+    options: vscode.LanguageModelToolInvocationPrepareOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    return {
+      invocationMessage: `Updating acceptance criteria ${options.input.index} for issue ${options.input.issue_id}`,
+    };
+  }
+
+  async invoke(
+    options: vscode.LanguageModelToolInvocationOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    try {
+      const inputs = options.input;
+      await storage.updateIssues(issues => {
+        return issues.map(issue => {
+          if (issue.id === inputs.issue_id) {
+            const acceptance_criteria = issue.acceptance_criteria || [];
+            if (inputs.index >= 0 && inputs.index < acceptance_criteria.length) {
+              acceptance_criteria[inputs.index] = { ...acceptance_criteria[inputs.index], text: inputs.text };
+            }
+            return {
+              ...issue,
+              acceptance_criteria,
+              updated_at: new Date().toISOString()
+            };
+          }
+          return issue;
+        });
+      });
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Updated acceptance criteria ${inputs.index} for issue ${inputs.issue_id}` }))
+      ]);
+    } catch (error) {
+      const err = error as Error;
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error updating acceptance criteria: ${err.message}` }))
+      ]);
+    }
+  }
+}
+
+class CairnAcRemoveTool implements vscode.LanguageModelTool<any> {
+  async prepareInvocation(
+    options: vscode.LanguageModelToolInvocationPrepareOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    return {
+      invocationMessage: `Removing acceptance criteria ${options.input.index} from issue ${options.input.issue_id}`,
+    };
+  }
+
+  async invoke(
+    options: vscode.LanguageModelToolInvocationOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    try {
+      const inputs = options.input;
+      await storage.updateIssues(issues => {
+        return issues.map(issue => {
+          if (issue.id === inputs.issue_id) {
+            const acceptance_criteria = issue.acceptance_criteria || [];
+            if (inputs.index >= 0 && inputs.index < acceptance_criteria.length) {
+              acceptance_criteria.splice(inputs.index, 1);
+            }
+            return {
+              ...issue,
+              acceptance_criteria,
+              updated_at: new Date().toISOString()
+            };
+          }
+          return issue;
+        });
+      });
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Removed acceptance criteria ${inputs.index} from issue ${inputs.issue_id}` }))
+      ]);
+    } catch (error) {
+      const err = error as Error;
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error removing acceptance criteria: ${err.message}` }))
+      ]);
+    }
+  }
+}
+
+class CairnAcToggleTool implements vscode.LanguageModelTool<any> {
+  async prepareInvocation(
+    options: vscode.LanguageModelToolInvocationPrepareOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    return {
+      invocationMessage: `Toggling acceptance criteria ${options.input.index} completion for issue ${options.input.issue_id}`,
+    };
+  }
+
+  async invoke(
+    options: vscode.LanguageModelToolInvocationOptions<any>,
+    _token: vscode.CancellationToken
+  ) {
+    try {
+      const inputs = options.input;
+      await storage.updateIssues(issues => {
+        return issues.map(issue => {
+          if (issue.id === inputs.issue_id) {
+            const acceptance_criteria = issue.acceptance_criteria || [];
+            if (inputs.index >= 0 && inputs.index < acceptance_criteria.length) {
+              acceptance_criteria[inputs.index] = { ...acceptance_criteria[inputs.index], completed: !acceptance_criteria[inputs.index].completed };
+            }
+            return {
+              ...issue,
+              acceptance_criteria,
+              updated_at: new Date().toISOString()
+            };
+          }
+          return issue;
+        });
+      });
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Toggled acceptance criteria ${inputs.index} completion for issue ${inputs.issue_id}` }))
+      ]);
+    } catch (error) {
+      const err = error as Error;
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error toggling acceptance criteria: ${err.message}` }))
+      ]);
+    }
+  }
+}
+
 export function activate(context: vscode.ExtensionContext) {
   outputChannel = vscode.window.createOutputChannel('Cairn');
   context.subscriptions.push(outputChannel);
@@ -261,6 +434,10 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.lm.registerTool('cairn_update', new CairnUpdateTool()));
     context.subscriptions.push(vscode.lm.registerTool('cairn_dep_add', new CairnDepAddTool()));
     context.subscriptions.push(vscode.lm.registerTool('cairn_comment', new CairnCommentTool()));
+    context.subscriptions.push(vscode.lm.registerTool('cairn_ac_add', new CairnAcAddTool()));
+    context.subscriptions.push(vscode.lm.registerTool('cairn_ac_update', new CairnAcUpdateTool()));
+    context.subscriptions.push(vscode.lm.registerTool('cairn_ac_remove', new CairnAcRemoveTool()));
+    context.subscriptions.push(vscode.lm.registerTool('cairn_ac_toggle', new CairnAcToggleTool()));
 
     // Register command to open task list webview
     context.subscriptions.push(
@@ -469,7 +646,7 @@ export function activate(context: vscode.ExtensionContext) {
                   type: ticket.type,
                   priority: ticket.priority,
                   status: ticket.status,
-                  acceptance_criteria: ticket.acceptance_criteria
+                  acceptance_criteria: ticket.acceptance_criteria || []
                 };
               } else {
                 outputChannel.appendLine(`Ticket not found: ${ticketId} - sending default data`);

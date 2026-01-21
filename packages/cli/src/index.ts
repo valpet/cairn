@@ -90,22 +90,47 @@ While you're free to work as you see fit, using Cairn will significantly improve
 - **Break down complex tasks**: Use \`cairn_dep_add\` with 'parent-child' type to create subtasks for epics.
 - **Track discoveries**: When you find new work during development, add it as a 'discovered-from' dependency.
 - **Update progress regularly**: Use \`cairn_update\` to mark tasks as in progress or close completed work.
+- **Manage acceptance criteria**: Use the structured acceptance criteria system with inline editing and completion tracking:
+  - **Add criteria**: Use \`cairn_ac_add\` tool with \`issue_id\` and \`text\` parameters, or \`cairn ac add <id> "<text>"\` in terminal
+  - **Update criteria text**: Use \`cairn_ac_update\` tool with \`issue_id\`, \`index\`, and \`text\` parameters, or \`cairn ac update <id> <index> "<new text>"\` in terminal
+  - **Remove criteria**: Use \`cairn_ac_remove\` tool with \`issue_id\` and \`index\` parameters, or \`cairn ac remove <id> <index>\` in terminal
+  - **Toggle completion**: Use \`cairn_ac_toggle\` tool with \`issue_id\` and \`index\` parameters, or \`cairn ac toggle <id> <index>\` in terminal
+  - **List criteria**: Use \`cairn ac list <id>\` in terminal to see current acceptance criteria with completion status
 - **Document your work**: Use \`cairn_comment\` to record findings, ideas, challenges, solutions, and progress as you work on tasks. This helps maintain a detailed record for collaboration and future reference.
 - **Add comments for collaboration**: Use \`cairn_comment\` to document important insights or communicate with the developer.
 - **Perform self-reviews**: Before closing tasks, review your work quality and ensure all acceptance criteria are met.
 
+### Acceptance Criteria Best Practices
+When working with acceptance criteria:
+
+1. **Define clear, testable criteria** when creating tasks - these should be specific, measurable outcomes
+2. **Use the UI for interactive editing** - the VSCode extension provides inline editing and checkbox toggling
+3. **Track completion systematically** - toggle criteria as you complete them during development
+4. **Review before closing** - ensure all acceptance criteria are marked complete before closing a task
+5. **Update criteria as needed** - if requirements change, update the criteria text rather than adding new ones
+
 ### Available Tools
 - \`cairn_list_ready\`: Get list of unblocked tasks ready to work on
-- \`cairn_create\`: Create a new task
-- \`cairn_update\`: Update task status or acceptance criteria
-- \`cairn_dep_add\`: Add dependencies between tasks
-- \`cairn_comment\`: Add comments to tasks
+- \`cairn_create\`: Create a new task (parameters: title, description?, type?, priority?, status?, parent?)
+- \`cairn_update\`: Update task status or other fields (parameters: id, status?, title?, description?, type?, priority?, acceptance_criteria?)
+- \`cairn_dep_add\`: Add dependencies between tasks (parameters: from, to, type)
+- \`cairn_comment\`: Add comments to tasks (parameters: issue_id, author?, content)
+- \`cairn_ac_add\`: Add acceptance criteria to a task (parameters: issue_id, text)
+- \`cairn_ac_update\`: Update acceptance criteria text (parameters: issue_id, index, text)
+- \`cairn_ac_remove\`: Remove acceptance criteria from a task (parameters: issue_id, index)
+- \`cairn_ac_toggle\`: Toggle acceptance criteria completion status (parameters: issue_id, index)
 
 ### Terminal Commands (as backup)
 If the tools aren't available, you can use these terminal commands:
 - \`cairn list --ready\`: List ready tasks
 - \`cairn create <title> -d <description> -p <priority> -t <type> -s <status> -r <parent>\`: Create task
 - \`cairn update <id> -s <status>\`: Update task
+- \`cairn update <id> -c "criteria1,criteria2"\`: Add acceptance criteria
+- \`cairn ac list <id>\`: List acceptance criteria with completion status
+- \`cairn ac add <id> "criteria text"\`: Add acceptance criteria
+- \`cairn ac update <id> <index> "new text"\`: Update acceptance criteria
+- \`cairn ac remove <id> <index>\`: Remove acceptance criteria
+- \`cairn ac toggle <id> <index>\`: Toggle completion status
 - \`cairn dep add <from> <to> --type <type>\`: Add dependency
 - \`cairn comment <id> <message>\`: Add comment
 
@@ -177,7 +202,7 @@ program
   .option('-p, --priority <priority>', 'Priority: low, medium, high, urgent')
   .option('-a, --assignee <assignee>', 'Assignee')
   .option('-l, --labels <labels>', 'Labels (comma-separated)')
-  .option('-c, --acceptance-criteria <criteria>', 'Acceptance criteria (comma-separated)')
+  .option('-c, --acceptance-criteria <criteria>', 'Add acceptance criteria (comma-separated for multiple)')
   .action(async (id, options) => {
     const { storage } = setupServices();
     const issues = await storage.loadIssues();
@@ -187,9 +212,23 @@ program
       return;
     }
 
-    // Handle acceptance criteria as comments
+    // Handle acceptance criteria
     if (options.acceptanceCriteria) {
-      await storage.addComment(id, 'user', `Acceptance Criteria: ${options.acceptanceCriteria}`);
+      const criteriaTexts = options.acceptanceCriteria.split(',').map((text: string) => text.trim());
+      await storage.updateIssues(issues => {
+        return issues.map(issue => {
+          if (issue.id === id) {
+            const existingCriteria = issue.acceptance_criteria || [];
+            const newCriteria = criteriaTexts.map(text => ({ text, completed: false }));
+            return {
+              ...issue,
+              acceptance_criteria: [...existingCriteria, ...newCriteria],
+              updated_at: new Date().toISOString()
+            };
+          }
+          return issue;
+        });
+      });
     }
 
     await storage.updateIssues(issues => {
@@ -376,6 +415,145 @@ program
     }
     const comment = await storage.addComment(id, options.author, message);
     console.log(`Added comment to ${id} by ${comment.author}`);
+  });
+
+// Acceptance Criteria command
+const acCmd = program.command('ac');
+acCmd
+  .command('list <id>')
+  .description('List acceptance criteria for an issue')
+  .action(async (id) => {
+    const { storage } = setupServices();
+    const issues = await storage.loadIssues();
+    const issue = issues.find(i => i.id === id);
+    if (!issue) {
+      console.error(`Issue ${id} not found`);
+      return;
+    }
+    const criteria = issue.acceptance_criteria || [];
+    if (criteria.length === 0) {
+      console.log(`No acceptance criteria for issue ${id}`);
+      return;
+    }
+    console.log(`Acceptance criteria for ${id}: ${issue.title}`);
+    criteria.forEach((criterion, index) => {
+      const status = criterion.completed ? '[✓]' : '[ ]';
+      console.log(`${index}: ${status} ${criterion.text}`);
+    });
+  });
+
+acCmd
+  .command('add <id> <text>')
+  .description('Add acceptance criteria to an issue')
+  .action(async (id, text) => {
+    const { storage } = setupServices();
+    const issues = await storage.loadIssues();
+    const issue = issues.find(i => i.id === id);
+    if (!issue) {
+      console.error(`Issue ${id} not found`);
+      return;
+    }
+    await storage.updateIssues(issues => {
+      return issues.map(issue => {
+        if (issue.id === id) {
+          const acceptance_criteria = issue.acceptance_criteria || [];
+          return {
+            ...issue,
+            acceptance_criteria: [...acceptance_criteria, { text, completed: false }],
+            updated_at: new Date().toISOString()
+          };
+        }
+        return issue;
+      });
+    });
+    console.log(`Added acceptance criteria to issue ${id}`);
+  });
+
+acCmd
+  .command('update <id> <index> <text>')
+  .description('Update acceptance criteria text')
+  .action(async (id, indexStr, text) => {
+    const { storage } = setupServices();
+    const index = parseInt(indexStr);
+    if (isNaN(index)) {
+      console.error('Index must be a number');
+      return;
+    }
+    await storage.updateIssues(issues => {
+      return issues.map(issue => {
+        if (issue.id === id) {
+          const acceptance_criteria = issue.acceptance_criteria || [];
+          if (index >= 0 && index < acceptance_criteria.length) {
+            acceptance_criteria[index] = { ...acceptance_criteria[index], text };
+          }
+          return {
+            ...issue,
+            acceptance_criteria,
+            updated_at: new Date().toISOString()
+          };
+        }
+        return issue;
+      });
+    });
+    console.log(`Updated acceptance criteria ${index} for issue ${id}`);
+  });
+
+acCmd
+  .command('remove <id> <index>')
+  .description('Remove acceptance criteria from an issue')
+  .action(async (id, indexStr) => {
+    const { storage } = setupServices();
+    const index = parseInt(indexStr);
+    if (isNaN(index)) {
+      console.error('Index must be a number');
+      return;
+    }
+    await storage.updateIssues(issues => {
+      return issues.map(issue => {
+        if (issue.id === id) {
+          const acceptance_criteria = issue.acceptance_criteria || [];
+          if (index >= 0 && index < acceptance_criteria.length) {
+            acceptance_criteria.splice(index, 1);
+          }
+          return {
+            ...issue,
+            acceptance_criteria,
+            updated_at: new Date().toISOString()
+          };
+        }
+        return issue;
+      });
+    });
+    console.log(`Removed acceptance criteria ${index} from issue ${id}`);
+  });
+
+acCmd
+  .command('toggle <id> <index>')
+  .description('Toggle acceptance criteria completion status')
+  .action(async (id, indexStr) => {
+    const { storage } = setupServices();
+    const index = parseInt(indexStr);
+    if (isNaN(index)) {
+      console.error('Index must be a number');
+      return;
+    }
+    await storage.updateIssues(issues => {
+      return issues.map(issue => {
+        if (issue.id === id) {
+          const acceptance_criteria = issue.acceptance_criteria || [];
+          if (index >= 0 && index < acceptance_criteria.length) {
+            acceptance_criteria[index] = { ...acceptance_criteria[index], completed: !acceptance_criteria[index].completed };
+          }
+          return {
+            ...issue,
+            acceptance_criteria,
+            updated_at: new Date().toISOString()
+          };
+        }
+        return issue;
+      });
+    });
+    console.log(`Toggled acceptance criteria ${index} completion for issue ${id}`);
   });
 
 program.parse();

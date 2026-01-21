@@ -1130,13 +1130,28 @@
       display: flex;
       align-items: flex-start;
       gap: 8px;
+      min-width: 0;
+      /* Allow text to shrink */
     }
 
-    .acceptance-criteria-text {
+    .acceptance-criteria-text-container {
       flex: 1;
-      word-wrap: break-word;
-      white-space: pre-wrap;
-      color: var(--vscode-editor-foreground);
+      min-width: 0;
+      /* Allow text to shrink */
+    }
+
+    .acceptance-criteria-text-container .editable-field .field-display {
+      padding: 0;
+      min-height: auto;
+      border: none;
+      background: transparent;
+    }
+
+    .acceptance-criteria-text-container .editable-field .field-display:hover {
+      background-color: transparent;
+    }
+
+    .acceptance-criteria-text-container .editable-field .field-text {
       font-size: 13px;
       line-height: 1.4;
       margin: 0;
@@ -1147,6 +1162,7 @@
       display: flex;
       gap: 4px;
       flex-shrink: 0;
+      margin-left: auto;
     }
   </style>
 </head>
@@ -2065,9 +2081,14 @@
       }
     }
 
+    let acceptanceCriteriaFields = [];
+
     function renderAcceptanceCriteria() {
       const list = document.getElementById('acceptanceCriteriaList');
       list.innerHTML = '';
+
+      // Clear existing field references
+      acceptanceCriteriaFields = [];
 
       acceptanceCriteria.forEach((criteria, index) => {
         const div = document.createElement('div');
@@ -2082,9 +2103,35 @@
         const contentDiv = document.createElement('div');
         contentDiv.className = 'acceptance-criteria-content';
 
-        const textDiv = document.createElement('div');
-        textDiv.className = 'acceptance-criteria-text';
-        textDiv.textContent = criteria.text;
+        // Create container for the editable text
+        const textContainer = document.createElement('div');
+        textContainer.className = 'acceptance-criteria-text-container';
+
+        // Create EditableField for the criteria text
+        const criteriaField = new EditableField({
+          fieldName: `acceptance-criteria-${index}`,
+          placeholder: 'Click to add acceptance criteria...',
+          isTextarea: false,
+          onSave: (value) => {
+            acceptanceCriteria[index].text = value;
+            saveTicket();
+          },
+          onCancel: () => {
+            // Cancel handled automatically
+          },
+          onDisplayUpdate: (value) => {
+            // Update display handled automatically
+          }
+        });
+
+        // Set the current value
+        criteriaField.setValue(criteria.text);
+
+        // Append the editable field to the container
+        textContainer.appendChild(criteriaField.getElement());
+
+        // Store reference to the field
+        acceptanceCriteriaFields[index] = criteriaField;
 
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'acceptance-criteria-actions';
@@ -2097,11 +2144,10 @@
         removeBtn.onclick = () => removeAcceptanceCriteria(index);
 
         actionsDiv.appendChild(removeBtn);
-        contentDiv.appendChild(textDiv);
-        contentDiv.appendChild(actionsDiv);
-
+        contentDiv.appendChild(textContainer);
         div.appendChild(checkbox);
         div.appendChild(contentDiv);
+        div.appendChild(actionsDiv);
 
         list.appendChild(div);
       });
@@ -2125,15 +2171,13 @@
       saveTicket();
     }
 
-    function addAcceptanceCriteria(text) {
-      if (text && text.trim()) {
-        acceptanceCriteria.push({
-          text: text.trim(),
-          completed: false
-        });
-        renderAcceptanceCriteria();
-        saveTicket();
-      }
+    function addAcceptanceCriteria() {
+      acceptanceCriteria.push({
+        text: 'New acceptance criteria',
+        completed: false
+      });
+      renderAcceptanceCriteria();
+      saveTicket();
     }
 
     function removeSubtask(index) {
@@ -2157,10 +2201,7 @@
     });
 
     document.getElementById('addAcceptanceCriteria').addEventListener('click', () => {
-      const text = prompt('Enter acceptance criteria:');
-      if (text) {
-        addAcceptanceCriteria(text);
-      }
+      addAcceptanceCriteria();
     });
 
     document.getElementById('ticketForm').addEventListener('submit', (e) => {
