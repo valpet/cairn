@@ -110,6 +110,7 @@
       font-size: 14px;
       font-weight: 600;
       margin: 0 0 0 0;
+      color: #D4A556;
     }
 
     .editor-layout {
@@ -1211,6 +1212,16 @@
       text-align: center;
     }
 
+    .acceptance-criteria-empty,
+    .subtasks-empty,
+    .dependencies-empty {
+      color: var(--vscode-input-placeholderForeground);
+      font-style: italic;
+      padding: 12px;
+      text-align: center;
+      opacity: 0.7;
+    }
+
     .add-comment-form {
       display: flex;
       flex-direction: column;
@@ -1550,6 +1561,7 @@
       <div class="collapsible-body">
         <div class="collapsible-content">
           <div id="acceptanceCriteriaList" class="acceptance-criteria-list"></div>
+          <div class="acceptance-criteria-empty">No acceptance criteria yet. Add criteria to define what needs to be completed.</div>
           <button type="button" id="addAcceptanceCriteria" class="secondary">Add Acceptance Criteria</button>
         </div>
       </div>
@@ -1565,6 +1577,7 @@
       <div class="collapsible-body">
         <div class="collapsible-content">
           <div id="subtasksList" class="subtask-list"></div>
+          <div class="subtasks-empty">No sub-issues yet. Break this task down into smaller, manageable pieces.</div>
           <button type="button" id="addSubtask" class="secondary">Add Sub-issue</button>
         </div>
       </div>
@@ -1582,10 +1595,12 @@
           <div class="dependency-section">
             <h4>Blocked by</h4>
             <div id="blockedByList" class="dependency-list"></div>
+            <div class="dependencies-empty" id="blockedByEmpty">No blocking dependencies. This issue can be worked on independently.</div>
           </div>
           <div class="dependency-section">
             <h4>This issue is blocking</h4>
             <div id="blockingList" class="dependency-list"></div>
+            <div class="dependencies-empty" id="blockingEmpty">This issue doesn't block any other work.</div>
           </div>
           <button type="button" id="addDependency" class="secondary">Add Dependency</button>
         </div>
@@ -2364,7 +2379,15 @@
 
     function renderSubtasks() {
       const list = document.getElementById('subtasksList');
+      const empty = document.querySelector('.subtasks-empty');
       list.innerHTML = '';
+
+      if (!subtasks || subtasks.length === 0) {
+        empty.style.display = 'block';
+      } else {
+        empty.style.display = 'none';
+      }
+
       subtasks.forEach((subtask, index) => {
         const div = document.createElement('div');
         div.className = 'subtask';
@@ -2432,8 +2455,25 @@
     function renderDependencies() {
       const blockedByList = document.getElementById('blockedByList');
       const blockingList = document.getElementById('blockingList');
+      const blockedByEmpty = document.getElementById('blockedByEmpty');
+      const blockingEmpty = document.getElementById('blockingEmpty');
       blockedByList.innerHTML = '';
       blockingList.innerHTML = '';
+
+      const blockedByDeps = dependencies.filter(dep => dep.direction === 'blocks');
+      const blockingDeps = dependencies.filter(dep => dep.direction === 'blocked_by');
+
+      if (blockedByDeps.length === 0) {
+        blockedByEmpty.style.display = 'block';
+      } else {
+        blockedByEmpty.style.display = 'none';
+      }
+
+      if (blockingDeps.length === 0) {
+        blockingEmpty.style.display = 'block';
+      } else {
+        blockingEmpty.style.display = 'none';
+      }
 
       dependencies.forEach((dep, index) => {
         const div = document.createElement('div');
@@ -2507,10 +2547,17 @@
 
     function renderAcceptanceCriteria() {
       const list = document.getElementById('acceptanceCriteriaList');
+      const empty = document.querySelector('.acceptance-criteria-empty');
       list.innerHTML = '';
 
       // Clear existing field references
       acceptanceCriteriaFields = [];
+
+      if (!acceptanceCriteria || acceptanceCriteria.length === 0) {
+        empty.style.display = 'block';
+      } else {
+        empty.style.display = 'none';
+      }
 
       acceptanceCriteria.forEach((criteria, index) => {
         const div = document.createElement('div');
