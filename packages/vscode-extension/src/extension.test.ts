@@ -65,7 +65,7 @@ vi.mock('../../core/dist/index.js', () => ({
 
 // Import after mocking
 import * as vscode from 'vscode';
-import { lm, ExtensionContext } from 'vscode';
+import { lm } from 'vscode';
 import { createContainer, TYPES, findCairnDir, generateId } from '../../core/dist/index.js';
 import { activate } from './extension';
 
@@ -110,7 +110,7 @@ describe('VS Code Extension Tools', () => {
       }),
     };
 
-    mockContext = new ExtensionContext();
+    mockContext = new (vscode as any).ExtensionContext();
 
     (createContainer as any).mockReturnValue(mockContainer);
     (findCairnDir as any).mockReturnValue({ cairnDir: '/test/workspace/.cairn', repoRoot: '/test/workspace' });
