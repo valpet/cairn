@@ -214,12 +214,12 @@ program
 
     // Handle acceptance criteria
     if (options.acceptanceCriteria) {
-      const criteriaTexts = options.acceptanceCriteria.split(',').map((text: string) => text.trim());
+      const criteriaTexts = options.acceptanceCriteria.split(',').map((text) => text.trim());
       await storage.updateIssues(issues => {
         return issues.map(issue => {
           if (issue.id === id) {
             const existingCriteria = issue.acceptance_criteria || [];
-            const newCriteria = criteriaTexts.map(text => ({ text, completed: false }));
+            const newCriteria = criteriaTexts.map((text: string) => ({ text, completed: false }));
             return {
               ...issue,
               acceptance_criteria: [...existingCriteria, ...newCriteria],
