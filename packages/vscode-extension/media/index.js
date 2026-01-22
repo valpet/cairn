@@ -21725,6 +21725,48 @@
   // src/components/IssueList.tsx
   var import_react = __toESM(require_react());
   var import_jsx_runtime = __toESM(require_jsx_runtime());
+  var getStatusDisplayText = (status, subtasks) => {
+    const statusLabels = {
+      open: "Open",
+      in_progress: "In Progress",
+      closed: "Closed",
+      blocked: "Blocked"
+    };
+    const statusText = statusLabels[status] || status;
+    const computedStatus = computeSubIssueStatus(subtasks);
+    if (computedStatus && computedStatus !== status) {
+      const computedStatusText = statusLabels[computedStatus] || computedStatus;
+      return `${statusText} / ${computedStatusText}`;
+    }
+    return statusText;
+  };
+  var computeSubIssueStatus = (subtasks) => {
+    if (!subtasks || subtasks.length === 0) return null;
+    const hasInProgress = subtasks.some((subtask) => subtask.status === "in_progress");
+    if (hasInProgress) return "in_progress";
+    const hasClosed = subtasks.some((subtask) => subtask.status === "closed");
+    if (hasClosed) return "closed";
+    const nonClosedSubtasks = subtasks.filter((subtask) => subtask.status !== "closed");
+    if (nonClosedSubtasks.length > 0 && nonClosedSubtasks.every((subtask) => subtask.status === "blocked")) {
+      return "blocked";
+    }
+    return null;
+  };
+  var getAllSubtasks = (task, allTasks) => {
+    const subtasks = [];
+    const taskMap = new Map(allTasks.map((t) => [t.id, t]));
+    function collectSubtasks(taskId) {
+      allTasks.forEach((task2) => {
+        const parentDep = (task2.dependencies || []).find((dep) => dep.type === "parent-child");
+        if (parentDep && parentDep.id === taskId) {
+          subtasks.push(task2);
+          collectSubtasks(task2.id);
+        }
+      });
+    }
+    collectSubtasks(task.id);
+    return subtasks;
+  };
   var IssueList = () => {
     const [allTasks, setAllTasks] = (0, import_react.useState)([]);
     const [selectedStatuses, setSelectedStatuses] = (0, import_react.useState)(/* @__PURE__ */ new Set(["ready", "open", "in_progress"]));
@@ -22629,8 +22671,10 @@
       });
     };
     const taskIsBlocked = isBlockedCheck(task, allTasks);
-    const displayStatus = taskIsBlocked ? "blocked" : task.status;
-    const displayText = taskIsBlocked ? "Blocked" : task.status === "in_progress" ? "In Progress" : task.status.charAt(0).toUpperCase() + task.status.slice(1);
+    const subtasks = getAllSubtasks(task, allTasks);
+    const computedStatus = computeSubIssueStatus(subtasks);
+    const displayStatus = taskIsBlocked ? "blocked" : computedStatus || task.status;
+    const displayText = taskIsBlocked ? "Blocked" : getStatusDisplayText(task.status, subtasks);
     return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", { className: "task-row", style: level > 0 ? { backgroundColor: "var(--vscode-editor-background)" } : {}, "data-task-id": task.id, children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { style: { padding: "12px 16px", verticalAlign: "top", position: "relative" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: {

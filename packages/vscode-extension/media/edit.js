@@ -21834,16 +21834,16 @@
         }
       }, 5e3);
     };
-    const saveTicket = () => {
+    const saveTicket = (overrides) => {
       if (!issue) return;
       const ticket = {
         id: issue.id,
         title: currentTitle,
         description: currentDescription,
         comments,
-        type: currentType,
-        priority: currentPriority,
-        status: currentStatus,
+        type: overrides?.type ?? currentType,
+        priority: overrides?.priority ?? currentPriority,
+        status: overrides?.status ?? currentStatus,
         subtasks,
         dependencies,
         acceptance_criteria: acceptanceCriteria
@@ -21853,15 +21853,17 @@
     const selectMetadata = (type, value) => {
       if (type === "type") {
         setCurrentType(value);
+        saveTicket({ type: value });
       } else if (type === "priority") {
         setCurrentPriority(value);
+        saveTicket({ priority: value });
       } else if (type === "status") {
         setPreviousStatus(currentStatus);
         setCurrentStatus(value);
         onStatusChange(value);
+        saveTicket({ status: value });
       }
       setActiveDropdown(null);
-      saveTicket();
     };
     const onStatusChange = (status) => {
     };

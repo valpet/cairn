@@ -192,7 +192,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
     }, 5000);
   };
 
-  const saveTicket = () => {
+  const saveTicket = (overrides?: Partial<{ type: string; priority: string; status: string }>) => {
     if (!issue) return;
 
     const ticket = {
@@ -200,9 +200,9 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
       title: currentTitle,
       description: currentDescription,
       comments,
-      type: currentType,
-      priority: currentPriority,
-      status: currentStatus,
+      type: overrides?.type ?? currentType,
+      priority: overrides?.priority ?? currentPriority,
+      status: overrides?.status ?? currentStatus,
       subtasks,
       dependencies,
       acceptance_criteria: acceptanceCriteria,
@@ -214,15 +214,17 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
   const selectMetadata = (type: string, value: string) => {
     if (type === 'type') {
       setCurrentType(value);
+      saveTicket({ type: value });
     } else if (type === 'priority') {
       setCurrentPriority(value);
+      saveTicket({ priority: value });
     } else if (type === 'status') {
       setPreviousStatus(currentStatus);
       setCurrentStatus(value);
       onStatusChange(value);
+      saveTicket({ status: value });
     }
     setActiveDropdown(null);
-    saveTicket();
   };
 
   const onStatusChange = (status: string) => {

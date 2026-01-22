@@ -23,6 +23,65 @@ interface IssueListProps {
   // Props will be added as needed
 }
 
+// Get composed status display text (shows "Open / In Progress" when subtasks have different status)
+const getStatusDisplayText = (status: string, subtasks: Issue[]) => {
+  const statusLabels: Record<string, string> = {
+    open: 'Open',
+    in_progress: 'In Progress',
+    closed: 'Closed',
+    blocked: 'Blocked'
+  };
+  const statusText = statusLabels[status] || status;
+
+  const computedStatus = computeSubIssueStatus(subtasks);
+  if (computedStatus && computedStatus !== status) {
+    const computedStatusText = statusLabels[computedStatus] || computedStatus;
+    return `${statusText} / ${computedStatusText}`;
+  }
+
+  return statusText;
+};
+
+// Compute the status based on subtasks
+const computeSubIssueStatus = (subtasks: Issue[]) => {
+  if (!subtasks || subtasks.length === 0) return null;
+
+  // If any subtask is in progress, show in progress
+  const hasInProgress = subtasks.some(subtask => subtask.status === 'in_progress');
+  if (hasInProgress) return 'in_progress';
+
+  // If any subtask is closed, show closed (even if others are open)
+  const hasClosed = subtasks.some(subtask => subtask.status === 'closed');
+  if (hasClosed) return 'closed';
+
+  // If all remaining subtasks are blocked, show blocked
+  const nonClosedSubtasks = subtasks.filter(subtask => subtask.status !== 'closed');
+  if (nonClosedSubtasks.length > 0 && nonClosedSubtasks.every(subtask => subtask.status === 'blocked')) {
+    return 'blocked';
+  }
+
+  return null;
+};
+
+// Get all subtasks recursively from children
+const getAllSubtasks = (task: Issue & { children: Issue[] }, allTasks: Issue[]): Issue[] => {
+  const subtasks: Issue[] = [];
+  const taskMap = new Map(allTasks.map(t => [t.id, t]));
+  
+  function collectSubtasks(taskId: string) {
+    allTasks.forEach(task => {
+      const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
+      if (parentDep && parentDep.id === taskId) {
+        subtasks.push(task);
+        collectSubtasks(task.id);
+      }
+    });
+  }
+  
+  collectSubtasks(task.id);
+  return subtasks;
+};
+
 const IssueList: React.FC<IssueListProps> = () => {
   const [allTasks, setAllTasks] = useState<Issue[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set(['ready', 'open', 'in_progress']));
@@ -1108,10 +1167,10 @@ const TaskRow: React.FC<TaskRowProps> = ({
   };
 
   const taskIsBlocked = isBlockedCheck(task, allTasks);
-  const displayStatus = taskIsBlocked ? 'blocked' : task.status;
-  const displayText = taskIsBlocked ? 'Blocked' :
-    (task.status === 'in_progress' ? 'In Progress' :
-      (task.status.charAt(0).toUpperCase() + task.status.slice(1)));
+  const subtasks = getAllSubtasks(task, allTasks);
+  const computedStatus = computeSubIssueStatus(subtasks);
+  const displayStatus = taskIsBlocked ? 'blocked' : (computedStatus || task.status);
+  const displayText = taskIsBlocked ? 'Blocked' : getStatusDisplayText(task.status, subtasks);
 
   return (
     <>
