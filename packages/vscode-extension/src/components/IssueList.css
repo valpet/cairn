@@ -351,21 +351,26 @@ h1 {
 }
 
 .task-grid colgroup col:nth-child(3) {
+  width: 80px;
+  /* Completion % - fixed narrow width */
+}
+
+.task-grid colgroup col:nth-child(4) {
   width: 120px;
   /* Status - fixed narrow width */
 }
 
-.task-grid colgroup col:nth-child(4) {
+.task-grid colgroup col:nth-child(5) {
   width: 100px;
   /* Priority - fixed narrow width */
 }
 
-.task-grid colgroup col:nth-child(5) {
+.task-grid colgroup col:nth-child(6) {
   width: 120px;
   /* Dependencies - fixed narrow width */
 }
 
-.task-grid colgroup col:nth-child(6) {
+.task-grid colgroup col:nth-child(7) {
   width: 140px;
   /* Actions - fixed narrow width */
 }
@@ -377,7 +382,7 @@ h1 {
 }
 
 /* Actions column uses middle alignment */
-.task-grid td:nth-child(6) {
+.task-grid td:nth-child(7) {
   vertical-align: middle;
 }
 

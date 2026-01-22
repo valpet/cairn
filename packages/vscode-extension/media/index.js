@@ -21770,28 +21770,6 @@
       const text = displayPriority.charAt(0).toUpperCase() + displayPriority.slice(1);
       return { className: pillClass, text };
     };
-    const markdownToHtml2 = (markdown) => {
-      let html = markdown;
-      html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, "<pre><code>$2</code></pre>");
-      html = html.replace(/^### (.*$)/gim, "<h3>$1</h3>");
-      html = html.replace(/^## (.*$)/gim, "<h2>$1</h2>");
-      html = html.replace(/^# (.*$)/gim, "<h1>$1</h1>");
-      html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-      html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
-      html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-      html = html.replace(/^- (.+)$/gim, "<li>$1</li>");
-      html = html.replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>");
-      const parts = html.split("\n\n");
-      html = parts.map((part) => {
-        part = part.trim();
-        if (!part) return "";
-        if (part.startsWith("<h") || part.startsWith("<ul") || part.startsWith("<pre")) {
-          return part;
-        }
-        return "<p>" + part.replace(/\n/g, "<br>") + "</p>";
-      }).join("\n");
-      return html;
-    };
     const isReady = (task, allTasks2) => {
       if (!task.dependencies) return true;
       const taskMap = new Map(allTasks2.map((t) => [t.id, t]));
@@ -22436,12 +22414,13 @@
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("colgroup", { children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "80px" } }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "120px" } }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "100px" } }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "120px" } }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "140px" } })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tr", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { colSpan: 6, style: {
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tr", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { colSpan: 7, style: {
           backgroundColor: "var(--vscode-editor-background)",
           color: "var(--vscode-foreground)",
           padding: "12px 16px",
@@ -22549,6 +22528,7 @@
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("colgroup", { children: [
                 /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
                 /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "80px" } }),
                 /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "120px" } }),
                 /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "100px" } }),
                 /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "120px" } }),
@@ -22604,6 +22584,28 @@
   }) => {
     const hasChildren = task.children && task.children.length > 0;
     const isExpanded = expandedTasks.has(task.id);
+    const markdownToHtml = (markdown) => {
+      let html = markdown;
+      html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, "<pre><code>$2</code></pre>");
+      html = html.replace(/^### (.*$)/gim, "<h3>$1</h3>");
+      html = html.replace(/^## (.*$)/gim, "<h2>$1</h2>");
+      html = html.replace(/^# (.*$)/gim, "<h1>$1</h1>");
+      html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+      html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
+      html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+      html = html.replace(/^- (.+)$/gim, "<li>$1</li>");
+      html = html.replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>");
+      const parts = html.split("\n\n");
+      html = parts.map((part) => {
+        part = part.trim();
+        if (!part) return "";
+        if (part.startsWith("<h") || part.startsWith("<ul") || part.startsWith("<pre")) {
+          return part;
+        }
+        return "<p>" + part.replace(/\n/g, "<br>") + "</p>";
+      }).join("\n");
+      return html;
+    };
     const isBlockedCheck = (task2, allTasks2) => {
       if (!task2.dependencies || task2.status === "closed") return false;
       const taskMap = new Map(allTasks2.map((t) => [t.id, t]));
@@ -22703,6 +22705,11 @@
             }
           }
         ) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { opacity: 0.4, fontStyle: "italic", fontSize: "12px" }, children: "No description" }) }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { style: { padding: "12px 16px", textAlign: "center", verticalAlign: "top" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: {
+          fontSize: "13px",
+          color: "var(--vscode-foreground)",
+          fontWeight: 500
+        }, children: task.completion_percentage !== void 0 ? `${task.completion_percentage}%` : "\u2014" }) }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { style: { padding: "12px 16px", textAlign: "center", verticalAlign: "top" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: `pill status-${displayStatus}`, children: displayText }) }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { style: { padding: "12px 16px", textAlign: "center", verticalAlign: "top" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: `pill priority-${task.priority || "medium"}`, children: (task.priority || "medium").charAt(0).toUpperCase() + (task.priority || "medium").slice(1) }) }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { style: { padding: "12px 16px", textAlign: "center", verticalAlign: "top" }, children: (() => {

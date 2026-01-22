@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './IssueList.css';
 
+// VS Code API declaration
+declare const acquireVsCodeApi: () => any;
+
 interface Issue {
   id: string;
   title: string;
@@ -13,7 +16,7 @@ interface Issue {
     id: string;
     type: string;
   }>;
-  children?: Issue[];
+  children: Issue[];
 }
 
 interface IssueListProps {
@@ -78,45 +81,6 @@ const IssueList: React.FC<IssueListProps> = () => {
     const pillClass = `pill priority-${displayPriority}`;
     const text = displayPriority.charAt(0).toUpperCase() + displayPriority.slice(1);
     return { className: pillClass, text };
-  };
-
-  // Simple markdown to HTML converter
-  const markdownToHtml = (markdown: string) => {
-    let html = markdown;
-
-    // Code blocks (before inline code)
-    html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
-
-    // Headers
-    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-
-    // Bold
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-
-    // Italic
-    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-    // Inline code
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-    // Unordered lists
-    html = html.replace(/^- (.+)$/gim, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-
-    // Paragraphs (split by double newlines)
-    const parts = html.split('\n\n');
-    html = parts.map(part => {
-      part = part.trim();
-      if (!part) return '';
-      if (part.startsWith('<h') || part.startsWith('<ul') || part.startsWith('<pre')) {
-        return part;
-      }
-      return '<p>' + part.replace(/\n/g, '<br>') + '</p>';
-    }).join('\n');
-
-    return html;
   };
 
   // Function to check if a task is ready (no blocking dependencies)
@@ -672,7 +636,7 @@ interface TreeLinesSVGProps {
   taskTree: any[];
   allTasks: Issue[];
   expandedTasks: Set<string>;
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const TreeLinesSVG: React.FC<TreeLinesSVGProps> = ({ taskTree, allTasks, expandedTasks, containerRef }) => {
@@ -881,6 +845,7 @@ const TaskGrid: React.FC<TaskGridProps> = ({
         <colgroup>
           <col />
           <col />
+          <col style={{ width: '80px' }} />
           <col style={{ width: '120px' }} />
           <col style={{ width: '100px' }} />
           <col style={{ width: '120px' }} />
@@ -888,7 +853,7 @@ const TaskGrid: React.FC<TaskGridProps> = ({
         </colgroup>
         <thead>
           <tr>
-            <th colSpan={6} style={{
+            <th colSpan={7} style={{
               backgroundColor: 'var(--vscode-editor-background)',
               color: 'var(--vscode-foreground)',
               padding: '12px 16px',
@@ -993,6 +958,7 @@ const TaskGrid: React.FC<TaskGridProps> = ({
           <colgroup>
             <col />
             <col />
+            <col style={{ width: '80px' }} />
             <col style={{ width: '120px' }} />
             <col style={{ width: '100px' }} />
             <col style={{ width: '120px' }} />
@@ -1071,6 +1037,45 @@ const TaskRow: React.FC<TaskRowProps> = ({
 }) => {
   const hasChildren = task.children && task.children.length > 0;
   const isExpanded = expandedTasks.has(task.id);
+
+  // Simple markdown to HTML converter
+  const markdownToHtml = (markdown: string) => {
+    let html = markdown;
+
+    // Code blocks (before inline code)
+    html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+
+    // Headers
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+    // Bold
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    // Italic
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+    // Inline code
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Unordered lists
+    html = html.replace(/^- (.+)$/gim, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+
+    // Paragraphs (split by double newlines)
+    const parts = html.split('\n\n');
+    html = parts.map(part => {
+      part = part.trim();
+      if (!part) return '';
+      if (part.startsWith('<h') || part.startsWith('<ul') || part.startsWith('<pre')) {
+        return part;
+      }
+      return '<p>' + part.replace(/\n/g, '<br>') + '</p>';
+    }).join('\n');
+
+    return html;
+  };
 
   // Check if task is blocked
   const isBlockedCheck = (task: Issue, allTasks: Issue[]) => {
@@ -1190,6 +1195,17 @@ const TaskRow: React.FC<TaskRowProps> = ({
               </div>
             )}
           </div>
+        </td>
+
+        {/* Completion cell */}
+        <td style={{ padding: '12px 16px', textAlign: 'center', verticalAlign: 'top' }}>
+          <span style={{
+            fontSize: '13px',
+            color: 'var(--vscode-foreground)',
+            fontWeight: 500
+          }}>
+            {task.completion_percentage !== undefined ? `${task.completion_percentage}%` : '—'}
+          </span>
         </td>
 
         {/* Status cell */}

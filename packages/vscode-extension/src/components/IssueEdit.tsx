@@ -324,7 +324,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
       
       // Save with the updated subtasks
       const ticket = {
-        id: issue.id,
+        id: issue!.id,
         title: currentTitle,
         description: currentDescription,
         comments,
@@ -359,7 +359,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
       
       // Save with the updated dependencies
       const ticket = {
-        id: issue.id,
+        id: issue!.id,
         title: currentTitle,
         description: currentDescription,
         comments,

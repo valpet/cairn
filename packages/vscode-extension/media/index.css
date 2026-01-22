@@ -291,15 +291,18 @@ h1 {
   width: auto;
 }
 .task-grid colgroup col:nth-child(3) {
-  width: 120px;
+  width: 80px;
 }
 .task-grid colgroup col:nth-child(4) {
-  width: 100px;
-}
-.task-grid colgroup col:nth-child(5) {
   width: 120px;
 }
+.task-grid colgroup col:nth-child(5) {
+  width: 100px;
+}
 .task-grid colgroup col:nth-child(6) {
+  width: 120px;
+}
+.task-grid colgroup col:nth-child(7) {
   width: 140px;
 }
 .task-grid td {
@@ -307,7 +310,7 @@ h1 {
   vertical-align: top;
   position: relative;
 }
-.task-grid td:nth-child(6) {
+.task-grid td:nth-child(7) {
   vertical-align: middle;
 }
 .task-grid td:nth-child(1),
