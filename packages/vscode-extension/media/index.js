@@ -22262,7 +22262,7 @@
       ) })
     ] });
   };
-  var TreeLinesSVG = ({ taskTree, allTasks, expandedTasks, containerRef }) => {
+  var TreeLinesSVG = ({ taskTree, allTasks, expandedTasks, expandedDescriptions, containerRef }) => {
     const [lines, setLines] = (0, import_react.useState)([]);
     (0, import_react.useEffect)(() => {
       const calculateLines = () => {
@@ -22272,10 +22272,8 @@
         const calculatePositions = (nodes, level = 0) => {
           nodes.forEach((node) => {
             const element = document.querySelector(`[data-task-id="${node.id}"]`);
-            if (element) {
-              const rect = element.getBoundingClientRect();
-              const containerRect = containerRef.current.getBoundingClientRect();
-              const centerY = rect.top - containerRect.top + rect.height / 2;
+            if (element && containerRef.current) {
+              const centerY = element.offsetTop + element.offsetHeight / 2;
               taskPositions.set(node.id, { centerY, level });
               if (expandedTasks.has(node.id) && node.children) {
                 calculatePositions(node.children, level + 1);
@@ -22328,9 +22326,23 @@
         });
         setLines(lines2);
       };
-      const timeoutId = setTimeout(calculateLines, 0);
-      return () => clearTimeout(timeoutId);
-    }, [taskTree, allTasks, expandedTasks, containerRef]);
+      const calculateLinesWithDelay = () => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            calculateLines();
+          });
+        });
+      };
+      calculateLinesWithDelay();
+      const container2 = containerRef.current;
+      if (container2) {
+        const handleScroll = () => {
+          calculateLines();
+        };
+        container2.addEventListener("scroll", handleScroll);
+        return () => container2.removeEventListener("scroll", handleScroll);
+      }
+    }, [taskTree, allTasks, expandedTasks, expandedDescriptions, containerRef]);
     return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
       "svg",
       {
@@ -22517,6 +22529,7 @@
                 taskTree,
                 allTasks,
                 expandedTasks,
+                expandedDescriptions,
                 containerRef
               }
             ),

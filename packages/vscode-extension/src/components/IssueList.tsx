@@ -636,10 +636,11 @@ interface TreeLinesSVGProps {
   taskTree: any[];
   allTasks: Issue[];
   expandedTasks: Set<string>;
+  expandedDescriptions: Set<string>;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
-const TreeLinesSVG: React.FC<TreeLinesSVGProps> = ({ taskTree, allTasks, expandedTasks, containerRef }) => {
+const TreeLinesSVG: React.FC<TreeLinesSVGProps> = ({ taskTree, allTasks, expandedTasks, expandedDescriptions, containerRef }) => {
   const [lines, setLines] = useState<Array<{x1: number, y1: number, x2: number, y2: number}>>([]);
 
   useEffect(() => {
@@ -653,10 +654,9 @@ const TreeLinesSVG: React.FC<TreeLinesSVGProps> = ({ taskTree, allTasks, expande
       const calculatePositions = (nodes: any[], level: number = 0) => {
         nodes.forEach((node) => {
           const element = document.querySelector(`[data-task-id="${node.id}"]`) as HTMLElement;
-          if (element) {
-            const rect = element.getBoundingClientRect();
-            const containerRect = containerRef.current!.getBoundingClientRect();
-            const centerY = rect.top - containerRect.top + rect.height / 2; // Center of the row
+          if (element && containerRef.current) {
+            // Use offsetTop for position relative to the scrollable container
+            const centerY = element.offsetTop + element.offsetHeight / 2;
             taskPositions.set(node.id, { centerY, level });
 
             if (expandedTasks.has(node.id) && node.children) {
@@ -723,11 +723,29 @@ const TreeLinesSVG: React.FC<TreeLinesSVGProps> = ({ taskTree, allTasks, expande
       setLines(lines);
     };
 
-    // Calculate lines after a short delay to ensure DOM is updated
-    const timeoutId = setTimeout(calculateLines, 0);
+    // Calculate lines after layout has stabilized
+    const calculateLinesWithDelay = () => {
+      // Use requestAnimationFrame to wait for layout to settle
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          calculateLines();
+        });
+      });
+    };
 
-    return () => clearTimeout(timeoutId);
-  }, [taskTree, allTasks, expandedTasks, containerRef]);
+    // Initial calculation
+    calculateLinesWithDelay();
+
+    // Recalculate on scroll
+    const container = containerRef.current;
+    if (container) {
+      const handleScroll = () => {
+        calculateLines();
+      };
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [taskTree, allTasks, expandedTasks, expandedDescriptions, containerRef]);
 
   return (
     <svg
@@ -947,6 +965,7 @@ const TaskGrid: React.FC<TaskGridProps> = ({
           taskTree={taskTree}
           allTasks={allTasks}
           expandedTasks={expandedTasks}
+          expandedDescriptions={expandedDescriptions}
           containerRef={containerRef}
         />
 
