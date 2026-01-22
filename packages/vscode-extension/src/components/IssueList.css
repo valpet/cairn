@@ -278,6 +278,7 @@ h1 {
   width: 100%;
   border-collapse: collapse;
   background-color: var(--vscode-editor-background);
+  table-layout: fixed;
 }
 
 #task-container {
@@ -341,13 +342,13 @@ h1 {
 
 /* Column width distribution */
 .task-grid colgroup col:nth-child(1) {
-  width: auto;
-  /* Title - shares remaining space */
+  /* Title - takes remaining space */
+  width: 60%;
 }
 
 .task-grid colgroup col:nth-child(2) {
-  width: auto;
-  /* Description - shares remaining space */
+  width: 40%;
+  /* Description - fixed width to prevent expansion */
 }
 
 .task-grid colgroup col:nth-child(3) {
@@ -361,18 +362,18 @@ h1 {
 }
 
 .task-grid colgroup col:nth-child(5) {
-  width: 100px;
+  width: 90px;
   /* Priority - fixed narrow width */
 }
 
 .task-grid colgroup col:nth-child(6) {
-  width: 120px;
-  /* Dependencies - fixed narrow width */
+  width: 40px;
+  /* Dependencies - minimal width for dependency indicators */
 }
 
 .task-grid colgroup col:nth-child(7) {
-  width: 140px;
-  /* Actions - fixed narrow width */
+  width: 40px;
+  /* Actions - minimal width for kebab menu */
 }
 
 .task-grid td {
@@ -381,15 +382,10 @@ h1 {
   position: relative;
 }
 
-/* Actions column uses middle alignment */
+/* Actions column uses middle alignment and minimal padding */
 .task-grid td:nth-child(7) {
   vertical-align: middle;
-}
-
-/* Make title and description cells share equally */
-.task-grid td:nth-child(1),
-.task-grid td:nth-child(2) {
-  width: 50%;
+  padding: 12px 4px;
 }
 
 /* Border on row, not individual cells */
@@ -482,10 +478,12 @@ h1 {
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   flex-shrink: 0;
   height: 22px;
   line-height: 1;
+  width: 65px;
 }
 
 .type-badge::before {
@@ -571,7 +569,6 @@ h1 {
 }
 
 .description-cell {
-  max-width: 400px;
   position: relative;
 }
 

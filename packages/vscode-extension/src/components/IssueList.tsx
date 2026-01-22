@@ -863,11 +863,11 @@ const TaskGrid: React.FC<TaskGridProps> = ({
         <colgroup>
           <col />
           <col />
-          <col style={{ width: '80px' }} />
-          <col style={{ width: '120px' }} />
-          <col style={{ width: '100px' }} />
-          <col style={{ width: '120px' }} />
-          <col style={{ width: '140px' }} />
+          <col />
+          <col />
+          <col />
+          <col />
+          <col />
         </colgroup>
         <thead>
           <tr>
@@ -977,11 +977,11 @@ const TaskGrid: React.FC<TaskGridProps> = ({
           <colgroup>
             <col />
             <col />
-            <col style={{ width: '80px' }} />
-            <col style={{ width: '120px' }} />
-            <col style={{ width: '100px' }} />
-            <col style={{ width: '120px' }} />
-            <col style={{ width: '140px' }} />
+            <col />
+            <col />
+            <col />
+            <col />
+            <col />
           </colgroup>
           <tbody>
             {/* Task rows will be rendered here */}

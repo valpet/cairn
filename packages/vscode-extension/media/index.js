@@ -22426,11 +22426,11 @@
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("colgroup", { children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "80px" } }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "120px" } }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "100px" } }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "120px" } }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "140px" } })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {})
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tr", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { colSpan: 7, style: {
           backgroundColor: "var(--vscode-editor-background)",
@@ -22541,11 +22541,11 @@
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("colgroup", { children: [
                 /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
                 /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "80px" } }),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "120px" } }),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "100px" } }),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "120px" } }),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", { style: { width: "140px" } })
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {})
               ] }),
               /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", { children: taskTree.map((node, index) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
                 TaskRow,

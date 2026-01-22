@@ -236,6 +236,7 @@ h1 {
   width: 100%;
   border-collapse: collapse;
   background-color: var(--vscode-editor-background);
+  table-layout: fixed;
 }
 #task-container {
   overflow: hidden;
@@ -285,10 +286,10 @@ h1 {
   border-bottom: 1px solid var(--vscode-panel-border);
 }
 .task-grid colgroup col:nth-child(1) {
-  width: auto;
+  width: 60%;
 }
 .task-grid colgroup col:nth-child(2) {
-  width: auto;
+  width: 40%;
 }
 .task-grid colgroup col:nth-child(3) {
   width: 80px;
@@ -297,13 +298,13 @@ h1 {
   width: 120px;
 }
 .task-grid colgroup col:nth-child(5) {
-  width: 100px;
+  width: 90px;
 }
 .task-grid colgroup col:nth-child(6) {
-  width: 120px;
+  width: 40px;
 }
 .task-grid colgroup col:nth-child(7) {
-  width: 140px;
+  width: 40px;
 }
 .task-grid td {
   padding: 12px 16px;
@@ -312,10 +313,7 @@ h1 {
 }
 .task-grid td:nth-child(7) {
   vertical-align: middle;
-}
-.task-grid td:nth-child(1),
-.task-grid td:nth-child(2) {
-  width: 50%;
+  padding: 12px 4px;
 }
 .task-row {
   border-bottom: 1px solid var(--vscode-panel-border);
@@ -393,10 +391,12 @@ h1 {
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   flex-shrink: 0;
   height: 22px;
   line-height: 1;
+  width: 65px;
 }
 .type-badge::before {
   display: inline-flex;
@@ -465,7 +465,6 @@ h1 {
   color: var(--vscode-editor-foreground);
 }
 .description-cell {
-  max-width: 400px;
   position: relative;
 }
 .description-content {
