@@ -578,14 +578,17 @@ h1 {
 .description-content {
   font-size: 12px;
   color: var(--vscode-descriptionForeground);
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .description-content.collapsed {
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   cursor: pointer;
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .description-content.collapsed:hover {
@@ -594,6 +597,8 @@ h1 {
 
 .description-content.expanded {
   cursor: pointer;
+  margin: 0;
+  padding: 0;
 }
 
 .description-content.expanded h1,
@@ -619,7 +624,7 @@ h1 {
 }
 
 .description-content.expanded p {
-  margin: 4px 0;
+  margin: 0;
   line-height: 1.5;
 }
 

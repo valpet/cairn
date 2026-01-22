@@ -22714,7 +22714,7 @@
             onClick: () => onToggleDescription(task.id),
             style: { cursor: "pointer" },
             dangerouslySetInnerHTML: {
-              __html: expandedDescriptions.has(task.id) ? markdownToHtml(task.description) : task.description
+              __html: expandedDescriptions.has(task.id) ? markdownToHtml(task.description) : `<span>${task.description.replace(/\n/g, " ").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</span>`
             }
           }
         ) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { opacity: 0.4, fontStyle: "italic", fontSize: "12px" }, children: "No description" }) }) }),

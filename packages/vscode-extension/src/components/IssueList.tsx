@@ -1205,7 +1205,7 @@ const TaskRow: React.FC<TaskRowProps> = ({
                 dangerouslySetInnerHTML={{
                   __html: expandedDescriptions.has(task.id)
                     ? markdownToHtml(task.description)
-                    : task.description
+                    : `<span>${task.description.replace(/\n/g, ' ').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>`
                 }}
               />
             ) : (
