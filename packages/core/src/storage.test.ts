@@ -109,7 +109,10 @@ describe('StorageService', () => {
     await storage.saveIssue(issue1);
     await storage.saveIssue(issue2);
     const issues = await storage.loadIssues();
-    expect(issues).toEqual([issue1, issue2]);
+    expect(issues).toEqual([
+      { ...issue1, completion_percentage: 0 },
+      { ...issue2, completion_percentage: 100 }
+    ]);
   });
 
   it('should return correct file path', () => {
@@ -141,8 +144,8 @@ describe('StorageService', () => {
 
       const issues = await storage.loadIssues();
       expect(issues).toHaveLength(2);
-      expect(issues).toContainEqual(issue1);
-      expect(issues).toContainEqual(issue2);
+      expect(issues).toContainEqual({ ...issue1, completion_percentage: 0 });
+      expect(issues).toContainEqual({ ...issue2, completion_percentage: 0 });
     });
 
     it('should handle concurrent updates from same process', async () => {
@@ -191,7 +194,7 @@ describe('StorageService', () => {
 
       const issues = await storage.loadIssues();
       expect(issues).toHaveLength(1);
-      expect(issues[0]).toEqual(issue);
+      expect(issues[0]).toEqual({ ...issue, completion_percentage: 0 });
     });
 
     it('should retry when lock is held by another process', async () => {
@@ -230,7 +233,7 @@ describe('StorageService', () => {
 
       const issues = await storage.loadIssues();
       expect(issues).toHaveLength(1);
-      expect(issues[0]).toEqual(issue);
+      expect(issues[0]).toEqual({ ...issue, completion_percentage: 0 });
     });
 
     it('should eventually succeed after retries', async () => {
@@ -328,6 +331,47 @@ describe('StorageService', () => {
 
       const issues = await storage.loadIssues();
       expect(issues[0].updated_at).not.toBe(beforeUpdate);
+    });
+
+    it('should calculate completion percentages for loaded issues', async () => {
+      // Create parent issue with AC
+      const parentIssue = {
+        id: 'parent-1',
+        title: 'Parent Issue',
+        status: 'open' as const,
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        acceptance_criteria: [
+          { text: 'AC1', completed: true },
+          { text: 'AC2', completed: false }
+        ]
+      };
+
+      // Create child issue
+      const childIssue = {
+        id: 'child-1',
+        title: 'Child Issue',
+        status: 'closed' as const,
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+        dependencies: [{ id: 'parent-1', type: 'parent-child' as const }]
+      };
+
+      await storage.saveIssue(parentIssue);
+      await storage.saveIssue(childIssue);
+
+      const issues = await storage.loadIssues();
+      expect(issues).toHaveLength(2);
+
+      const loadedParent = issues.find(i => i.id === 'parent-1');
+      const loadedChild = issues.find(i => i.id === 'child-1');
+
+      expect(loadedParent?.completion_percentage).toBe(75); // (50% AC + 100% subtask) / 2 = 75
+      // AC completed: 1, AC total: 2 -> 50%
+      // Subtask: 100%
+      // Average: (50 + 100) / 2 = 75
+
+      expect(loadedChild?.completion_percentage).toBe(100); // closed leaf issue
     });
   });
 });

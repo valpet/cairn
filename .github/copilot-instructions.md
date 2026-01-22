@@ -37,6 +37,7 @@ While you're free to work as you see fit, using Cairn will significantly improve
 - **Document your work**: Use `cairn_comment` to record findings, ideas, challenges, solutions, and progress as you work on tasks. This helps maintain a detailed record for collaboration and future reference.
 - **Add comments for collaboration**: Use `cairn_comment` to document important insights or communicate with the developer.
 - **Perform self-reviews**: Before closing tasks, review your work quality and ensure all acceptance criteria are met.
+- **Verify completion before closing**: An issue must reach 100% completion percentage before it can be closed. Check that all acceptance criteria are marked complete and all subtasks are finished.
 
 ### Acceptance Criteria Best Practices
 When working with acceptance criteria:
@@ -46,6 +47,7 @@ When working with acceptance criteria:
 3. **Track completion systematically** - toggle criteria as you complete them during development
 4. **Review before closing** - ensure all acceptance criteria are marked complete before closing a task
 5. **Update criteria as needed** - if requirements change, update the criteria text rather than adding new ones
+6. **Require 100% completion** - Tasks cannot be closed unless they reach 100% completion percentage, which requires all acceptance criteria to be checked off and all subtasks to be complete
 
 ### Changelog Best Practices
 When updating the CHANGELOG.md file:

@@ -334,21 +334,26 @@
     }
 
     .task-grid colgroup col:nth-child(3) {
+      width: 80px;
+      /* Completion - fixed narrow width */
+    }
+
+    .task-grid colgroup col:nth-child(4) {
       width: 120px;
       /* Status - fixed narrow width */
     }
 
-    .task-grid colgroup col:nth-child(4) {
+    .task-grid colgroup col:nth-child(5) {
       width: 100px;
       /* Priority - fixed narrow width */
     }
 
-    .task-grid colgroup col:nth-child(5) {
+    .task-grid colgroup col:nth-child(6) {
       width: 120px;
       /* Dependencies - fixed narrow width */
     }
 
-    .task-grid colgroup col:nth-child(6) {
+    .task-grid colgroup col:nth-child(7) {
       width: 140px;
       /* Actions - fixed narrow width */
     }
@@ -1371,7 +1376,7 @@
 
       // Get non-closed subtasks
       const nonClosedSubtasks = subtasks.filter(subtask => subtask.status !== 'closed');
-      
+
       // If all non-closed subtasks are blocked, show blocked
       if (nonClosedSubtasks.length > 0 && nonClosedSubtasks.every(subtask => subtask.status === 'blocked')) {
         return 'blocked';
@@ -1389,13 +1394,13 @@
     function getStatusDisplayText(issueStatus, subtasks) {
       const statusLabels = { open: 'Open', in_progress: 'In Progress', closed: 'Closed', blocked: 'Blocked' };
       const issueStatusText = statusLabels[issueStatus] || issueStatus;
-      
+
       const computedStatus = computeSubIssueStatus(subtasks);
       if (computedStatus && computedStatus !== issueStatus) {
         const computedStatusText = statusLabels[computedStatus] || computedStatus;
         return `${issueStatusText} / ${computedStatusText}`;
       }
-      
+
       return issueStatusText;
     }
 
@@ -1495,7 +1500,7 @@
       const thead = document.createElement('thead');
       const headerRow = document.createElement('tr');
       const titleHeader = document.createElement('th');
-      titleHeader.colSpan = 6;
+      titleHeader.colSpan = 7;
       titleHeader.style.padding = '12px 16px';
 
       const headerContainer = document.createElement('div');
@@ -1565,7 +1570,7 @@
 
       // Add colgroup for consistent column widths
       const bodyColgroup = document.createElement('colgroup');
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 7; i++) {
         const col = document.createElement('col');
         bodyColgroup.appendChild(col);
       }
@@ -1729,6 +1734,18 @@
       }
       descriptionCell.appendChild(descriptionContent);
       tr.appendChild(descriptionCell);
+
+      // Completion percentage cell
+      const completionCell = document.createElement('td');
+      completionCell.className = 'completion-cell';
+      const percentageBadge = document.createElement('span');
+      percentageBadge.className = 'completion-percentage';
+      percentageBadge.textContent = `${task.completion_percentage}%`;
+      percentageBadge.style.fontSize = '12px';
+      percentageBadge.style.color = 'var(--vscode-descriptionForeground)';
+      percentageBadge.style.opacity = '0.8';
+      completionCell.appendChild(percentageBadge);
+      tr.appendChild(completionCell);
 
       // Check if task is blocked
       const taskIsBlocked = isBlocked(task, allTasks);
@@ -1918,7 +1935,7 @@
       tr.appendChild(titleCell);
 
       // Empty cells for other columns
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 6; i++) {
         const emptyCell = document.createElement('td');
         tr.appendChild(emptyCell);
       }

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { nanoid } from 'nanoid';
-import { IssueStatus, Priority, IssueType, Dependency, DependencyType, Comment, AcceptanceCriteria } from './types';
+import { IssueStatus, Priority, IssueType, Dependency, DependencyType, Comment, AcceptanceCriteria, Issue } from './types';
 
 /**
  * Finds the .cairn directory by walking up the directory tree from startDir.
@@ -238,4 +238,51 @@ export function sanitizeFilePath(filePath: string, allowedExtensions: string[] =
   }
 
   return sanitized;
+}
+
+/**
+ * Calculates the completion percentage for an issue based on acceptance criteria and subtasks.
+ * For issues with subtasks: averages the completion of acceptance criteria and subtask completion percentages.
+ * For leaf issues: uses acceptance criteria completion, or status-based completion if no criteria.
+ * Returns percentage as number (0-100).
+ */
+export function calculateCompletionPercentage(issue: Issue, allIssues: Issue[]): number {
+  const subtasks = allIssues.filter(i => i.dependencies?.some(d => d.id === issue.id && d.type === 'parent-child'));
+  const hasSubtasks = subtasks.length > 0;
+
+  const acTotal = issue.acceptance_criteria?.length || 0;
+  const hasAcceptanceCriteria = acTotal > 0;
+
+  let completionValues: number[] = [];
+
+  // Calculate own acceptance criteria completion
+  if (hasAcceptanceCriteria) {
+    const acCompleted = issue.acceptance_criteria!.filter(ac => ac.completed).length;
+    const acCompletion = acTotal > 0 ? (acCompleted / acTotal) * 100 : 0;
+    completionValues.push(acCompletion);
+  }
+
+  // Calculate subtask completion average
+  if (hasSubtasks) {
+    const subtaskCompletions = subtasks
+      .map(st => calculateCompletionPercentage(st, allIssues))
+      .filter(cp => cp !== null);
+    if (subtaskCompletions.length > 0) {
+      const avgSubtaskCompletion = subtaskCompletions.reduce((sum, cp) => sum + cp, 0) / subtaskCompletions.length;
+      completionValues.push(avgSubtaskCompletion);
+    }
+  }
+
+  // If we have completion values, average them
+  if (completionValues.length > 0) {
+    const average = completionValues.reduce((sum, val) => sum + val, 0) / completionValues.length;
+    return Math.round(average);
+  }
+
+  // Leaf issue with no acceptance criteria: use status
+  if (issue.status === 'closed') {
+    return 100;
+  } else {
+    return 0;
+  }
 }

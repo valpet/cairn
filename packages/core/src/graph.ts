@@ -118,9 +118,14 @@ export class GraphService implements IGraphService {
 
   calculateEpicProgress(epicId: string, issues: Issue[]): { completed: number; total: number; percentage: number } {
     const subtasks = this.getEpicSubtasks(epicId, issues);
-    const completed = subtasks.filter(subtask => subtask.status === 'closed').length;
     const total = subtasks.length;
-    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    if (total === 0) {
+      return { completed: 0, total: 0, percentage: 0 };
+    }
+
+    const completionPercentages = subtasks.map(st => st.completion_percentage ?? 0);
+    const completed = completionPercentages.filter(cp => cp === 100).length;
+    const percentage = Math.round(completionPercentages.reduce((sum, cp) => sum + cp, 0) / total);
 
     return { completed, total, percentage };
   }
@@ -132,16 +137,19 @@ export class GraphService implements IGraphService {
 
   canCloseIssue(issueId: string, issues: Issue[]): { canClose: boolean; openSubtasks?: Issue[] } {
     // Check if the issue exists
-    const issueExists = issues.some(issue => issue.id === issueId);
-    if (!issueExists) {
+    const issue = issues.find(issue => issue.id === issueId);
+    if (!issue) {
       return { canClose: false, openSubtasks: [] };
     }
 
     const subtasks = this.getEpicSubtasks(issueId, issues);
     const openSubtasks = subtasks.filter(subtask => subtask.status !== 'closed');
-    
+
+    // Check if issue is 100% complete
+    const isComplete = issue.completion_percentage === 100;
+
     return {
-      canClose: openSubtasks.length === 0,
+      canClose: openSubtasks.length === 0 && isComplete,
       openSubtasks: openSubtasks.length > 0 ? openSubtasks : undefined
     };
   }

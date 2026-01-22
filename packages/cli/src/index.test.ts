@@ -324,8 +324,8 @@ describe('CLI Commands', () => {
   describe('list command', () => {
     it('should list all issues', async () => {
       const mockIssues = [
-        { id: '1', title: 'Issue 1', status: 'open', type: 'task' },
-        { id: '2', title: 'Issue 2', status: 'closed', type: 'bug' }
+        { id: '1', title: 'Issue 1', status: 'open', type: 'task', completion_percentage: null },
+        { id: '2', title: 'Issue 2', status: 'closed', type: 'bug', completion_percentage: 75 }
       ];
       mockStorage.loadIssues.mockResolvedValue(mockIssues);
       mockCompaction.compactIssues.mockReturnValue(mockIssues);
@@ -340,13 +340,13 @@ describe('CLI Commands', () => {
       expect(mockStorage.loadIssues).toHaveBeenCalled();
       expect(mockCompaction.compactIssues).toHaveBeenCalledWith(mockIssues);
       expect(mockConsoleLog).toHaveBeenCalledWith('1: Issue 1 [open] [task]');
-      expect(mockConsoleLog).toHaveBeenCalledWith('2: Issue 2 [closed] [bug]');
+      expect(mockConsoleLog).toHaveBeenCalledWith('2: Issue 2 [closed] [bug] [75%]');
     });
 
     it('should filter by status', async () => {
       const mockIssues = [
-        { id: '1', title: 'Issue 1', status: 'open', type: 'task' },
-        { id: '2', title: 'Issue 2', status: 'closed', type: 'bug' }
+        { id: '1', title: 'Issue 1', status: 'open', type: 'task', completion_percentage: null },
+        { id: '2', title: 'Issue 2', status: 'closed', type: 'bug', completion_percentage: 50 }
       ];
       mockStorage.loadIssues.mockResolvedValue(mockIssues);
       mockCompaction.compactIssues.mockReturnValue(mockIssues);
@@ -359,12 +359,12 @@ describe('CLI Commands', () => {
       await listAction({ status: 'open' });
 
       expect(mockConsoleLog).toHaveBeenCalledWith('1: Issue 1 [open] [task]');
-      expect(mockConsoleLog).not.toHaveBeenCalledWith('2: Issue 2 [closed] [bug]');
+      expect(mockConsoleLog).not.toHaveBeenCalledWith('2: Issue 2 [closed] [bug] [50%]');
     });
 
     it('should show ready work', async () => {
       const mockIssues = [
-        { id: '1', title: 'Ready Issue', status: 'open', type: 'task' }
+        { id: '1', title: 'Ready Issue', status: 'open', type: 'task', completion_percentage: 25 }
       ];
       mockStorage.loadIssues.mockResolvedValue(mockIssues);
       mockCompaction.compactIssues.mockReturnValue(mockIssues);
@@ -378,7 +378,7 @@ describe('CLI Commands', () => {
       await listAction({ ready: true });
 
       expect(mockGraph.getReadyWork).toHaveBeenCalledWith(mockIssues);
-      expect(mockConsoleLog).toHaveBeenCalledWith('1: Ready Issue [open] [task]');
+      expect(mockConsoleLog).toHaveBeenCalledWith('1: Ready Issue [open] [task] [25%]');
     });
   });
 

@@ -404,6 +404,7 @@ describe('GraphService', () => {
             updated_at: '2023-01-01T00:00:00Z',
             closed_at: '2023-01-01T00:00:00Z',
             dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+            completion_percentage: 100,
           },
           {
             id: 'sub-2',
@@ -412,6 +413,7 @@ describe('GraphService', () => {
             created_at: '2023-01-01T00:00:00Z',
             updated_at: '2023-01-01T00:00:00Z',
             dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+            completion_percentage: 0,
           },
           {
             id: 'sub-3',
@@ -421,13 +423,14 @@ describe('GraphService', () => {
             updated_at: '2023-01-01T00:00:00Z',
             closed_at: '2023-01-01T00:00:00Z',
             dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+            completion_percentage: 100,
           },
         ];
 
         const progress = graphService.calculateEpicProgress('epic-1', issues);
         expect(progress.completed).toBe(2);
         expect(progress.total).toBe(3);
-        expect(progress.percentage).toBe(67); // Math.round(2/3 * 100)
+        expect(progress.percentage).toBe(67); // (100 + 0 + 100) / 3 = 200/3 ≈ 67
       });
 
       it('should return 100% when all subtasks are completed', () => {
@@ -447,6 +450,7 @@ describe('GraphService', () => {
             updated_at: '2023-01-01T00:00:00Z',
             closed_at: '2023-01-01T00:00:00Z',
             dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+            completion_percentage: 100,
           },
         ];
 
@@ -564,6 +568,7 @@ describe('GraphService', () => {
             status: 'open',
             created_at: '2023-01-01T00:00:00Z',
             updated_at: '2023-01-01T00:00:00Z',
+            completion_percentage: 100,
           },
         ];
 
@@ -580,6 +585,7 @@ describe('GraphService', () => {
             status: 'open',
             created_at: '2023-01-01T00:00:00Z',
             updated_at: '2023-01-01T00:00:00Z',
+            completion_percentage: 100,
           },
           {
             id: 'sub-1',
@@ -589,6 +595,7 @@ describe('GraphService', () => {
             updated_at: '2023-01-01T00:00:00Z',
             closed_at: '2023-01-01T00:00:00Z',
             dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+            completion_percentage: 100,
           },
           {
             id: 'sub-2',
@@ -598,6 +605,7 @@ describe('GraphService', () => {
             updated_at: '2023-01-01T00:00:00Z',
             closed_at: '2023-01-01T00:00:00Z',
             dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+            completion_percentage: 100,
           },
         ];
 

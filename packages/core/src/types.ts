@@ -19,6 +19,7 @@ export interface Issue {
   closed_at?: string;
   comments?: Comment[];
   acceptance_criteria?: AcceptanceCriteria[];
+  completion_percentage?: number | null; // computed
 }
 
 export interface Comment {

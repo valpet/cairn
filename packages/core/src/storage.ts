@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { nanoid } from 'nanoid';
 import { Issue, Comment } from './types';
-import { validateIssue } from './utils';
+import { validateIssue, calculateCompletionPercentage } from './utils';
 import { ILogger, ConsoleLogger, LogLevel } from './logger';
 
 export interface IStorageService {
@@ -46,7 +46,14 @@ export class StorageService implements IStorageService {
   }
 
   async loadIssues(): Promise<Issue[]> {
-    return await this.loadIssuesInternal();
+    const issues = await this.loadIssuesInternal();
+
+    // Calculate completion percentages for all issues
+    for (const issue of issues) {
+      issue.completion_percentage = calculateCompletionPercentage(issue, issues);
+    }
+
+    return issues;
   }
 
   private async loadIssuesInternal(): Promise<Issue[]> {
@@ -55,15 +62,15 @@ export class StorageService implements IStorageService {
     }
     const content = await fs.promises.readFile(this.issuesFilePath, 'utf-8');
     const lines = content.trim().split('\n').filter(line => line.trim());
-    
+
     const issues: Issue[] = [];
     const errors: string[] = [];
-    
+
     for (let i = 0; i < lines.length; i++) {
       try {
         const issue = JSON.parse(lines[i]);
         const validation = validateIssue(issue);
-        
+
         if (validation.isValid) {
           issues.push(issue);
         } else {
@@ -73,14 +80,14 @@ export class StorageService implements IStorageService {
         errors.push(`Line ${i + 1}: Invalid JSON - ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
       }
     }
-    
+
     // Log validation errors but don't fail the load - allow partial recovery
     if (errors.length > 0) {
       this.logger.error(`Found ${errors.length} validation errors in ${this.issuesFilePath}:`);
       errors.forEach(error => this.logger.error(`  ${error}`));
       this.logger.error('Invalid issues were skipped. Consider repairing the data file.');
     }
-    
+
     return issues;
   }
 
@@ -120,7 +127,7 @@ export class StorageService implements IStorageService {
         const issues = await this.loadIssuesInternal();
         this.logger.debug('Storage updateIssues loaded issues count:', issues.length);
         const updatedIssues = updater(issues);
-        
+
         // Validate all updated issues
         const validationErrors: string[] = [];
         updatedIssues.forEach((issue, index) => {
@@ -129,16 +136,21 @@ export class StorageService implements IStorageService {
             validationErrors.push(`Issue ${index} (${issue.id}): ${validation.errors.join(', ')}`);
           }
         });
-        
+
         if (validationErrors.length > 0) {
           throw new Error(`Invalid issue data in update: ${validationErrors.join('; ')}`);
         }
-        
+
         this.logger.debug('Storage updateIssues updated issues count:', updatedIssues.length);
         const content = updatedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
         this.logger.debug('Storage writing to', this.issuesFilePath);
         await fs.promises.writeFile(this.issuesFilePath, content);
         this.logger.debug('Storage writeFile done');
+
+        // Recalculate completion percentages for all issues after update
+        for (const issue of updatedIssues) {
+          issue.completion_percentage = calculateCompletionPercentage(issue, updatedIssues);
+        }
       });
     }).catch(err => {
       this.logger.error('updateIssues queued operation failed:', err);

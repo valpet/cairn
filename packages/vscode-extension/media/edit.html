@@ -1332,6 +1332,13 @@
       background: rgba(255, 255, 255, 0.05);
     }
 
+    .completion-percentage {
+      margin-left: 8px;
+      font-size: 20px;
+      color: var(--vscode-descriptionForeground);
+      opacity: 0.8;
+    }
+
     .copy-id-btn svg {
       width: 12px;
       height: 12px;
@@ -1451,6 +1458,7 @@
             </g>
           </svg>
         </button>
+        <span id="completionPercentage" class="completion-percentage"></span>
       </h1>
     </div>
     <div class="header-metadata">
@@ -1481,20 +1489,28 @@
           <span class="metadata-dropdown-caret">▼</span>
         </button>
         <div class="metadata-dropdown-menu" id="typeDropdown">
-          <button type="button" class="metadata-dropdown-item" data-value="task" onclick="selectMetadata('type', 'task', 'Task')">Task</button>
-          <button type="button" class="metadata-dropdown-item" data-value="bug" onclick="selectMetadata('type', 'bug', 'Bug')">Bug</button>
-          <button type="button" class="metadata-dropdown-item" data-value="feature" onclick="selectMetadata('type', 'feature', 'Feature')">Feature</button>
-          <button type="button" class="metadata-dropdown-item" data-value="epic" onclick="selectMetadata('type', 'epic', 'Epic')">Epic</button>
-          <button type="button" class="metadata-dropdown-item" data-value="chore" onclick="selectMetadata('type', 'chore', 'Chore')">Chore</button>
-          <button type="button" class="metadata-dropdown-item" data-value="docs" onclick="selectMetadata('type', 'docs', 'Docs')">Docs</button>
-          <button type="button" class="metadata-dropdown-item" data-value="refactor" onclick="selectMetadata('type', 'refactor', 'Refactor')">Refactor</button>
+          <button type="button" class="metadata-dropdown-item" data-value="task"
+            onclick="selectMetadata('type', 'task', 'Task')">Task</button>
+          <button type="button" class="metadata-dropdown-item" data-value="bug"
+            onclick="selectMetadata('type', 'bug', 'Bug')">Bug</button>
+          <button type="button" class="metadata-dropdown-item" data-value="feature"
+            onclick="selectMetadata('type', 'feature', 'Feature')">Feature</button>
+          <button type="button" class="metadata-dropdown-item" data-value="epic"
+            onclick="selectMetadata('type', 'epic', 'Epic')">Epic</button>
+          <button type="button" class="metadata-dropdown-item" data-value="chore"
+            onclick="selectMetadata('type', 'chore', 'Chore')">Chore</button>
+          <button type="button" class="metadata-dropdown-item" data-value="docs"
+            onclick="selectMetadata('type', 'docs', 'Docs')">Docs</button>
+          <button type="button" class="metadata-dropdown-item" data-value="refactor"
+            onclick="selectMetadata('type', 'refactor', 'Refactor')">Refactor</button>
         </div>
       </div>
     </div>
     <div class="property-item">
       <label class="property-label">Priority</label>
       <div class="property-value">
-        <button type="button" class="metadata-dropdown-button" id="priorityButton" onclick="toggleMetadataDropdown('priority')">
+        <button type="button" class="metadata-dropdown-button" id="priorityButton"
+          onclick="toggleMetadataDropdown('priority')">
           <span class="button-content">
             <span class="button-icon" id="priorityIcon">◆</span>
             <span id="priorityLabel">Medium</span>
@@ -1502,17 +1518,22 @@
           <span class="metadata-dropdown-caret">▼</span>
         </button>
         <div class="metadata-dropdown-menu" id="priorityDropdown">
-          <button type="button" class="metadata-dropdown-item" data-value="low" onclick="selectMetadata('priority', 'low', 'Low')">Low</button>
-          <button type="button" class="metadata-dropdown-item" data-value="medium" onclick="selectMetadata('priority', 'medium', 'Medium')">Medium</button>
-          <button type="button" class="metadata-dropdown-item" data-value="high" onclick="selectMetadata('priority', 'high', 'High')">High</button>
-          <button type="button" class="metadata-dropdown-item" data-value="urgent" onclick="selectMetadata('priority', 'urgent', 'Urgent')">Urgent</button>
+          <button type="button" class="metadata-dropdown-item" data-value="low"
+            onclick="selectMetadata('priority', 'low', 'Low')">Low</button>
+          <button type="button" class="metadata-dropdown-item" data-value="medium"
+            onclick="selectMetadata('priority', 'medium', 'Medium')">Medium</button>
+          <button type="button" class="metadata-dropdown-item" data-value="high"
+            onclick="selectMetadata('priority', 'high', 'High')">High</button>
+          <button type="button" class="metadata-dropdown-item" data-value="urgent"
+            onclick="selectMetadata('priority', 'urgent', 'Urgent')">Urgent</button>
         </div>
       </div>
     </div>
     <div class="property-item">
       <label class="property-label">Status</label>
       <div class="property-value">
-        <button type="button" class="metadata-dropdown-button" id="statusButton" onclick="toggleMetadataDropdown('status')">
+        <button type="button" class="metadata-dropdown-button" id="statusButton"
+          onclick="toggleMetadataDropdown('status')">
           <span class="button-content">
             <span class="button-icon" id="statusIcon">●</span>
             <span id="statusLabel">Open</span>
@@ -1520,10 +1541,14 @@
           <span class="metadata-dropdown-caret">▼</span>
         </button>
         <div class="metadata-dropdown-menu" id="statusDropdown">
-          <button type="button" class="metadata-dropdown-item" data-value="open" onclick="selectMetadata('status', 'open', 'Open')">Open</button>
-          <button type="button" class="metadata-dropdown-item" data-value="in_progress" onclick="selectMetadata('status', 'in_progress', 'In Progress')">In Progress</button>
-          <button type="button" class="metadata-dropdown-item" data-value="closed" onclick="selectMetadata('status', 'closed', 'Closed')">Closed</button>
-          <button type="button" class="metadata-dropdown-item" data-value="blocked" onclick="selectMetadata('status', 'blocked', 'Blocked')">Blocked</button>
+          <button type="button" class="metadata-dropdown-item" data-value="open"
+            onclick="selectMetadata('status', 'open', 'Open')">Open</button>
+          <button type="button" class="metadata-dropdown-item" data-value="in_progress"
+            onclick="selectMetadata('status', 'in_progress', 'In Progress')">In Progress</button>
+          <button type="button" class="metadata-dropdown-item" data-value="closed"
+            onclick="selectMetadata('status', 'closed', 'Closed')">Closed</button>
+          <button type="button" class="metadata-dropdown-item" data-value="blocked"
+            onclick="selectMetadata('status', 'blocked', 'Blocked')">Blocked</button>
         </div>
       </div>
     </div>
@@ -1566,7 +1591,8 @@
       <div class="collapsible-body">
         <div class="collapsible-content">
           <div id="acceptanceCriteriaList" class="acceptance-criteria-list"></div>
-          <div class="acceptance-criteria-empty">No acceptance criteria yet. Add criteria to define what needs to be completed.</div>
+          <div class="acceptance-criteria-empty">No acceptance criteria yet. Add criteria to define what needs to be
+            completed.</div>
           <button type="button" id="addAcceptanceCriteria" class="secondary">Add Acceptance Criteria</button>
         </div>
       </div>
@@ -1600,7 +1626,8 @@
           <div class="dependency-section">
             <h4>Blocked by</h4>
             <div id="blockedByList" class="dependency-list"></div>
-            <div class="dependencies-empty" id="blockedByEmpty">No blocking dependencies. This issue can be worked on independently.</div>
+            <div class="dependencies-empty" id="blockedByEmpty">No blocking dependencies. This issue can be worked on
+              independently.</div>
           </div>
           <div class="dependency-section">
             <h4>This issue is blocking</h4>
@@ -1986,7 +2013,7 @@
 
       // Get non-closed subtasks
       const nonClosedSubtasks = subtasks.filter(subtask => subtask.status !== 'closed');
-      
+
       // If all non-closed subtasks are blocked, show blocked
       if (nonClosedSubtasks.length > 0 && nonClosedSubtasks.every(subtask => subtask.status === 'blocked')) {
         return 'blocked';
@@ -2004,13 +2031,13 @@
     function getStatusDisplayText(issueStatus, subtasks) {
       const statusLabels = { open: 'Open', in_progress: 'In Progress', closed: 'Closed', blocked: 'Blocked' };
       const issueStatusText = statusLabels[issueStatus] || issueStatus;
-      
+
       const computedStatus = computeSubIssueStatus(subtasks);
       if (computedStatus && computedStatus !== issueStatus) {
         const computedStatusText = statusLabels[computedStatus] || computedStatus;
         return `${issueStatusText} / ${computedStatusText}`;
       }
-      
+
       return issueStatusText;
     }
 
@@ -2087,14 +2114,14 @@
     function toggleMetadataDropdown(type) {
       const dropdown = document.getElementById(`${type}Dropdown`);
       const button = document.getElementById(`${type}Button`);
-      
+
       // Close any other open dropdown
       if (activeDropdown && activeDropdown !== dropdown) {
         activeDropdown.classList.remove('visible');
         const otherButtons = document.querySelectorAll('.metadata-dropdown-button.active');
         otherButtons.forEach(btn => btn.classList.remove('active'));
       }
-      
+
       // Toggle current dropdown
       const isVisible = dropdown.classList.contains('visible');
       if (isVisible) {
@@ -2139,7 +2166,7 @@
       const labelElement = document.getElementById(`${type}Label`);
       const iconElement = document.getElementById(`${type}Icon`);
       const dropdown = document.getElementById(`${type}Dropdown`);
-      
+
       // Update the button appearance
       if (type === 'status') {
         // For status, use the newly selected value when computing the display text
@@ -2148,7 +2175,7 @@
         // For other metadata types, use the provided label
         labelElement.textContent = label;
       }
-      
+
       // Update icon
       if (type === 'type' && typeIcons[value]) {
         iconElement.textContent = typeIcons[value];
@@ -2157,10 +2184,10 @@
       } else if (type === 'status' && statusIcons[value]) {
         iconElement.textContent = statusIcons[value];
       }
-      
+
       // Remove all type/priority/status classes from button
       button.className = 'metadata-dropdown-button';
-      
+
       // Add the selected value class
       if (type === 'status') {
         // Use computed status for button color when it differs from actual status
@@ -2170,7 +2197,7 @@
       } else {
         button.classList.add(`${type}-${value}`);
       }
-      
+
       // Update selected state in dropdown items
       const items = dropdown.querySelectorAll('.metadata-dropdown-item');
       items.forEach(item => {
@@ -2180,7 +2207,7 @@
           item.classList.remove('selected');
         }
       });
-      
+
       // Update current value
       if (type === 'type') {
         currentType = value;
@@ -2191,12 +2218,12 @@
         currentStatus = value;
         onStatusChange();
       }
-      
+
       // Close dropdown
       dropdown.classList.remove('visible');
       button.classList.remove('active');
       activeDropdown = null;
-      
+
       // Save ticket
       saveTicket();
     }
@@ -2219,8 +2246,8 @@
       const dropdowns = ['type', 'priority', 'status'];
       dropdowns.forEach(dropdownType => {
         const dropdown = document.getElementById(`${dropdownType}Dropdown`);
-        const currentValue = dropdownType === 'type' ? currentType : 
-                            dropdownType === 'priority' ? currentPriority : currentStatus;
+        const currentValue = dropdownType === 'type' ? currentType :
+          dropdownType === 'priority' ? currentPriority : currentStatus;
         const items = dropdown.querySelectorAll('.metadata-dropdown-item');
         items.forEach(item => {
           if (item.dataset.value === currentValue) {
@@ -2246,42 +2273,42 @@
         currentDescription = message.ticket.description || '';
         comments = message.ticket.comments || [];
         console.log('Loaded ticket:', ticketId, 'title:', currentTitle, 'desc:', currentDescription);
-        
+
         // Update dropdown values
         currentType = message.ticket.type || 'task';
         currentPriority = message.ticket.priority || 'medium';
         currentStatus = message.ticket.status || 'open';
         previousStatus = currentStatus; // Initialize previous status when loading
-        
+
         // Initialize ticket-related collections before computing derived status
         subtasks = message.ticket.subtasks || [];
         dependencies = message.ticket.dependencies || [];
         acceptanceCriteria = message.ticket.acceptance_criteria || [];
-        
+
         // Update dropdown button displays
         const typeLabel = { task: 'Task', bug: 'Bug', feature: 'Feature', epic: 'Epic', chore: 'Chore', docs: 'Docs', refactor: 'Refactor' };
         const priorityLabel = { low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent' };
-        
+
         document.getElementById('typeLabel').textContent = typeLabel[currentType];
         document.getElementById('priorityLabel').textContent = priorityLabel[currentPriority];
         document.getElementById('statusLabel').textContent = getStatusDisplayText(currentStatus, subtasks);
-        
+
         // Update icons
         document.getElementById('typeIcon').textContent = typeIcons[currentType] || '\u2022';
         document.getElementById('priorityIcon').textContent = priorityIcons[currentPriority] || '\u25c6';
         document.getElementById('statusIcon').textContent = statusIcons[currentStatus] || '\u25cf';
-        
+
         // Update button classes for colors
         const typeButton = document.getElementById('typeButton');
         const priorityButton = document.getElementById('priorityButton');
         const statusButton = document.getElementById('statusButton');
-        
+
         typeButton.className = 'metadata-dropdown-button';
         typeButton.classList.add(`type-${currentType}`);
-        
+
         priorityButton.className = 'metadata-dropdown-button';
         priorityButton.classList.add(`priority-${currentPriority}`);
-        
+
         // Use computed status for button color when it differs from actual status
         const computedStatus = computeSubIssueStatus(subtasks);
         const statusClass = computedStatus && computedStatus !== currentStatus ? computedStatus : currentStatus;
@@ -2295,6 +2322,10 @@
         const headerTicketIdEl = document.getElementById('headerTicketId');
         if (headerTicketIdEl) {
           headerTicketIdEl.textContent = `#${message.ticket.id}`;
+        }
+        const completionEl = document.getElementById('completionPercentage');
+        if (completionEl) {
+          completionEl.textContent = `[${message.ticket.completion_percentage}%]`;
         }
         setDateWithIcon('createdDate', message.ticket.created_at);
         setDateWithIcon('updatedDate', message.ticket.updated_at);
@@ -2426,18 +2457,18 @@
         console.log('Save failed, reverting status:', message);
         // Revert the status back to the previous value
         currentStatus = previousStatus;
-        
+
         // Update the UI to reflect the reverted status
         document.getElementById('statusLabel').textContent = getStatusDisplayText(currentStatus, subtasks);
         document.getElementById('statusIcon').textContent = statusIcons[currentStatus] || '';
-        
+
         const statusButton = document.getElementById('statusButton');
         // Use computed status for button color when it differs from actual status
         const computedStatus = computeSubIssueStatus(subtasks);
         const statusClass = computedStatus && computedStatus !== currentStatus ? computedStatus : currentStatus;
         statusButton.className = 'metadata-dropdown-button';
         statusButton.classList.add(`status-${statusClass}`);
-        
+
         // Update selected state in dropdown items
         const dropdown = document.getElementById('statusDropdown');
         const items = dropdown.querySelectorAll('.metadata-dropdown-item');
@@ -2448,16 +2479,16 @@
             item.classList.remove('selected');
           }
         });
-        
+
         // Update closed date display
         onStatusChange();
-        
+
         // Show error message to user
         let errorMessage = message.error;
         if (message.errorCode === 'CANNOT_CLOSE_WITH_OPEN_SUBTASKS') {
           errorMessage = 'Cannot close issue as it has open sub-issues.';
         }
-        
+
         if (errorMessage) {
           // Create a temporary error notification
           const errorDiv = document.createElement('div');
@@ -2477,7 +2508,7 @@
           `;
           errorDiv.textContent = errorMessage;
           document.body.appendChild(errorDiv);
-          
+
           // Remove after 5 seconds
           setTimeout(() => {
             if (errorDiv.parentNode) {
@@ -2556,6 +2587,15 @@
         infoDiv.appendChild(typeBadge);
         infoDiv.appendChild(titleIdContainer);
 
+        // Completion percentage
+        const completionBadge = document.createElement('span');
+        completionBadge.className = 'completion-percentage';
+        completionBadge.textContent = `${subtask.completion_percentage}%`;
+        completionBadge.style.fontSize = '11px';
+        completionBadge.style.color = 'var(--vscode-descriptionForeground)';
+        completionBadge.style.opacity = '0.8';
+        completionBadge.style.marginLeft = '8px';
+
         const statusPill = createStatusPill(subtask.status);
         const priorityPill = createPriorityPill(subtask.priority);
 
@@ -2567,6 +2607,7 @@
         removeBtn.onclick = () => removeSubtask(index);
 
         div.appendChild(infoDiv);
+        div.appendChild(completionBadge);
         div.appendChild(statusPill);
         div.appendChild(priorityPill);
         div.appendChild(removeBtn);
@@ -2649,6 +2690,15 @@
         const statusPill = createDependencyStatusPill(dep.status);
         const priorityPill = createDependencyPriorityPill(dep.priority);
 
+        // Completion percentage
+        const completionBadge = document.createElement('span');
+        completionBadge.className = 'completion-percentage';
+        completionBadge.textContent = `${dep.completion_percentage}%`;
+        completionBadge.style.fontSize = '11px';
+        completionBadge.style.color = 'var(--vscode-descriptionForeground)';
+        completionBadge.style.opacity = '0.8';
+        completionBadge.style.marginLeft = '8px';
+
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.className = 'icon-button remove';
@@ -2659,6 +2709,7 @@
         div.appendChild(infoDiv);
         div.appendChild(statusPill);
         div.appendChild(priorityPill);
+        div.appendChild(completionBadge);
         div.appendChild(removeBtn);
 
         if (dep.direction === 'blocks') {

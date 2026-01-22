@@ -113,17 +113,17 @@ class CairnUpdateTool implements vscode.LanguageModelTool<any> {
       if (inputs.status === 'closed') {
         const issues = await storage.loadIssues();
         const validation = graph.canCloseIssue(inputs.id, issues);
-        
+
         if (!validation.canClose) {
           const currentIssue = issues.find(i => i.id === inputs.id);
-          const subtaskList = validation.openSubtasks!.map(subtask => 
+          const subtaskList = validation.openSubtasks!.map(subtask =>
             `- ${subtask.title} (${subtask.id}) - ${subtask.status}`
           ).join('\n');
-          
+
           return new vscode.LanguageModelToolResult([
-            new vscode.LanguageModelTextPart(JSON.stringify({ 
-              success: false, 
-              message: `Cannot close issue "${currentIssue?.title || inputs.id}" (${inputs.id}) because it has ${validation.openSubtasks!.length} open subtask(s):\n${subtaskList}\n\nPlease close all subtasks before closing this issue.` 
+            new vscode.LanguageModelTextPart(JSON.stringify({
+              success: false,
+              message: `Cannot close issue "${currentIssue?.title || inputs.id}" (${inputs.id}) because it has ${validation.openSubtasks!.length} open subtask(s):\n${subtaskList}\n\nPlease close all subtasks before closing this issue.`
             }))
           ]);
         }
@@ -502,6 +502,20 @@ export function activate(context: vscode.ExtensionContext) {
                 await updateTasks();
               } else if (message.type === 'completeTask') {
                 outputChannel.appendLine(`Completing task: ${message.id}`);
+                const issues = await storage.loadIssues();
+                const validation = graph.canCloseIssue(message.id, issues);
+
+                if (!validation.canClose) {
+                  const reason = validation.openSubtasks && validation.openSubtasks.length > 0
+                    ? `it has ${validation.openSubtasks.length} open subtask(s)`
+                    : 'it is not 100% complete (check acceptance criteria)';
+
+                  vscode.window.showErrorMessage(
+                    `Cannot close task "${message.id}" because ${reason}. Please complete all requirements before closing this task.`
+                  );
+                  return;
+                }
+
                 await storage.updateIssues(issues => {
                   return issues.map(issue => {
                     if (issue.id === message.id) {
@@ -576,6 +590,7 @@ export function activate(context: vscode.ExtensionContext) {
                 priority: task.priority || 'medium',
                 description: task.description || '',
                 type: task.type || 'task',
+                completion_percentage: task.completion_percentage,
                 dependencies: task.dependencies || [],
                 subtasks: graph.getEpicSubtasks(task.id, issues).map(s => ({
                   id: s.id,
@@ -673,7 +688,8 @@ export function activate(context: vscode.ExtensionContext) {
                   type: ticket.type,
                   priority: ticket.priority,
                   status: ticket.status,
-                  acceptance_criteria: ticket.acceptance_criteria || []
+                  acceptance_criteria: ticket.acceptance_criteria || [],
+                  completion_percentage: ticket.completion_percentage
                 };
               } else {
                 outputChannel.appendLine(`Ticket not found: ${ticketId} - sending default data`);
@@ -685,7 +701,8 @@ export function activate(context: vscode.ExtensionContext) {
                   priority: 'medium',
                   status: 'open',
                   created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
+                  updated_at: new Date().toISOString(),
+                  completion_percentage: null
                 };
               }
 
@@ -695,7 +712,8 @@ export function activate(context: vscode.ExtensionContext) {
                 title: s.title,
                 type: s.type,
                 status: s.status,
-                priority: s.priority
+                priority: s.priority,
+                completion_percentage: s.completion_percentage
               })) : [];
 
               // Get dependencies
@@ -711,7 +729,8 @@ export function activate(context: vscode.ExtensionContext) {
                       type: blocker.type,
                       status: blocker.status,
                       priority: blocker.priority,
-                      direction: 'blocks'
+                      direction: 'blocks',
+                      completion_percentage: blocker.completion_percentage
                     });
                   }
                 }
@@ -723,7 +742,8 @@ export function activate(context: vscode.ExtensionContext) {
                     type: blocked.type,
                     status: blocked.status,
                     priority: blocked.priority,
-                    direction: 'blocked_by'
+                    direction: 'blocked_by',
+                    completion_percentage: blocked.completion_percentage
                   });
                 }
               }
@@ -826,17 +846,21 @@ export function activate(context: vscode.ExtensionContext) {
                       // Check if trying to close an issue with open subtasks
                       if (ticketData.status === 'closed') {
                         const validation = graph.canCloseIssue(ticketData.id, updatedIssues);
-                        
+
                         if (!validation.canClose) {
                           // Send simplified error message to webview to revert UI state
                           panel.webview.postMessage({
                             type: 'saveFailed',
-                            error: 'Cannot close issue as it has open sub-issues.',
-                            errorCode: 'CANNOT_CLOSE_WITH_OPEN_SUBTASKS'
+                            error: 'Cannot close issue as it is not 100% complete.',
+                            errorCode: 'CANNOT_CLOSE_INCOMPLETE'
                           });
-                          
+
+                          const reason = validation.openSubtasks && validation.openSubtasks.length > 0
+                            ? `it has ${validation.openSubtasks.length} open subtask(s)`
+                            : 'it is not 100% complete (check acceptance criteria)';
+
                           vscode.window.showErrorMessage(
-                            `Cannot close issue "${currentIssue?.title || ticketData.id}" (${ticketData.id}) because it has ${validation.openSubtasks!.length} open subtask(s). Please close all subtasks before closing this issue.`
+                            `Cannot close issue "${currentIssue?.title || ticketData.id}" (${ticketData.id}) because ${reason}. Please complete all requirements before closing this issue.`
                           );
                           return; // Don't save the ticket
                         }
@@ -931,6 +955,9 @@ export function activate(context: vscode.ExtensionContext) {
                       if (updatedTicket) {
                         panel.title = truncateTitle(updatedTicket.title, ticketData.id);
                       }
+
+                      // Reload ticket data to get updated completion percentage
+                      await loadTicket(pendingTicketId);
                     } catch (saveError) {
                       outputChannel.appendLine(`Save operation failed: ${saveError}`);
                       const errorMsg = saveError instanceof Error ? saveError.message : String(saveError);
