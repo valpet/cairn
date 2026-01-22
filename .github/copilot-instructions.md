@@ -63,6 +63,7 @@ When updating the CHANGELOG.md file:
 - `cairn_create`: Create a new task (parameters: title, description?, type?, priority?, status?, parent?)
 - `cairn_update`: Update task status or other fields (parameters: id, status?, title?, description?, type?, priority?, acceptance_criteria?)
 - `cairn_dep_add`: Add dependencies between tasks (parameters: from, to, type)
+- `cairn_dep_analyze`: Analyze all dependency relationships for an issue, showing blocking dependencies, parent/child relationships, dependents, implementation order, and detecting circular dependencies
 - `cairn_comment`: Add comments to tasks (parameters: issue_id, author?, content)
 - `cairn_ac_add`: Add acceptance criteria to a task (parameters: issue_id, text)
 - `cairn_ac_update`: Update acceptance criteria text (parameters: issue_id, index, text)
@@ -80,7 +81,7 @@ If the tools aren't available, you can use these terminal commands:
 - \`cairn ac update <id> <index> "new text"\`: Update acceptance criteria
 - \`cairn ac remove <id> <index>\`: Remove acceptance criteria
 - \`cairn ac toggle <id> <index>\`: Toggle completion status
-- `cairn dep add <from> <to> --type <type>`: Add dependency
+- \`cairn dep analyze <id>\`: Analyze all dependency relationships for an issue, showing blocking dependencies, parent/child relationships, dependents, implementation order, and detecting circular dependencies
 - `cairn comment <id> <message>`: Add comment
 
 ### Memory Management
