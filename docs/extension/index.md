@@ -388,9 +388,11 @@ src/extension.ts          # Main extension entry point
 └── Service Integration   # Core library usage
 
 media/
-├── index.html           # Task list interface
-├── edit.html            # Ticket editor interface
-└── styles/              # Shared CSS
+├── index.js             # Task list React bundle
+├── index.css            # Task list styles
+├── edit.js              # Ticket editor React bundle
+├── edit.css             # Ticket editor styles
+└── *.map                # Source maps
 ```
 
 ## Development

@@ -557,20 +557,23 @@ export function activate(context: vscode.ExtensionContext) {
           });
           context.subscriptions.push(disposable);
 
-          // Load HTML
-          outputChannel.appendLine('Loading HTML...');
-          const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'index.html'));
-          outputChannel.appendLine(`HTML path: ${htmlPath.fsPath}`);
-          if (fs.existsSync(htmlPath.fsPath)) {
-            const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
-            outputChannel.appendLine(`HTML content length: ${htmlContent.length} characters`);
-            outputChannel.appendLine(`HTML starts with: ${htmlContent.substring(0, 100)}`);
-            panel.webview.html = htmlContent;
-            outputChannel.appendLine('HTML loaded successfully');
-          } else {
-            outputChannel.appendLine(`ERROR: HTML file not found: ${htmlPath.fsPath}`);
-            panel.webview.html = '<html><body><h1>HTML file not found</h1></body></html>';
-          }
+          // Generate HTML programmatically
+          const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'index.js')));
+          const cssUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'index.css')));
+          const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cairn Task List</title>
+  <link rel="stylesheet" href="${cssUri}">
+</head>
+<body>
+  <div id="root"></div>
+  <script src="${scriptUri}"></script>
+</body>
+</html>`;
+          panel.webview.html = htmlContent;
 
           // Function to update tasks
           const updateTasks = async () => {
@@ -663,15 +666,23 @@ export function activate(context: vscode.ExtensionContext) {
           let webviewReady = false;
           let saveQueue = Promise.resolve();
 
-          // Load HTML
-          const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'edit.html'));
-          if (fs.existsSync(htmlPath.fsPath)) {
-            const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
-            panel.webview.html = htmlContent;
-          } else {
-            outputChannel.appendLine(`Edit HTML file not found: ${htmlPath.fsPath}`);
-            panel.webview.html = '<html><body><h1>Edit HTML file not found</h1></body></html>';
-          }
+          // Generate HTML programmatically
+          const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'edit.js')));
+          const cssUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'edit.css')));
+          const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Issue</title>
+  <link rel="stylesheet" href="${cssUri}">
+</head>
+<body>
+  <div id="root"></div>
+  <script src="${scriptUri}"></script>
+</body>
+</html>`;
+          panel.webview.html = htmlContent;
 
           // Load ticket data
           const loadTicket = async (ticketId: string) => {
