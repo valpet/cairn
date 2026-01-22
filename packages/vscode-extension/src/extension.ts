@@ -843,8 +843,12 @@ export function activate(context: vscode.ExtensionContext) {
 
                       const now = new Date().toISOString();
 
-                      // Check if trying to close an issue with open subtasks
-                      if (ticketData.status === 'closed') {
+                      // Update main ticket
+                      const originalIssue = updatedIssues.find(i => i.id === ticketData.id);
+                      
+                      // Check if trying to CHANGE status to closed (not just saving an already-closed issue)
+                      const isChangingToClosed = ticketData.status === 'closed' && originalIssue?.status !== 'closed';
+                      if (isChangingToClosed) {
                         const validation = graph.canCloseIssue(ticketData.id, updatedIssues);
 
                         if (!validation.canClose) {
@@ -859,15 +863,13 @@ export function activate(context: vscode.ExtensionContext) {
                             ? `it has ${validation.openSubtasks.length} open subtask(s)`
                             : 'it is not 100% complete (check acceptance criteria)';
 
+                          const currentIssue = updatedIssues.find(i => i.id === ticketData.id);
                           vscode.window.showErrorMessage(
                             `Cannot close issue "${currentIssue?.title || ticketData.id}" (${ticketData.id}) because ${reason}. Please complete all requirements before closing this issue.`
                           );
                           return; // Don't save the ticket
                         }
                       }
-
-                      // Update main ticket
-                      const originalIssue = updatedIssues.find(i => i.id === ticketData.id);
                       updatedIssues = updatedIssues.map(issue => {
                         if (issue.id === ticketData.id) {
                           const updated = {
@@ -956,7 +958,8 @@ export function activate(context: vscode.ExtensionContext) {
                         panel.title = truncateTitle(updatedTicket.title, ticketData.id);
                       }
 
-                      // Reload ticket data to get updated completion percentage
+                      // Reload ticket data from storage to get recalculated completion percentage
+                      outputChannel.appendLine('Reloading ticket data after save to get updated completion percentage');
                       await loadTicket(pendingTicketId);
                     } catch (saveError) {
                       outputChannel.appendLine(`Save operation failed: ${saveError}`);

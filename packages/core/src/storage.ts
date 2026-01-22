@@ -141,16 +141,16 @@ export class StorageService implements IStorageService {
           throw new Error(`Invalid issue data in update: ${validationErrors.join('; ')}`);
         }
 
+        // Recalculate completion percentages for all issues BEFORE writing
+        for (const issue of updatedIssues) {
+          issue.completion_percentage = calculateCompletionPercentage(issue, updatedIssues);
+        }
+
         this.logger.debug('Storage updateIssues updated issues count:', updatedIssues.length);
         const content = updatedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
         this.logger.debug('Storage writing to', this.issuesFilePath);
         await fs.promises.writeFile(this.issuesFilePath, content);
         this.logger.debug('Storage writeFile done');
-
-        // Recalculate completion percentages for all issues after update
-        for (const issue of updatedIssues) {
-          issue.completion_percentage = calculateCompletionPercentage(issue, updatedIssues);
-        }
       });
     }).catch(err => {
       this.logger.error('updateIssues queued operation failed:', err);
