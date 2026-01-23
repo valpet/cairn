@@ -22424,7 +22424,7 @@
     const clearAllFilters = () => {
       onStatusChange(/* @__PURE__ */ new Set());
     };
-    const getStatusIcon = (status) => {
+    const getStatusIcon2 = (status) => {
       switch (status) {
         case "ready":
           return "\u{1F680}";
@@ -22440,7 +22440,7 @@
           return "\u{1F4CB}";
       }
     };
-    const getStatusLabel = (status) => {
+    const getStatusLabel2 = (status) => {
       switch (status) {
         case "ready":
           return "Ready";
@@ -22574,7 +22574,7 @@
                         }, children: "\u2713" })
                       }
                     ),
-                    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { onClick: () => toggleStatusFilter(status), children: getStatusLabel(status) })
+                    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { onClick: () => toggleStatusFilter(status), children: getStatusLabel2(status) })
                   ]
                 },
                 status
@@ -22626,8 +22626,8 @@
             transition: "all 0.15s"
           },
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: { fontSize: "14px", lineHeight: 1 }, children: getStatusIcon(status) }),
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: getStatusLabel(status) }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: { fontSize: "14px", lineHeight: 1 }, children: getStatusIcon2(status) }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: getStatusLabel2(status) }),
             /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
               "span",
               {
@@ -22700,6 +22700,17 @@
   };
   var StatusFilter_default = StatusFilter;
 
+  // src/components/taskUtils.ts
+  var isReady = (task, allTasks) => {
+    if (!task.dependencies) return true;
+    const taskMap = new Map(allTasks.map((t) => [t.id, t]));
+    return task.dependencies.every((dep) => {
+      if (dep.type !== "blocks") return true;
+      const depTask = taskMap.get(dep.id);
+      return depTask && depTask.status === "closed";
+    });
+  };
+
   // src/components/IssueList.tsx
   var import_jsx_runtime5 = __toESM(require_jsx_runtime());
   var IssueList = () => {
@@ -22729,41 +22740,6 @@
         window.removeEventListener("message", messageHandler);
       };
     }, []);
-    const createTypeBadge = (type) => {
-      const badgeClass = `type-badge ${type || "task"}`;
-      const badgeText = type || "Task";
-      return { className: badgeClass, text: badgeText };
-    };
-    const createStatusPill = (status, displayText) => {
-      const displayStatus = status || "open";
-      const text = displayText || (displayStatus === "in_progress" ? "In Progress" : displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1));
-      const pillClass = `pill status-${displayStatus}`;
-      return { className: pillClass, text };
-    };
-    const createPriorityPill = (priority) => {
-      const displayPriority = priority || "medium";
-      const pillClass = `pill priority-${displayPriority}`;
-      const text = displayPriority.charAt(0).toUpperCase() + displayPriority.slice(1);
-      return { className: pillClass, text };
-    };
-    const isReady = (task, allTasks2) => {
-      if (!task.dependencies) return true;
-      const taskMap = new Map(allTasks2.map((t) => [t.id, t]));
-      return task.dependencies.every((dep) => {
-        if (dep.type !== "blocks") return true;
-        const depTask = taskMap.get(dep.id);
-        return depTask && depTask.status === "closed";
-      });
-    };
-    const isBlocked = (task, allTasks2) => {
-      if (!task.dependencies || task.status === "closed") return false;
-      const taskMap = new Map(allTasks2.map((t) => [t.id, t]));
-      return task.dependencies.some((dep) => {
-        if (dep.type !== "blocks") return false;
-        const depTask = taskMap.get(dep.id);
-        return depTask && depTask.status !== "closed";
-      });
-    };
     const toggleExpand = (taskId) => {
       setExpandedTasks((prev) => {
         const newSet = new Set(prev);
@@ -22785,26 +22761,6 @@
         }
         return newSet;
       });
-    };
-    const getStatusIcon = (status) => {
-      const icons = {
-        "ready": "\u2713",
-        "open": "\u25CF",
-        "in_progress": "\u25D0",
-        "closed": "\u2713",
-        "blocked": "\u2298"
-      };
-      return icons[status] || "\u25CF";
-    };
-    const getStatusLabel = (status) => {
-      const labels = {
-        "ready": "Ready",
-        "open": "Open",
-        "in_progress": "In Progress",
-        "closed": "Closed",
-        "blocked": "Blocked"
-      };
-      return labels[status] || status;
     };
     (0, import_react4.useEffect)(() => {
       const handleClickOutside = (e) => {

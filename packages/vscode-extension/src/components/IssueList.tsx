@@ -4,28 +4,11 @@ import TreeLinesSVG from './TreeLinesSVG';
 import TaskRow from './TaskRow';
 import TaskGrid from './TaskGrid';
 import StatusFilter from './StatusFilter';
+import { createTypeBadge, createStatusPill, createPriorityPill, isReady, isBlocked, getStatusIcon, getStatusLabel } from './taskUtils';
+import { Issue, IssueListProps } from './types';
 
 // VS Code API declaration
 declare const acquireVsCodeApi: () => any;
-
-interface Issue {
-  id: string;
-  title: string;
-  description?: string;
-  type?: string;
-  status: string;
-  priority?: string;
-  completion_percentage?: number;
-  dependencies?: Array<{
-    id: string;
-    type: string;
-  }>;
-  children: Issue[];
-}
-
-interface IssueListProps {
-  // Props will be added as needed
-}
 
 const IssueList: React.FC<IssueListProps> = () => {
   const [allTasks, setAllTasks] = useState<Issue[]>([]);
@@ -64,50 +47,6 @@ const IssueList: React.FC<IssueListProps> = () => {
     };
   }, []);
 
-  // Utility functions for creating components
-  const createTypeBadge = (type?: string) => {
-    const badgeClass = `type-badge ${type || 'task'}`;
-    const badgeText = type || 'Task';
-    return { className: badgeClass, text: badgeText };
-  };
-
-  const createStatusPill = (status?: string, displayText?: string) => {
-    const displayStatus = status || 'open';
-    const text = displayText || (displayStatus === 'in_progress' ? 'In Progress' :
-      (displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)));
-    const pillClass = `pill status-${displayStatus}`;
-    return { className: pillClass, text };
-  };
-
-  const createPriorityPill = (priority?: string) => {
-    const displayPriority = priority || 'medium';
-    const pillClass = `pill priority-${displayPriority}`;
-    const text = displayPriority.charAt(0).toUpperCase() + displayPriority.slice(1);
-    return { className: pillClass, text };
-  };
-
-  // Function to check if a task is ready (no blocking dependencies)
-  const isReady = (task: Issue, allTasks: Issue[]) => {
-    if (!task.dependencies) return true;
-    const taskMap = new Map(allTasks.map(t => [t.id, t]));
-    return task.dependencies.every(dep => {
-      if (dep.type !== 'blocks') return true;
-      const depTask = taskMap.get(dep.id);
-      return depTask && depTask.status === 'closed';
-    });
-  };
-
-  // Function to check if a task is blocked
-  const isBlocked = (task: Issue, allTasks: Issue[]) => {
-    if (!task.dependencies || task.status === 'closed') return false;
-    const taskMap = new Map(allTasks.map(t => [t.id, t]));
-    return task.dependencies.some(dep => {
-      if (dep.type !== 'blocks') return false;
-      const depTask = taskMap.get(dep.id);
-      return depTask && depTask.status !== 'closed';
-    });
-  };
-
   const toggleExpand = (taskId: string) => {
     setExpandedTasks(prev => {
       const newSet = new Set(prev);
@@ -130,30 +69,6 @@ const IssueList: React.FC<IssueListProps> = () => {
       }
       return newSet;
     });
-  };
-
-  // Get icon for status
-  const getStatusIcon = (status: string) => {
-    const icons: { [key: string]: string } = {
-      'ready': '✓',
-      'open': '●',
-      'in_progress': '◐',
-      'closed': '✓',
-      'blocked': '⊘'
-    };
-    return icons[status] || '●';
-  };
-
-  // Get display label for status
-  const getStatusLabel = (status: string) => {
-    const labels: { [key: string]: string } = {
-      'ready': 'Ready',
-      'open': 'Open',
-      'in_progress': 'In Progress',
-      'closed': 'Closed',
-      'blocked': 'Blocked'
-    };
-    return labels[status] || status;
   };
 
   // Close action dropdown and delete popup when clicking outside
