@@ -1330,7 +1330,7 @@
           return dispatcher;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React2 = require_react(), Internals = {
+        var React3 = require_react(), Internals = {
           d: {
             f: noop,
             r: function() {
@@ -1348,7 +1348,7 @@
           },
           p: 0,
           findDOMNode: null
-        }, REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), ReactSharedInternals = React2.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+        }, REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), ReactSharedInternals = React3.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
         "function" === typeof Map && null != Map.prototype && "function" === typeof Map.prototype.forEach && "function" === typeof Set && null != Set.prototype && "function" === typeof Set.prototype.clear && "function" === typeof Set.prototype.forEach || console.error(
           "React depends on Map and Set built-in types. Make sure that you load a polyfill in older browsers. https://reactjs.org/link/react-polyfills"
         );
@@ -2883,7 +2883,7 @@
           "number" === type && getActiveElement(node.ownerDocument) === node || node.defaultValue === "" + value || (node.defaultValue = "" + value);
         }
         function validateOptionProps(element, props) {
-          null == props.value && ("object" === typeof props.children && null !== props.children ? React2.Children.forEach(props.children, function(child) {
+          null == props.value && ("object" === typeof props.children && null !== props.children ? React3.Children.forEach(props.children, function(child) {
             null == child || "string" === typeof child || "number" === typeof child || "bigint" === typeof child || didWarnInvalidChild || (didWarnInvalidChild = true, console.error(
               "Cannot infer the option value of complex children. Pass a `value` prop or use a plain string as children to <option>."
             ));
@@ -18515,14 +18515,14 @@
           ));
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var Scheduler = require_scheduler(), React2 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
+        var Scheduler = require_scheduler(), React3 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
         /* @__PURE__ */ Symbol.for("react.scope");
         var REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity");
         /* @__PURE__ */ Symbol.for("react.legacy_hidden");
         /* @__PURE__ */ Symbol.for("react.tracing_marker");
         var REACT_MEMO_CACHE_SENTINEL = /* @__PURE__ */ Symbol.for("react.memo_cache_sentinel");
         /* @__PURE__ */ Symbol.for("react.view_transition");
-        var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React2.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
+        var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React3.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
           pending: false,
           data: null,
           method: null,
@@ -21310,7 +21310,7 @@
           }
         };
         (function() {
-          var isomorphicReactPackageVersion = React2.version;
+          var isomorphicReactPackageVersion = React3.version;
           if ("19.2.3" !== isomorphicReactPackageVersion)
             throw Error(
               'Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:\n  - react:      ' + (isomorphicReactPackageVersion + "\n  - react-dom:  19.2.3\nLearn more: https://react.dev/warnings/version-mismatch")
@@ -21664,18 +21664,18 @@
         function isValidElement(object) {
           return "object" === typeof object && null !== object && object.$$typeof === REACT_ELEMENT_TYPE;
         }
-        var React2 = require_react(), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), ReactSharedInternals = React2.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
+        var React3 = require_react(), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), ReactSharedInternals = React3.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
           return null;
         };
-        React2 = {
+        React3 = {
           react_stack_bottom_frame: function(callStackForError) {
             return callStackForError();
           }
         };
         var specialPropKeyWarningShown;
         var didWarnAboutElementRef = {};
-        var unknownOwnerDebugStack = React2.react_stack_bottom_frame.bind(
-          React2,
+        var unknownOwnerDebugStack = React3.react_stack_bottom_frame.bind(
+          React3,
           UnknownOwner
         )();
         var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
@@ -21723,8 +21723,126 @@
   var import_client = __toESM(require_client());
 
   // src/components/IssueList.tsx
+  var import_react2 = __toESM(require_react());
+
+  // src/components/TreeLinesSVG.tsx
   var import_react = __toESM(require_react());
   var import_jsx_runtime = __toESM(require_jsx_runtime());
+  var TreeLinesSVG = ({ taskTree, allTasks, expandedTasks, expandedDescriptions, containerRef }) => {
+    const [lines, setLines] = (0, import_react.useState)([]);
+    (0, import_react.useEffect)(() => {
+      const calculateLines = () => {
+        if (!containerRef.current) return;
+        const lines2 = [];
+        const taskPositions = /* @__PURE__ */ new Map();
+        const calculatePositions = (nodes, level = 0) => {
+          nodes.forEach((node) => {
+            const element = document.querySelector(`[data-task-id="${node.id}"]`);
+            if (element && containerRef.current) {
+              const centerY = element.offsetTop + element.offsetHeight / 2;
+              taskPositions.set(node.id, { centerY, level });
+              if (expandedTasks.has(node.id) && node.children) {
+                calculatePositions(node.children, level + 1);
+              }
+            }
+          });
+        };
+        calculatePositions(taskTree);
+        const childrenMap = /* @__PURE__ */ new Map();
+        allTasks.forEach((task) => {
+          if (task.dependencies) {
+            task.dependencies.forEach((dep) => {
+              if (dep.type === "parent-child") {
+                if (!childrenMap.has(dep.id)) {
+                  childrenMap.set(dep.id, []);
+                }
+                childrenMap.get(dep.id).push(task.id);
+              }
+            });
+          }
+        });
+        taskPositions.forEach((pos, taskId) => {
+          const { centerY, level } = pos;
+          const x = level * 30 + 8 + 17;
+          if (level > 0) {
+            const parentX = (level - 1) * 30 + 8 + 18;
+            lines2.push({
+              x1: parentX,
+              y1: centerY,
+              x2: x - 8,
+              y2: centerY
+            });
+          }
+          if (expandedTasks.has(taskId)) {
+            const children = childrenMap.get(taskId) || [];
+            const visibleChildren = children.filter((childId) => taskPositions.has(childId));
+            if (visibleChildren.length > 0) {
+              const firstChildId = visibleChildren[0];
+              const lastChildId = visibleChildren[visibleChildren.length - 1];
+              const firstChildPos = taskPositions.get(firstChildId);
+              const lastChildPos = taskPositions.get(lastChildId);
+              lines2.push({
+                x1: x,
+                y1: centerY + 8,
+                x2: x,
+                y2: lastChildPos.centerY
+              });
+            }
+          }
+        });
+        setLines(lines2);
+      };
+      const calculateLinesWithDelay = () => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            calculateLines();
+          });
+        });
+      };
+      calculateLinesWithDelay();
+      const container2 = containerRef.current;
+      if (container2) {
+        const handleScroll = () => {
+          calculateLines();
+        };
+        container2.addEventListener("scroll", handleScroll);
+        return () => container2.removeEventListener("scroll", handleScroll);
+      }
+    }, [taskTree, allTasks, expandedTasks, expandedDescriptions, containerRef]);
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+      "svg",
+      {
+        className: "tree-lines-svg",
+        style: {
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+          zIndex: 1,
+          overflow: "visible"
+        },
+        children: lines.map((line, index) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          "line",
+          {
+            x1: line.x1,
+            y1: line.y1,
+            x2: line.x2,
+            y2: line.y2,
+            stroke: "rgba(255, 255, 255, 0.15)",
+            strokeWidth: "2",
+            fill: "none"
+          },
+          index
+        ))
+      }
+    );
+  };
+  var TreeLinesSVG_default = TreeLinesSVG;
+
+  // src/components/IssueList.tsx
+  var import_jsx_runtime2 = __toESM(require_jsx_runtime());
   var getStatusDisplayText = (status, subtasks) => {
     const statusLabels = {
       open: "Open",
@@ -21768,15 +21886,15 @@
     return subtasks;
   };
   var IssueList = () => {
-    const [allTasks, setAllTasks] = (0, import_react.useState)([]);
-    const [selectedStatuses, setSelectedStatuses] = (0, import_react.useState)(/* @__PURE__ */ new Set(["ready", "open", "in_progress"]));
-    const [expandedTasks, setExpandedTasks] = (0, import_react.useState)(/* @__PURE__ */ new Set());
-    const [expandedDescriptions, setExpandedDescriptions] = (0, import_react.useState)(/* @__PURE__ */ new Set());
-    const [isPopoverOpen, setIsPopoverOpen] = (0, import_react.useState)(false);
-    const [activeActionDropdown, setActiveActionDropdown] = (0, import_react.useState)(null);
-    const [deleteConfirmPopup, setDeleteConfirmPopup] = (0, import_react.useState)(null);
-    const vscode = (0, import_react.useRef)(null);
-    (0, import_react.useEffect)(() => {
+    const [allTasks, setAllTasks] = (0, import_react2.useState)([]);
+    const [selectedStatuses, setSelectedStatuses] = (0, import_react2.useState)(/* @__PURE__ */ new Set(["ready", "open", "in_progress"]));
+    const [expandedTasks, setExpandedTasks] = (0, import_react2.useState)(/* @__PURE__ */ new Set());
+    const [expandedDescriptions, setExpandedDescriptions] = (0, import_react2.useState)(/* @__PURE__ */ new Set());
+    const [isPopoverOpen, setIsPopoverOpen] = (0, import_react2.useState)(false);
+    const [activeActionDropdown, setActiveActionDropdown] = (0, import_react2.useState)(null);
+    const [deleteConfirmPopup, setDeleteConfirmPopup] = (0, import_react2.useState)(null);
+    const vscode = (0, import_react2.useRef)(null);
+    (0, import_react2.useEffect)(() => {
       vscode.current = acquireVsCodeApi();
       console.log("Cairn issues webview script loaded");
       vscode.current.postMessage({ type: "webviewReady" });
@@ -21896,7 +22014,7 @@
     const togglePopover = () => {
       setIsPopoverOpen(!isPopoverOpen);
     };
-    (0, import_react.useEffect)(() => {
+    (0, import_react2.useEffect)(() => {
       const handleClickOutside = (e) => {
         const target = e.target;
         const trigger = document.getElementById("status-filter-trigger");
@@ -21908,7 +22026,7 @@
       document.addEventListener("click", handleClickOutside);
       return () => document.removeEventListener("click", handleClickOutside);
     }, [isPopoverOpen]);
-    (0, import_react.useEffect)(() => {
+    (0, import_react2.useEffect)(() => {
       const handleClickOutside = (e) => {
         const target = e.target;
         if (activeActionDropdown) {
@@ -21928,7 +22046,7 @@
       document.addEventListener("click", handleClickOutside);
       return () => document.removeEventListener("click", handleClickOutside);
     }, [activeActionDropdown, deleteConfirmPopup]);
-    (0, import_react.useEffect)(() => {
+    (0, import_react2.useEffect)(() => {
       const handleKeyDown = (e) => {
         if (e.key === "Escape") {
           if (deleteConfirmPopup) {
@@ -22038,7 +22156,7 @@
     };
     const filteredTasks = getFilteredTasks();
     const taskTree = buildTaskTree(filteredTasks);
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: {
+    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: {
       fontFamily: "var(--vscode-font-family)",
       fontSize: "var(--vscode-font-size)",
       backgroundColor: "var(--vscode-sideBar-background)",
@@ -22052,8 +22170,8 @@
       overflow: "hidden",
       boxSizing: "border-box"
     }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { marginBottom: "20px" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { style: { color: "#D4A556", fontSize: "24px", margin: 0 }, children: "Cairn Issues" }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: {
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { marginBottom: "20px" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h1", { style: { color: "#D4A556", fontSize: "24px", margin: 0 }, children: "Cairn Issues" }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: {
         display: "flex",
         alignItems: "center",
         gap: "10px",
@@ -22061,8 +22179,8 @@
         padding: "8px 0",
         fontSize: "13px"
       }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { position: "relative" }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { position: "relative" }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
             "button",
             {
               id: "status-filter-trigger",
@@ -22082,19 +22200,19 @@
               },
               onClick: togglePopover,
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: {
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: {
                   opacity: 0.5,
                   fontSize: "16px",
                   marginRight: "2px",
                   display: "inline-flex",
                   alignItems: "center"
-                }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M19 3H5C3.58579 3 2.87868 3 2.43934 3.4122C2 3.8244 2 4.48782 2 5.81466V6.50448C2 7.54232 2 8.06124 2.2596 8.49142C2.5192 8.9216 2.99347 9.18858 3.94202 9.72255L6.85504 11.3624C7.49146 11.7206 7.80967 11.8998 8.03751 12.0976C8.51199 12.5095 8.80408 12.9935 8.93644 13.5872C9 13.8722 9 14.2058 9 14.8729L9 17.5424C9 18.452 9 18.9067 9.25192 19.2613C9.50385 19.6158 9.95128 19.7907 10.8462 20.1406C12.7248 20.875 13.6641 21.2422 14.3321 20.8244C15 20.4066 15 19.4519 15 17.5424V14.8729C15 14.2058 15 13.8722 15.0636 13.5872C15.1959 12.9935 15.488 12.5095 15.9625 12.0976C16.1903 11.8998 16.5085 11.7206 17.145 11.3624L20.058 9.72255C21.0065 9.18858 21.4808 8.9216 21.7404 8.49142C22 8.06124 22 7.54232 22 6.50448V5.81466C22 4.48782 22 3.8244 21.5607 3.4122C21.1213 3 20.4142 3 19 3Z", fill: "currentColor" }) }) }),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: { fontWeight: 500, opacity: 0.9 }, children: "Status:" }),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: { opacity: 0.5, fontSize: "10px", marginLeft: "2px" }, children: "\u25BC" })
+                }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("svg", { viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M19 3H5C3.58579 3 2.87868 3 2.43934 3.4122C2 3.8244 2 4.48782 2 5.81466V6.50448C2 7.54232 2 8.06124 2.2596 8.49142C2.5192 8.9216 2.99347 9.18858 3.94202 9.72255L6.85504 11.3624C7.49146 11.7206 7.80967 11.8998 8.03751 12.0976C8.51199 12.5095 8.80408 12.9935 8.93644 13.5872C9 13.8722 9 14.2058 9 14.8729L9 17.5424C9 18.452 9 18.9067 9.25192 19.2613C9.50385 19.6158 9.95128 19.7907 10.8462 20.1406C12.7248 20.875 13.6641 21.2422 14.3321 20.8244C15 20.4066 15 19.4519 15 17.5424V14.8729C15 14.2058 15 13.8722 15.0636 13.5872C15.1959 12.9935 15.488 12.5095 15.9625 12.0976C16.1903 11.8998 16.5085 11.7206 17.145 11.3624L20.058 9.72255C21.0065 9.18858 21.4808 8.9216 21.7404 8.49142C22 8.06124 22 7.54232 22 6.50448V5.81466C22 4.48782 22 3.8244 21.5607 3.4122C21.1213 3 20.4142 3 19 3Z", fill: "currentColor" }) }) }),
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontWeight: 500, opacity: 0.9 }, children: "Status:" }),
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { opacity: 0.5, fontSize: "10px", marginLeft: "2px" }, children: "\u25BC" })
               ]
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
             "div",
             {
               id: "status-popover",
@@ -22112,7 +22230,7 @@
                 display: isPopoverOpen ? "block" : "none"
               },
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: {
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
                   padding: "8px 12px",
                   fontSize: "11px",
                   fontWeight: 600,
@@ -22120,7 +22238,7 @@
                   opacity: 0.6,
                   letterSpacing: "0.5px"
                 }, children: "Status" }),
-                ["ready", "open", "in_progress", "closed", "blocked"].map((status) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+                ["ready", "open", "in_progress", "closed", "blocked"].map((status) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
                   "div",
                   {
                     style: {
@@ -22135,7 +22253,7 @@
                     onMouseEnter: (e) => e.currentTarget.style.backgroundColor = "var(--vscode-list-hoverBackground)",
                     onMouseLeave: (e) => e.currentTarget.style.backgroundColor = "transparent",
                     children: [
-                      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
                         "div",
                         {
                           onClick: () => toggleStatusFilter(status),
@@ -22152,24 +22270,24 @@
                             backgroundColor: selectedStatuses.has(status) ? "var(--vscode-button-background)" : "transparent",
                             borderColor: selectedStatuses.has(status) ? "var(--vscode-button-background)" : "var(--vscode-input-border)"
                           },
-                          children: selectedStatuses.has(status) && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: {
+                          children: selectedStatuses.has(status) && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: {
                             color: "var(--vscode-button-foreground)",
                             fontSize: "10px",
                             fontWeight: "bold"
                           }, children: "\u2713" })
                         }
                       ),
-                      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { onClick: () => toggleStatusFilter(status), children: getStatusLabel(status) })
+                      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { onClick: () => toggleStatusFilter(status), children: getStatusLabel(status) })
                     ]
                   },
                   status
                 )),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: {
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
                   height: "1px",
                   backgroundColor: "var(--vscode-dropdown-border)",
                   margin: "4px 0"
                 } }),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
                   "div",
                   {
                     style: {
@@ -22195,7 +22313,7 @@
             }
           )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }, children: Array.from(selectedStatuses).map((status) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }, children: Array.from(selectedStatuses).map((status) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
           "div",
           {
             className: `filter-chip ${status}`,
@@ -22211,9 +22329,9 @@
               transition: "all 0.15s"
             },
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: { fontSize: "14px", lineHeight: 1 }, children: getStatusIcon(status) }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: getStatusLabel(status) }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: "14px", lineHeight: 1 }, children: getStatusIcon(status) }),
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: getStatusLabel(status) }),
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
                 "span",
                 {
                   style: {
@@ -22234,7 +22352,7 @@
           },
           status
         )) }),
-        selectedStatuses.size > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+        selectedStatuses.size > 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
           "button",
           {
             style: {
@@ -22256,7 +22374,7 @@
             children: "Clear filters"
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
           "button",
           {
             style: {
@@ -22276,13 +22394,13 @@
             onMouseEnter: (e) => e.currentTarget.style.backgroundColor = "rgba(88, 166, 255, 0.1)",
             onMouseLeave: (e) => e.currentTarget.style.backgroundColor = "transparent",
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: { fontSize: "16px", lineHeight: 1 }, children: "+" }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Add Filter" })
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: "16px", lineHeight: 1 }, children: "+" }),
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: "Add Filter" })
             ]
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { id: "task-container", style: { overflow: "hidden" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { id: "task-container", style: { overflow: "hidden" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
         TaskGrid,
         {
           taskTree,
@@ -22304,117 +22422,6 @@
       ) })
     ] });
   };
-  var TreeLinesSVG = ({ taskTree, allTasks, expandedTasks, expandedDescriptions, containerRef }) => {
-    const [lines, setLines] = (0, import_react.useState)([]);
-    (0, import_react.useEffect)(() => {
-      const calculateLines = () => {
-        if (!containerRef.current) return;
-        const lines2 = [];
-        const taskPositions = /* @__PURE__ */ new Map();
-        const calculatePositions = (nodes, level = 0) => {
-          nodes.forEach((node) => {
-            const element = document.querySelector(`[data-task-id="${node.id}"]`);
-            if (element && containerRef.current) {
-              const centerY = element.offsetTop + element.offsetHeight / 2;
-              taskPositions.set(node.id, { centerY, level });
-              if (expandedTasks.has(node.id) && node.children) {
-                calculatePositions(node.children, level + 1);
-              }
-            }
-          });
-        };
-        calculatePositions(taskTree);
-        const childrenMap = /* @__PURE__ */ new Map();
-        allTasks.forEach((task) => {
-          if (task.dependencies) {
-            task.dependencies.forEach((dep) => {
-              if (dep.type === "parent-child") {
-                if (!childrenMap.has(dep.id)) {
-                  childrenMap.set(dep.id, []);
-                }
-                childrenMap.get(dep.id).push(task.id);
-              }
-            });
-          }
-        });
-        taskPositions.forEach((pos, taskId) => {
-          const { centerY, level } = pos;
-          const x = level * 30 + 8 + 17;
-          if (level > 0) {
-            const parentX = (level - 1) * 30 + 8 + 18;
-            lines2.push({
-              x1: parentX,
-              y1: centerY,
-              x2: x - 8,
-              y2: centerY
-            });
-          }
-          if (expandedTasks.has(taskId)) {
-            const children = childrenMap.get(taskId) || [];
-            const visibleChildren = children.filter((childId) => taskPositions.has(childId));
-            if (visibleChildren.length > 0) {
-              const firstChildId = visibleChildren[0];
-              const lastChildId = visibleChildren[visibleChildren.length - 1];
-              const firstChildPos = taskPositions.get(firstChildId);
-              const lastChildPos = taskPositions.get(lastChildId);
-              lines2.push({
-                x1: x,
-                y1: centerY + 8,
-                x2: x,
-                y2: lastChildPos.centerY
-              });
-            }
-          }
-        });
-        setLines(lines2);
-      };
-      const calculateLinesWithDelay = () => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            calculateLines();
-          });
-        });
-      };
-      calculateLinesWithDelay();
-      const container2 = containerRef.current;
-      if (container2) {
-        const handleScroll = () => {
-          calculateLines();
-        };
-        container2.addEventListener("scroll", handleScroll);
-        return () => container2.removeEventListener("scroll", handleScroll);
-      }
-    }, [taskTree, allTasks, expandedTasks, expandedDescriptions, containerRef]);
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-      "svg",
-      {
-        className: "tree-lines-svg",
-        style: {
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-          zIndex: 1,
-          overflow: "visible"
-        },
-        children: lines.map((line, index) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-          "line",
-          {
-            x1: line.x1,
-            y1: line.y1,
-            x2: line.x2,
-            y2: line.y2,
-            stroke: "rgba(255, 255, 255, 0.15)",
-            strokeWidth: "2",
-            fill: "none"
-          },
-          index
-        ))
-      }
-    );
-  };
   var TaskGrid = ({
     taskTree,
     allTasks,
@@ -22432,9 +22439,9 @@
     onShowDeleteConfirmation,
     onDeleteTask
   }) => {
-    const containerRef = (0, import_react.useRef)(null);
-    const [containerHeight, setContainerHeight] = (0, import_react.useState)(200);
-    (0, import_react.useEffect)(() => {
+    const containerRef = (0, import_react2.useRef)(null);
+    const [containerHeight, setContainerHeight] = (0, import_react2.useState)(200);
+    (0, import_react2.useEffect)(() => {
       const updateHeight = () => {
         requestAnimationFrame(() => {
           if (!containerRef.current) return;
@@ -22456,8 +22463,8 @@
         resizeObserver.disconnect();
       };
     }, [taskTree]);
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("table", { style: {
+    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("table", { style: {
         width: "100%",
         borderCollapse: "collapse",
         backgroundColor: "var(--vscode-editor-background)",
@@ -22465,34 +22472,34 @@
         borderBottom: "none",
         borderRadius: "4px 4px 0 0"
       }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("colgroup", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {})
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("colgroup", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {}),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {}),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {}),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {}),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {}),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {}),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {})
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tr", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { colSpan: 7, style: {
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("tr", { children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("th", { colSpan: 7, style: {
           backgroundColor: "var(--vscode-editor-background)",
           color: "var(--vscode-foreground)",
           padding: "12px 16px",
           textAlign: "left",
           fontWeight: 600,
           borderBottom: "1px solid var(--vscode-panel-border)"
-        }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: {
+        }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           width: "100%"
         }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", alignItems: "center", gap: "10px" }, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: { fontSize: "10px", opacity: 0.7 }, children: "\u25BC" }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: { fontWeight: 600 }, children: "Title" })
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { display: "flex", alignItems: "center", gap: "10px" }, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: "10px", opacity: 0.7 }, children: "\u25BC" }),
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontWeight: 600 }, children: "Title" })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", gap: "8px", marginLeft: "auto" }, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { display: "flex", gap: "8px", marginLeft: "auto" }, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
               "button",
               {
                 style: {
@@ -22511,7 +22518,7 @@
                 children: "Expand All"
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
               "button",
               {
                 style: {
@@ -22530,7 +22537,7 @@
                 children: "Collapse All"
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
               "button",
               {
                 style: {
@@ -22550,7 +22557,7 @@
           ] })
         ] }) }) }) })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
         "div",
         {
           ref: containerRef,
@@ -22565,8 +22572,8 @@
             maxHeight: `${containerHeight}px`
           },
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-              TreeLinesSVG,
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+              TreeLinesSVG_default,
               {
                 taskTree,
                 allTasks,
@@ -22575,21 +22582,21 @@
                 containerRef
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("table", { style: {
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("table", { style: {
               width: "100%",
               borderCollapse: "collapse",
               backgroundColor: "var(--vscode-editor-background)"
             }, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("colgroup", { children: [
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {}),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("col", {})
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("colgroup", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("col", {})
               ] }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", { children: taskTree.map((node, index) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("tbody", { children: taskTree.map((node, index) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
                 TaskRow,
                 {
                   task: node,
@@ -22675,9 +22682,9 @@
     const computedStatus = computeSubIssueStatus(subtasks);
     const displayStatus = taskIsBlocked ? "blocked" : computedStatus || task.status;
     const displayText = taskIsBlocked ? "Blocked" : getStatusDisplayText(task.status, subtasks);
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", { className: "task-row", style: level > 0 ? { backgroundColor: "var(--vscode-editor-background)" } : {}, "data-task-id": task.id, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { style: { padding: "12px 16px", verticalAlign: "top", position: "relative" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: {
+    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("tr", { className: "task-row", style: level > 0 ? { backgroundColor: "var(--vscode-editor-background)" } : {}, "data-task-id": task.id, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("td", { style: { padding: "12px 16px", verticalAlign: "top", position: "relative" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: {
           display: "flex",
           alignItems: "center",
           gap: "8px",
@@ -22685,7 +22692,7 @@
           position: "relative",
           zIndex: 2
         }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
             "span",
             {
               className: hasChildren ? isExpanded ? "expand-icon expanded" : "expand-icon collapsed" : "expand-icon empty",
@@ -22707,11 +22714,11 @@
               children: hasChildren && (isExpanded ? "\u25BC" : "\u25B6")
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: `type-badge ${task.type || "task"}`, children: task.type || "Task" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { display: "flex", alignItems: "center", gap: "4px" }, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: { fontSize: "11px", color: "var(--vscode-descriptionForeground)" }, children: task.id }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: `type-badge ${task.type || "task"}`, children: task.type || "Task" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { display: "flex", alignItems: "center", gap: "4px" }, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: "11px", color: "var(--vscode-descriptionForeground)" }, children: task.id }),
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
                 "button",
                 {
                   style: {
@@ -22729,16 +22736,16 @@
                   onClick: () => navigator.clipboard.writeText(task.id),
                   onMouseEnter: (e) => e.currentTarget.style.opacity = "1",
                   onMouseLeave: (e) => e.currentTarget.style.opacity = "0.6",
-                  children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", { width: "12", height: "12", fill: "var(--vscode-editor-foreground)", viewBox: "0 0 36 36", children: [
-                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M22.6,4H21.55a3.89,3.89,0,0,0-7.31,0H13.4A2.41,2.41,0,0,0,11,6.4V10H25V6.4A2.41,2.41,0,0,0,22.6,4ZM23,8H13V6.25A.25.25,0,0,1,13.25,6h2.69l.12-1.11A1.24,1.24,0,0,1,16.61,4a2,2,0,0,1,3.15,1.18l.09.84h2.9a.25.25,0,0,1,.25.25Z" }),
-                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M33.25,18.06H21.33l2.84-2.83a1,1,0,1,0-1.42-1.42L17.5,19.06l5.25,5.25a1,1,0,0,0,.71.29,1,1,0,0,0,.71-1.7l-2.84-2.84H33.25a1,1,0,0,0,0-2Z" }),
-                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M29,16h2V6.68A1.66,1.66,0,0,0,29.35,5H27.08V7H29Z" }),
-                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M29,31H7V7H9V5H6.64A1.66,1.66,0,0,0,5,6.67V31.32A1.66,1.66,0,0,0,6.65,33H29.36A1.66,1.66,0,0,0,31,31.33V22.06H29Z" })
+                  children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("svg", { width: "12", height: "12", fill: "var(--vscode-editor-foreground)", viewBox: "0 0 36 36", children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M22.6,4H21.55a3.89,3.89,0,0,0-7.31,0H13.4A2.41,2.41,0,0,0,11,6.4V10H25V6.4A2.41,2.41,0,0,0,22.6,4ZM23,8H13V6.25A.25.25,0,0,1,13.25,6h2.69l.12-1.11A1.24,1.24,0,0,1,16.61,4a2,2,0,0,1,3.15,1.18l.09.84h2.9a.25.25,0,0,1,.25.25Z" }),
+                    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M33.25,18.06H21.33l2.84-2.83a1,1,0,1,0-1.42-1.42L17.5,19.06l5.25,5.25a1,1,0,0,0,.71.29,1,1,0,0,0,.71-1.7l-2.84-2.84H33.25a1,1,0,0,0,0-2Z" }),
+                    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M29,16h2V6.68A1.66,1.66,0,0,0,29.35,5H27.08V7H29Z" }),
+                    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M29,31H7V7H9V5H6.64A1.66,1.66,0,0,0,5,6.67V31.32A1.66,1.66,0,0,0,6.65,33H29.36A1.66,1.66,0,0,0,31,31.33V22.06H29Z" })
                   ] })
                 }
               )
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
               "span",
               {
                 style: {
@@ -22751,7 +22758,7 @@
             )
           ] })
         ] }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { style: { padding: "12px 16px", verticalAlign: "top" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { maxWidth: "400px", position: "relative" }, children: task.description && task.description.trim() ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("td", { style: { padding: "12px 16px", verticalAlign: "top" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { maxWidth: "400px", position: "relative" }, children: task.description && task.description.trim() ? /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
           "div",
           {
             className: `description-content ${expandedDescriptions.has(task.id) ? "expanded" : "collapsed"}`,
@@ -22761,27 +22768,27 @@
               __html: expandedDescriptions.has(task.id) ? markdownToHtml(task.description) : `<span>${task.description.replace(/\n/g, " ").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</span>`
             }
           }
-        ) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { opacity: 0.4, fontStyle: "italic", fontSize: "12px" }, children: "No description" }) }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { style: { padding: "12px 16px", textAlign: "center", verticalAlign: "top" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: {
+        ) : /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { opacity: 0.4, fontStyle: "italic", fontSize: "12px" }, children: "No description" }) }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("td", { style: { padding: "12px 16px", textAlign: "center", verticalAlign: "top" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: {
           fontSize: "13px",
           color: "var(--vscode-foreground)",
           fontWeight: 500
         }, children: task.completion_percentage !== void 0 ? `${task.completion_percentage}%` : "\u2014" }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { style: { padding: "12px 16px", textAlign: "center", verticalAlign: "top" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: `pill status-${displayStatus}`, children: displayText }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { style: { padding: "12px 16px", textAlign: "center", verticalAlign: "top" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: `pill priority-${task.priority || "medium"}`, children: (task.priority || "medium").charAt(0).toUpperCase() + (task.priority || "medium").slice(1) }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { style: { padding: "12px 16px", textAlign: "center", verticalAlign: "top" }, children: (() => {
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("td", { style: { padding: "12px 16px", textAlign: "center", verticalAlign: "top" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: `pill status-${displayStatus}`, children: displayText }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("td", { style: { padding: "12px 16px", textAlign: "center", verticalAlign: "top" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: `pill priority-${task.priority || "medium"}`, children: (task.priority || "medium").charAt(0).toUpperCase() + (task.priority || "medium").slice(1) }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("td", { style: { padding: "12px 16px", textAlign: "center", verticalAlign: "top" }, children: (() => {
           const blockers = (task.dependencies || []).filter((d) => d.type === "blocks").length;
           const blockedBy = allTasks.filter((t) => t.dependencies?.some((d) => d.id === task.id && d.type === "blocks")).length;
           if (blockers > 0 || blockedBy > 0) {
             const depText = [];
             if (blockers > 0) depText.push(`${blockers}\u2190`);
             if (blockedBy > 0) depText.push(`${blockedBy}\u2192`);
-            return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: { fontSize: "12px", color: "var(--vscode-descriptionForeground)" }, children: depText.join(" ") });
+            return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: "12px", color: "var(--vscode-descriptionForeground)" }, children: depText.join(" ") });
           }
           return null;
         })() }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", { className: "task-actions", style: { padding: "12px 16px", verticalAlign: "middle" }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("td", { className: "task-actions", style: { padding: "12px 16px", verticalAlign: "middle" }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
             "button",
             {
               className: `kebab-menu-btn ${activeActionDropdown === task.id ? "active" : ""}`,
@@ -22790,15 +22797,15 @@
                 e.stopPropagation();
                 onToggleActionDropdown(task.id);
               },
-              children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "kebab-icon", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {}),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {})
+              children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "kebab-icon", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", {})
               ] })
             }
           ),
-          activeActionDropdown === task.id && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "action-dropdown visible", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+          activeActionDropdown === task.id && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "action-dropdown visible", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
               "div",
               {
                 className: "action-dropdown-item",
@@ -22807,12 +22814,12 @@
                   onEditTask(task.id);
                 },
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "action-dropdown-icon", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M11 4H7.2C6.0799 4 5.51984 4 5.09202 4.21799C4.71569 4.40974 4.40973 4.7157 4.21799 5.09202C4 5.51985 4 6.0799 4 7.2V16.8C4 17.9201 4 18.4802 4.21799 18.908C4.40973 19.2843 4.71569 19.5903 5.09202 19.782C5.51984 20 6.0799 20 7.2 20H16.8C17.9201 20 18.4802 20 18.908 19.782C19.2843 19.5903 19.5903 19.2843 19.782 18.908C20 18.4802 20 17.9201 20 16.8V12.5M15.5 5.5L18.3284 8.32843M10.7627 10.2373L17.411 3.58902C18.192 2.80797 19.4584 2.80797 20.2394 3.58902C21.0205 4.37007 21.0205 5.6364 20.2394 6.41745L13.3774 13.2794C12.6158 14.0411 12.235 14.4219 11.8012 14.7247C11.4162 14.9936 11.0009 15.2162 10.564 15.3882C10.0717 15.582 9.54378 15.6885 8.48793 15.9016L8 16L8.04745 15.6678C8.21536 14.4925 8.29932 13.9048 8.49029 13.3561C8.65975 12.8692 8.89125 12.4063 9.17906 11.9786C9.50341 11.4966 9.92319 11.0768 10.7627 10.2373Z", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }) }) }),
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Edit" })
+                  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "action-dropdown-icon", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("svg", { viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M11 4H7.2C6.0799 4 5.51984 4 5.09202 4.21799C4.71569 4.40974 4.40973 4.7157 4.21799 5.09202C4 5.51985 4 6.0799 4 7.2V16.8C4 17.9201 4 18.4802 4.21799 18.908C4.40973 19.2843 4.71569 19.5903 5.09202 19.782C5.51984 20 6.0799 20 7.2 20H16.8C17.9201 20 18.4802 20 18.908 19.782C19.2843 19.5903 19.5903 19.2843 19.782 18.908C20 18.4802 20 17.9201 20 16.8V12.5M15.5 5.5L18.3284 8.32843M10.7627 10.2373L17.411 3.58902C18.192 2.80797 19.4584 2.80797 20.2394 3.58902C21.0205 4.37007 21.0205 5.6364 20.2394 6.41745L13.3774 13.2794C12.6158 14.0411 12.235 14.4219 11.8012 14.7247C11.4162 14.9936 11.0009 15.2162 10.564 15.3882C10.0717 15.582 9.54378 15.6885 8.48793 15.9016L8 16L8.04745 15.6678C8.21536 14.4925 8.29932 13.9048 8.49029 13.3561C8.65975 12.8692 8.89125 12.4063 9.17906 11.9786C9.50341 11.4966 9.92319 11.0768 10.7627 10.2373Z", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }) }) }),
+                  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: "Edit" })
                 ]
               }
             ),
-            task.status === "open" && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+            task.status === "open" && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
               "div",
               {
                 className: "action-dropdown-item",
@@ -22821,15 +22828,15 @@
                   onStartTask(task.id);
                 },
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "action-dropdown-icon", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M8 5v14l11-7z", fill: "currentColor" }) }) }),
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "action-dropdown-icon", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("svg", { viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M8 5v14l11-7z", fill: "currentColor" }) }) }),
+                  /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { children: [
                     "Start Task ",
-                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: { opacity: 0.6, fontSize: "12px" }, children: "(Open \u2192 In Progress)" })
+                    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { opacity: 0.6, fontSize: "12px" }, children: "(Open \u2192 In Progress)" })
                   ] })
                 ]
               }
             ),
-            task.status === "in_progress" && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+            task.status === "in_progress" && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
               "div",
               {
                 className: "action-dropdown-item",
@@ -22838,35 +22845,35 @@
                   onCompleteTask(task.id);
                 },
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "action-dropdown-icon", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M20 6L9 17l-5-5", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }) }) }),
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "action-dropdown-icon", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("svg", { viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M20 6L9 17l-5-5", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }) }) }),
+                  /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { children: [
                     "Complete Task ",
-                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: { opacity: 0.6, fontSize: "12px" }, children: "(In Progress \u2192 Closed)" })
+                    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { opacity: 0.6, fontSize: "12px" }, children: "(In Progress \u2192 Closed)" })
                   ] })
                 ]
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "action-dropdown-divider" }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "action-dropdown-divider" }),
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
               "div",
               {
                 className: "action-dropdown-item danger",
                 onClick: () => onShowDeleteConfirmation(task.id),
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "action-dropdown-icon", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M18 6L17.1991 18.0129C17.129 19.065 17.0939 19.5911 16.8667 19.99C16.6666 20.3412 16.3648 20.6235 16.0011 20.7998C15.588 21 15.0607 21 14.0062 21H9.99377C8.93927 21 8.41202 21 7.99889 20.7998C7.63517 20.6235 7.33339 20.3412 7.13332 19.99C6.90607 19.5911 6.871 19.065 6.80086 18.0129L6 6M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }) }) }),
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Delete" })
+                  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "action-dropdown-icon", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("svg", { viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M18 6L17.1991 18.0129C17.129 19.065 17.0939 19.5911 16.8667 19.99C16.6666 20.3412 16.3648 20.6235 16.0011 20.7998C15.588 21 15.0607 21 14.0062 21H9.99377C8.93927 21 8.41202 21 7.99889 20.7998C7.63517 20.6235 7.33339 20.3412 7.13332 19.99C6.90607 19.5911 6.871 19.065 6.80086 18.0129L6 6M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }) }) }),
+                  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { children: "Delete" })
                 ]
               }
             )
           ] }),
-          deleteConfirmPopup === task.id && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "delete-confirm-popup visible", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "delete-confirm-text", children: [
+          deleteConfirmPopup === task.id && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "delete-confirm-popup visible", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "delete-confirm-text", children: [
               "Delete ",
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: task.title }),
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("strong", { children: task.title }),
               "?",
-              task.children && task.children.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+              task.children && task.children.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("br", {}),
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("br", {}),
                 "This will unparent ",
                 task.children.length,
                 " subtask",
@@ -22874,8 +22881,8 @@
                 "."
               ] })
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "delete-confirm-buttons", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "delete-confirm-buttons", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
                 "button",
                 {
                   className: "delete-confirm-btn cancel",
@@ -22883,7 +22890,7 @@
                   children: "Cancel"
                 }
               ),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
                 "button",
                 {
                   className: "delete-confirm-btn delete",
@@ -22895,7 +22902,7 @@
           ] })
         ] })
       ] }),
-      isExpanded && task.children && task.children.map((child, index) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+      isExpanded && task.children && task.children.map((child, index) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
         TaskRow,
         {
           task: child,
@@ -22923,14 +22930,14 @@
   var IssueList_default = IssueList;
 
   // src/components/index.tsx
-  var import_jsx_runtime2 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime3 = __toESM(require_jsx_runtime());
   var App = () => {
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(IssueList_default, {});
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(IssueList_default, {});
   };
   var container = document.getElementById("root");
   if (container) {
     const root = (0, import_client.createRoot)(container);
-    root.render(/* @__PURE__ */ (0, import_jsx_runtime2.jsx)(App, {}));
+    root.render(/* @__PURE__ */ (0, import_jsx_runtime3.jsx)(App, {}));
   }
 })();
 /*! Bundled license information:
