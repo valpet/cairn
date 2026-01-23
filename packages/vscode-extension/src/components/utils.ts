@@ -92,3 +92,77 @@ export const getComputedStatusClass = (status: string, subtasks: Subtask[]) => {
   const computedStatus = computeSubIssueStatus(subtasks);
   return computedStatus && computedStatus !== status ? computedStatus : status;
 };
+
+// Date and time formatting utilities
+export const formatDate = (isoString: string) => {
+  if (!isoString) return '-';
+  const date = new Date(isoString);
+  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+export const formatTimestamp = (isoString: string) => {
+  const date = new Date(isoString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins} min${diffMins === 1 ? '' : 's'} ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+  if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+  return date.toLocaleDateString();
+};
+
+// Status display utilities
+export const getStatusDisplayText = (status: string, subtasks: Subtask[]) => {
+  const statusLabels: Record<string, string> = {
+    open: 'Open',
+    in_progress: 'In Progress',
+    closed: 'Closed',
+    blocked: 'Blocked'
+  };
+  const statusText = statusLabels[status] || status;
+
+  const computedStatus = computeSubIssueStatus(subtasks);
+  if (computedStatus && computedStatus !== status) {
+    const computedStatusText = statusLabels[computedStatus] || computedStatus;
+    return `${statusText} / ${computedStatusText}`;
+  }
+
+  return statusText;
+};
+
+// Error handling utilities
+export const showErrorMessage = (error: string, errorCode?: string) => {
+  let message = error;
+  if (errorCode === 'CANNOT_CLOSE_WITH_OPEN_SUBTASKS') {
+    message = 'Cannot close issue as it has open sub-issues.';
+  }
+
+  // Create temporary error notification
+  const errorDiv = document.createElement('div');
+  errorDiv.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #f85149;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    max-width: 400px;
+    font-size: 13px;
+    line-height: 1.4;
+  `;
+  errorDiv.textContent = message;
+  document.body.appendChild(errorDiv);
+
+  setTimeout(() => {
+    if (errorDiv.parentNode) {
+      errorDiv.parentNode.removeChild(errorDiv);
+    }
+  }, 5000);
+};
