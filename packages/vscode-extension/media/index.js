@@ -1330,7 +1330,7 @@
           return dispatcher;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React5 = require_react(), Internals = {
+        var React4 = require_react(), Internals = {
           d: {
             f: noop,
             r: function() {
@@ -1348,7 +1348,7 @@
           },
           p: 0,
           findDOMNode: null
-        }, REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), ReactSharedInternals = React5.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+        }, REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), ReactSharedInternals = React4.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
         "function" === typeof Map && null != Map.prototype && "function" === typeof Map.prototype.forEach && "function" === typeof Set && null != Set.prototype && "function" === typeof Set.prototype.clear && "function" === typeof Set.prototype.forEach || console.error(
           "React depends on Map and Set built-in types. Make sure that you load a polyfill in older browsers. https://reactjs.org/link/react-polyfills"
         );
@@ -2883,7 +2883,7 @@
           "number" === type && getActiveElement(node.ownerDocument) === node || node.defaultValue === "" + value || (node.defaultValue = "" + value);
         }
         function validateOptionProps(element, props) {
-          null == props.value && ("object" === typeof props.children && null !== props.children ? React5.Children.forEach(props.children, function(child) {
+          null == props.value && ("object" === typeof props.children && null !== props.children ? React4.Children.forEach(props.children, function(child) {
             null == child || "string" === typeof child || "number" === typeof child || "bigint" === typeof child || didWarnInvalidChild || (didWarnInvalidChild = true, console.error(
               "Cannot infer the option value of complex children. Pass a `value` prop or use a plain string as children to <option>."
             ));
@@ -18515,14 +18515,14 @@
           ));
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var Scheduler = require_scheduler(), React5 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
+        var Scheduler = require_scheduler(), React4 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
         /* @__PURE__ */ Symbol.for("react.scope");
         var REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity");
         /* @__PURE__ */ Symbol.for("react.legacy_hidden");
         /* @__PURE__ */ Symbol.for("react.tracing_marker");
         var REACT_MEMO_CACHE_SENTINEL = /* @__PURE__ */ Symbol.for("react.memo_cache_sentinel");
         /* @__PURE__ */ Symbol.for("react.view_transition");
-        var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React5.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
+        var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React4.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
           pending: false,
           data: null,
           method: null,
@@ -21310,7 +21310,7 @@
           }
         };
         (function() {
-          var isomorphicReactPackageVersion = React5.version;
+          var isomorphicReactPackageVersion = React4.version;
           if ("19.2.3" !== isomorphicReactPackageVersion)
             throw Error(
               'Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:\n  - react:      ' + (isomorphicReactPackageVersion + "\n  - react-dom:  19.2.3\nLearn more: https://react.dev/warnings/version-mismatch")
@@ -21664,18 +21664,18 @@
         function isValidElement(object) {
           return "object" === typeof object && null !== object && object.$$typeof === REACT_ELEMENT_TYPE;
         }
-        var React5 = require_react(), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), ReactSharedInternals = React5.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
+        var React4 = require_react(), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), ReactSharedInternals = React4.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
           return null;
         };
-        React5 = {
+        React4 = {
           react_stack_bottom_frame: function(callStackForError) {
             return callStackForError();
           }
         };
         var specialPropKeyWarningShown;
         var didWarnAboutElementRef = {};
-        var unknownOwnerDebugStack = React5.react_stack_bottom_frame.bind(
-          React5,
+        var unknownOwnerDebugStack = React4.react_stack_bottom_frame.bind(
+          React4,
           UnknownOwner
         )();
         var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
@@ -21721,9 +21721,6 @@
 
   // src/components/index.tsx
   var import_client = __toESM(require_client());
-
-  // src/components/IssueList.tsx
-  var import_react4 = __toESM(require_react());
 
   // src/components/TaskGrid.tsx
   var import_react2 = __toESM(require_react());
@@ -22424,7 +22421,7 @@
     const clearAllFilters = () => {
       onStatusChange(/* @__PURE__ */ new Set());
     };
-    const getStatusIcon2 = (status) => {
+    const getStatusIcon = (status) => {
       switch (status) {
         case "ready":
           return "\u{1F680}";
@@ -22440,7 +22437,7 @@
           return "\u{1F4CB}";
       }
     };
-    const getStatusLabel2 = (status) => {
+    const getStatusLabel = (status) => {
       switch (status) {
         case "ready":
           return "Ready";
@@ -22574,7 +22571,7 @@
                         }, children: "\u2713" })
                       }
                     ),
-                    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { onClick: () => toggleStatusFilter(status), children: getStatusLabel2(status) })
+                    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { onClick: () => toggleStatusFilter(status), children: getStatusLabel(status) })
                   ]
                 },
                 status
@@ -22626,8 +22623,8 @@
             transition: "all 0.15s"
           },
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: { fontSize: "14px", lineHeight: 1 }, children: getStatusIcon2(status) }),
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: getStatusLabel2(status) }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: { fontSize: "14px", lineHeight: 1 }, children: getStatusIcon(status) }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: getStatusLabel(status) }),
             /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
               "span",
               {
@@ -22700,32 +22697,33 @@
   };
   var StatusFilter_default = StatusFilter;
 
-  // src/components/taskUtils.ts
-  var isReady = (task, allTasks) => {
-    if (!task.dependencies) return true;
-    const taskMap = new Map(allTasks.map((t) => [t.id, t]));
-    return task.dependencies.every((dep) => {
-      if (dep.type !== "blocks") return true;
-      const depTask = taskMap.get(dep.id);
-      return depTask && depTask.status === "closed";
-    });
-  };
-
-  // src/components/IssueList.tsx
-  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
-  var IssueList = () => {
-    const [allTasks, setAllTasks] = (0, import_react4.useState)([]);
-    const [selectedStatuses, setSelectedStatuses] = (0, import_react4.useState)(/* @__PURE__ */ new Set(["ready", "open", "in_progress"]));
-    const [expandedTasks, setExpandedTasks] = (0, import_react4.useState)(/* @__PURE__ */ new Set());
-    const [expandedDescriptions, setExpandedDescriptions] = (0, import_react4.useState)(/* @__PURE__ */ new Set());
-    const [activeActionDropdown, setActiveActionDropdown] = (0, import_react4.useState)(null);
-    const [deleteConfirmPopup, setDeleteConfirmPopup] = (0, import_react4.useState)(null);
+  // src/components/hooks/useVSCodeMessaging.ts
+  var import_react4 = __toESM(require_react());
+  var useVSCodeMessaging = () => {
     const vscode = (0, import_react4.useRef)(null);
+    if (!vscode.current) {
+      vscode.current = window.acquireVsCodeApi();
+    }
     (0, import_react4.useEffect)(() => {
-      vscode.current = acquireVsCodeApi();
       console.log("Cairn issues webview script loaded");
+      console.log("VS Code API acquired:", !!vscode.current);
       vscode.current.postMessage({ type: "webviewReady" });
       console.log("Task list webview ready message sent");
+    }, []);
+    const postMessage = (message) => {
+      vscode.current?.postMessage(message);
+    };
+    return { postMessage };
+  };
+
+  // src/components/hooks/useTaskState.ts
+  var import_react5 = __toESM(require_react());
+  var useTaskState = () => {
+    const [allTasks, setAllTasks] = (0, import_react5.useState)([]);
+    const [selectedStatuses, setSelectedStatuses] = (0, import_react5.useState)(/* @__PURE__ */ new Set(["ready", "open", "in_progress"]));
+    const [expandedTasks, setExpandedTasks] = (0, import_react5.useState)(/* @__PURE__ */ new Set());
+    const [expandedDescriptions, setExpandedDescriptions] = (0, import_react5.useState)(/* @__PURE__ */ new Set());
+    (0, import_react5.useEffect)(() => {
       const messageHandler = (event) => {
         console.log("Message received:", event.data);
         const message = event.data;
@@ -22762,7 +22760,23 @@
         return newSet;
       });
     };
-    (0, import_react4.useEffect)(() => {
+    return {
+      allTasks,
+      selectedStatuses,
+      setSelectedStatuses,
+      expandedTasks,
+      expandedDescriptions,
+      toggleExpand,
+      toggleDescription
+    };
+  };
+
+  // src/components/hooks/useTaskInteractions.ts
+  var import_react6 = __toESM(require_react());
+  var useTaskInteractions = (postMessage) => {
+    const [activeActionDropdown, setActiveActionDropdown] = (0, import_react6.useState)(null);
+    const [deleteConfirmPopup, setDeleteConfirmPopup] = (0, import_react6.useState)(null);
+    (0, import_react6.useEffect)(() => {
       const handleClickOutside = (e) => {
         const target = e.target;
         if (activeActionDropdown) {
@@ -22782,7 +22796,7 @@
       document.addEventListener("click", handleClickOutside);
       return () => document.removeEventListener("click", handleClickOutside);
     }, [activeActionDropdown, deleteConfirmPopup]);
-    (0, import_react4.useEffect)(() => {
+    (0, import_react6.useEffect)(() => {
       const handleKeyDown = (e) => {
         if (e.key === "Escape") {
           if (deleteConfirmPopup) {
@@ -22797,20 +22811,18 @@
     }, [activeActionDropdown, deleteConfirmPopup]);
     const startTask = (id) => {
       console.log("Starting task", id);
-      vscode.current?.postMessage({ type: "startTask", id });
+      postMessage({ type: "startTask", id });
     };
     const completeTask = (id) => {
       console.log("Completing task", id);
-      vscode.current?.postMessage({ type: "completeTask", id });
+      postMessage({ type: "completeTask", id });
     };
     const editTask = (id) => {
       console.log("Editing task", id);
-      console.log("vscode object:", vscode.current);
-      console.log("typeof vscode.postMessage:", typeof vscode.current?.postMessage);
       try {
         const message = { type: "editTicket", id };
         console.log("Attempting to post message:", message);
-        vscode.current?.postMessage(message);
+        postMessage(message);
         console.log("Message posted successfully");
       } catch (error) {
         console.error("Error posting message:", error);
@@ -22821,7 +22833,7 @@
       try {
         const message = { type: "createTicket" };
         console.log("Attempting to post message:", message);
-        vscode.current?.postMessage(message);
+        postMessage(message);
         console.log("Message posted successfully");
       } catch (error) {
         console.error("Error posting message:", error);
@@ -22829,7 +22841,7 @@
     };
     const deleteTask = (id) => {
       console.log("Deleting task", id);
-      vscode.current?.postMessage({ type: "deleteTask", id });
+      postMessage({ type: "deleteTask", id });
       setDeleteConfirmPopup(null);
     };
     const toggleActionDropdown = (taskId) => {
@@ -22843,7 +22855,36 @@
       setDeleteConfirmPopup(taskId);
       setActiveActionDropdown(null);
     };
-    const getFilteredTasks = () => {
+    return {
+      activeActionDropdown,
+      deleteConfirmPopup,
+      startTask,
+      completeTask,
+      editTask,
+      createNewTask,
+      deleteTask,
+      toggleActionDropdown,
+      showDeleteConfirmation
+    };
+  };
+
+  // src/components/hooks/useTaskFiltering.ts
+  var import_react7 = __toESM(require_react());
+
+  // src/components/taskUtils.ts
+  var isReady = (task, allTasks) => {
+    if (!task.dependencies) return true;
+    const taskMap = new Map(allTasks.map((t) => [t.id, t]));
+    return task.dependencies.every((dep) => {
+      if (dep.type !== "blocks") return true;
+      const depTask = taskMap.get(dep.id);
+      return depTask && depTask.status === "closed";
+    });
+  };
+
+  // src/components/hooks/useTaskFiltering.ts
+  var useTaskFiltering = (allTasks, selectedStatuses) => {
+    const filteredTasks = (0, import_react7.useMemo)(() => {
       if (selectedStatuses.size === 0) {
         return allTasks;
       }
@@ -22851,15 +22892,21 @@
       return allTasks.filter(
         (task) => statusArray.includes(task.status) || statusArray.includes("ready") && task.status === "open" && isReady(task, allTasks)
       );
-    };
-    const buildTaskTree = (tasks) => {
+    }, [allTasks, selectedStatuses]);
+    return { filteredTasks };
+  };
+
+  // src/components/hooks/useTaskHierarchy.ts
+  var import_react8 = __toESM(require_react());
+  var useTaskHierarchy = (filteredTasks) => {
+    const taskTree = (0, import_react8.useMemo)(() => {
       const taskMap = /* @__PURE__ */ new Map();
       const roots = [];
       const hasParent = /* @__PURE__ */ new Set();
-      tasks.forEach((task) => {
+      filteredTasks.forEach((task) => {
         taskMap.set(task.id, { ...task, children: [] });
       });
-      tasks.forEach((task) => {
+      filteredTasks.forEach((task) => {
         const node = taskMap.get(task.id);
         const parentDep = (task.dependencies || []).find((dep) => dep.type === "parent-child");
         if (parentDep) {
@@ -22878,7 +22925,7 @@
           }
         }
       });
-      tasks.forEach((task) => {
+      filteredTasks.forEach((task) => {
         if (!hasParent.has(task.id)) {
           const node = taskMap.get(task.id);
           if (node) {
@@ -22887,9 +22934,36 @@
         }
       });
       return roots;
-    };
-    const filteredTasks = getFilteredTasks();
-    const taskTree = buildTaskTree(filteredTasks);
+    }, [filteredTasks]);
+    return { taskTree };
+  };
+
+  // src/components/IssueList.tsx
+  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
+  var IssueList = () => {
+    const { postMessage } = useVSCodeMessaging();
+    const {
+      allTasks,
+      selectedStatuses,
+      setSelectedStatuses,
+      expandedTasks,
+      expandedDescriptions,
+      toggleExpand,
+      toggleDescription
+    } = useTaskState();
+    const {
+      activeActionDropdown,
+      deleteConfirmPopup,
+      startTask,
+      completeTask,
+      editTask,
+      createNewTask,
+      deleteTask,
+      toggleActionDropdown,
+      showDeleteConfirmation
+    } = useTaskInteractions(postMessage);
+    const { filteredTasks } = useTaskFiltering(allTasks, selectedStatuses);
+    const { taskTree } = useTaskHierarchy(filteredTasks);
     return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: {
       fontFamily: "var(--vscode-font-family)",
       fontSize: "var(--vscode-font-size)",
