@@ -219,6 +219,166 @@ describe('GraphService', () => {
     });
   });
 
+  describe('cycle detection', () => {
+      it('should prevent adding parent-child dependency that would create a cycle', () => {
+        const issues: Issue[] = [
+          {
+            id: 'epic-1',
+            title: 'Epic 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'sub-1', type: 'parent-child' }],
+          },
+          {
+            id: 'sub-1',
+            title: 'Subtask 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+        ];
+
+        expect(() => {
+          graphService.addDependency('sub-1', 'epic-1', 'parent-child', issues);
+        }).toThrow('Adding parent-child dependency from sub-1 to epic-1 would create a circular dependency');
+      });
+
+      it('should prevent adding blocks dependency that would create a cycle', () => {
+        const issues: Issue[] = [
+          {
+            id: 'task-a',
+            title: 'Task A',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'task-b', type: 'blocks' }],
+          },
+          {
+            id: 'task-b',
+            title: 'Task B',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+        ];
+
+        expect(() => {
+          graphService.addDependency('task-b', 'task-a', 'blocks', issues);
+        }).toThrow('Adding blocks dependency from task-b to task-a would create a circular dependency');
+      });
+
+      it('should allow adding dependency that does not create a cycle', () => {
+        const issues: Issue[] = [
+          {
+            id: 'task-a',
+            title: 'Task A',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+          {
+            id: 'task-b',
+            title: 'Task B',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+        ];
+
+        const updated = graphService.addDependency('task-a', 'task-b', 'blocks', issues);
+        expect(updated[0].dependencies).toEqual([{ id: 'task-b', type: 'blocks' }]);
+      });
+
+      it('should allow adding related dependency even if it would create a cycle', () => {
+        const issues: Issue[] = [
+          {
+            id: 'task-a',
+            title: 'Task A',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'task-b', type: 'related' }],
+          },
+          {
+            id: 'task-b',
+            title: 'Task B',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+        ];
+
+        const updated = graphService.addDependency('task-b', 'task-a', 'related', issues);
+        expect(updated[1].dependencies).toEqual([{ id: 'task-a', type: 'related' }]);
+      });
+
+      it('should prevent complex parent-child cycles', () => {
+        const issues: Issue[] = [
+          {
+            id: 'epic-1',
+            title: 'Epic 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'sub-1', type: 'parent-child' }],
+          },
+          {
+            id: 'sub-1',
+            title: 'Subtask 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'sub-2', type: 'parent-child' }],
+          },
+          {
+            id: 'sub-2',
+            title: 'Subtask 2',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+        ];
+
+        // sub-2 -> epic-1 would create cycle: epic-1 -> sub-1 -> sub-2 -> epic-1
+        expect(() => {
+          graphService.addDependency('sub-2', 'epic-1', 'parent-child', issues);
+        }).toThrow('Adding parent-child dependency from sub-2 to epic-1 would create a circular dependency');
+      });
+
+      it('should prevent self-referencing parent-child dependency', () => {
+        const issues: Issue[] = [
+          {
+            id: 'task-a',
+            title: 'Task A',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+        ];
+
+        expect(() => {
+          graphService.addDependency('task-a', 'task-a', 'parent-child', issues);
+        }).toThrow('Adding parent-child dependency from task-a to task-a would create a circular dependency');
+      });
+
+      it('should prevent self-referencing blocks dependency', () => {
+        const issues: Issue[] = [
+          {
+            id: 'task-a',
+            title: 'Task A',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+        ];
+
+        expect(() => {
+          graphService.addDependency('task-a', 'task-a', 'blocks', issues);
+        }).toThrow('Adding blocks dependency from task-a to task-a would create a circular dependency');
+      });
+    });
+
   describe('removeDependency', () => {
     it('should remove dependency from issue', () => {
       const issues: Issue[] = [

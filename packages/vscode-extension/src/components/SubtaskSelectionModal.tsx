@@ -8,6 +8,7 @@ interface AvailableItem {
   type: string;
   status: string;
   priority: string;
+  wouldCreateCycle?: boolean;
 }
 
 interface SubtaskSelectionModalProps {
@@ -59,13 +60,18 @@ const SubtaskSelectionModal: React.FC<SubtaskSelectionModalProps> = ({
               .map(subtask => (
                 <div
                   key={subtask.id}
-                  className={`subtask-item ${selectedIds.has(subtask.id) ? 'selected' : ''}`}
-                  onClick={() => onSelectionChange(subtask.id)}
+                  className={`subtask-item ${selectedIds.has(subtask.id) ? 'selected' : ''} ${subtask.wouldCreateCycle ? 'disabled' : ''}`}
+                  onClick={() => !subtask.wouldCreateCycle && onSelectionChange(subtask.id)}
+                  style={{
+                    opacity: subtask.wouldCreateCycle ? 0.5 : 1,
+                    cursor: subtask.wouldCreateCycle ? 'not-allowed' : 'pointer'
+                  }}
                 >
                   <input
                     type="checkbox"
                     className="subtask-checkbox"
                     checked={selectedIds.has(subtask.id)}
+                    disabled={subtask.wouldCreateCycle}
                     onChange={() => { }} // Handled by onClick
                   />
                   <div className="subtask-content">
@@ -76,9 +82,12 @@ const SubtaskSelectionModal: React.FC<SubtaskSelectionModalProps> = ({
                           {subtask.id}
                           <button
                             className="copy-id-btn"
+                            disabled={subtask.wouldCreateCycle}
                             onClick={(e) => {
                               e.stopPropagation();
-                              copyToClipboard(subtask.id);
+                              if (!subtask.wouldCreateCycle) {
+                                copyToClipboard(subtask.id);
+                              }
                             }}
                           >
                             <svg fill="#000000" viewBox="0 0 36 36">
@@ -90,6 +99,11 @@ const SubtaskSelectionModal: React.FC<SubtaskSelectionModalProps> = ({
                           </button>
                         </div>
                         <span className="subtask-title">{subtask.title}</span>
+                        {subtask.wouldCreateCycle && (
+                          <span style={{ fontSize: '11px', color: '#f85149', marginLeft: '8px' }}>
+                            Would create circular dependency
+                          </span>
+                        )}
                       </div>
                     </div>
                     <span className={`subtask-status ${subtask.status}`}>{getStatusLabel(subtask.status)}</span>

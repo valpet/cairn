@@ -77,6 +77,11 @@ export class GraphService implements IGraphService {
   }
 
   addDependency(fromId: string, toId: string, type: DependencyType, issues: Issue[]): Issue[] {
+    // Check for circular dependencies before adding
+    if (this.wouldCreateCycle(fromId, toId, type, issues)) {
+      throw new Error(`Adding ${type} dependency from ${fromId} to ${toId} would create a circular dependency`);
+    }
+
     const updated = issues.map(issue => {
       if (issue.id === fromId) {
         const deps = issue.dependencies || [];
@@ -88,6 +93,40 @@ export class GraphService implements IGraphService {
       return issue;
     });
     return updated;
+  }
+
+  private wouldCreateCycle(fromId: string, toId: string, type: DependencyType, issues: Issue[]): boolean {
+    // For now, only check parent-child relationships for cycles
+    // Blocks relationships can have cycles in some cases (A blocks B, B blocks A)
+    // but we'll be conservative and prevent cycles for blocks too
+    if (type !== 'parent-child' && type !== 'blocks') {
+      return false; // Other types don't create cycles we're concerned about
+    }
+
+    const visited = new Set<string>();
+    const stack = [toId];
+
+    while (stack.length > 0) {
+      const current = stack.pop()!;
+      if (visited.has(current)) continue;
+      visited.add(current);
+
+      if (current === fromId) {
+        return true; // Found a path from toId to fromId, so adding fromId -> toId would create a cycle
+      }
+
+      // Find issues that current depends on with the same type
+      const currentIssue = issues.find(issue => issue.id === current);
+      if (currentIssue?.dependencies) {
+        for (const dep of currentIssue.dependencies) {
+          if (dep.type === type) {
+            stack.push(dep.id);
+          }
+        }
+      }
+    }
+
+    return false;
   }
 
   removeDependency(fromId: string, toId: string, issues: Issue[]): Issue[] {

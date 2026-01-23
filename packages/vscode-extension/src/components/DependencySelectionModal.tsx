@@ -8,6 +8,7 @@ interface AvailableItem {
   type: string;
   status: string;
   priority: string;
+  wouldCreateCycle?: boolean;
 }
 
 interface DependencySelectionModalProps {
@@ -90,13 +91,18 @@ const DependencySelectionModal: React.FC<DependencySelectionModalProps> = ({
               .map(dep => (
                 <div
                   key={dep.id}
-                  className={`dependency-item ${selectedIds.has(dep.id) ? 'selected' : ''}`}
-                  onClick={() => onSelectionChange(dep.id)}
+                  className={`dependency-item ${selectedIds.has(dep.id) ? 'selected' : ''} ${dep.wouldCreateCycle ? 'disabled' : ''}`}
+                  onClick={() => !dep.wouldCreateCycle && onSelectionChange(dep.id)}
+                  style={{
+                    opacity: dep.wouldCreateCycle ? 0.5 : 1,
+                    cursor: dep.wouldCreateCycle ? 'not-allowed' : 'pointer'
+                  }}
                 >
                   <input
                     type="checkbox"
                     className="dependency-checkbox"
                     checked={selectedIds.has(dep.id)}
+                    disabled={dep.wouldCreateCycle}
                     onChange={() => { }} // Handled by onClick
                   />
                   <div className="dependency-content">
@@ -107,9 +113,12 @@ const DependencySelectionModal: React.FC<DependencySelectionModalProps> = ({
                           {dep.id}
                           <button
                             className="copy-id-btn"
+                            disabled={dep.wouldCreateCycle}
                             onClick={(e) => {
                               e.stopPropagation();
-                              copyToClipboard(dep.id);
+                              if (!dep.wouldCreateCycle) {
+                                copyToClipboard(dep.id);
+                              }
                             }}
                           >
                             <svg fill="#000000" viewBox="0 0 36 36">
@@ -121,6 +130,11 @@ const DependencySelectionModal: React.FC<DependencySelectionModalProps> = ({
                           </button>
                         </div>
                         <span className="dependency-title">{dep.title}</span>
+                        {dep.wouldCreateCycle && (
+                          <span style={{ fontSize: '11px', color: '#f85149', marginLeft: '8px' }}>
+                            Would create circular dependency
+                          </span>
+                        )}
                       </div>
                     </div>
                     <span className={`dependency-status ${dep.status}`}>{getStatusLabel(dep.status)}</span>

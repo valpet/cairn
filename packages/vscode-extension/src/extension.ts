@@ -813,13 +813,23 @@ export function activate(context: vscode.ExtensionContext) {
                 const issues = await storage.loadIssues();
                 const availableSubtasks = graph.getNonParentedIssues(issues)
                   .filter(issue => issue.id !== pendingTicketId)
+                  .filter(issue => {
+                    // Check if adding this as a subtask would create a circular dependency
+                    try {
+                      graph.addDependency(issue.id, pendingTicketId, 'parent-child', issues);
+                      return true; // No cycle would be created
+                    } catch (error) {
+                      return false; // Would create a cycle, so exclude
+                    }
+                  })
                   .map(issue => ({
                     id: issue.id,
                     title: issue.title,
                     type: issue.type,
                     status: issue.status,
                     priority: issue.priority,
-                    description: issue.description || ''
+                    description: issue.description || '',
+                    wouldCreateCycle: false // All remaining items are safe
                   }));
                 panel.webview.postMessage({
                   type: 'availableSubtasks',
@@ -832,14 +842,26 @@ export function activate(context: vscode.ExtensionContext) {
                   .filter(issue => issue.id !== pendingTicketId)
                   .filter(issue => !graph.getEpicSubtasks(pendingTicketId, issues).some(s => s.id === issue.id))
                   .filter(issue => !issue.dependencies?.some((d: any) => d.type === 'parent-child' && (d.from === pendingTicketId || d.to === pendingTicketId)))
-                  .map(issue => ({
-                    id: issue.id,
-                    title: issue.title,
-                    type: issue.type,
-                    status: issue.status,
-                    priority: issue.priority,
-                    description: issue.description || ''
-                  }));
+                  .map(issue => {
+                    // Check if adding this as a dependency would create a circular dependency
+                    let wouldCreateCycle = false;
+                    try {
+                      // For blocks dependencies, we need to check both directions
+                      // This is a simplified check - we'll mark items that would create cycles
+                      graph.addDependency(pendingTicketId, issue.id, 'blocks', issues);
+                    } catch (error) {
+                      wouldCreateCycle = true;
+                    }
+                    return {
+                      id: issue.id,
+                      title: issue.title,
+                      type: issue.type,
+                      status: issue.status,
+                      priority: issue.priority,
+                      description: issue.description || '',
+                      wouldCreateCycle
+                    };
+                  });
                 panel.webview.postMessage({
                   type: 'availableDependencies',
                   dependencies: availableDependencies
