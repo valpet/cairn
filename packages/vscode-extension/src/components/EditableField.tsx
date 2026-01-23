@@ -61,7 +61,7 @@ const EditableField: React.FC<EditableFieldProps> = ({ fieldName, placeholder, i
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              onBlur={() => setTimeout(() => setIsEditing(false), 100)}
+              onBlur={() => setTimeout(() => cancel(), 100)}
               rows={4}
             />
           ) : (
@@ -71,7 +71,7 @@ const EditableField: React.FC<EditableFieldProps> = ({ fieldName, placeholder, i
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              onBlur={() => setTimeout(() => setIsEditing(false), 100)}
+              onBlur={() => setTimeout(() => cancel(), 100)}
             />
           )}
           <div className="edit-actions">
