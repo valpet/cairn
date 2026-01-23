@@ -1330,7 +1330,7 @@
           return dispatcher;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React4 = require_react(), Internals = {
+        var React5 = require_react(), Internals = {
           d: {
             f: noop,
             r: function() {
@@ -1348,7 +1348,7 @@
           },
           p: 0,
           findDOMNode: null
-        }, REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), ReactSharedInternals = React4.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+        }, REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), ReactSharedInternals = React5.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
         "function" === typeof Map && null != Map.prototype && "function" === typeof Map.prototype.forEach && "function" === typeof Set && null != Set.prototype && "function" === typeof Set.prototype.clear && "function" === typeof Set.prototype.forEach || console.error(
           "React depends on Map and Set built-in types. Make sure that you load a polyfill in older browsers. https://reactjs.org/link/react-polyfills"
         );
@@ -2883,7 +2883,7 @@
           "number" === type && getActiveElement(node.ownerDocument) === node || node.defaultValue === "" + value || (node.defaultValue = "" + value);
         }
         function validateOptionProps(element, props) {
-          null == props.value && ("object" === typeof props.children && null !== props.children ? React4.Children.forEach(props.children, function(child) {
+          null == props.value && ("object" === typeof props.children && null !== props.children ? React5.Children.forEach(props.children, function(child) {
             null == child || "string" === typeof child || "number" === typeof child || "bigint" === typeof child || didWarnInvalidChild || (didWarnInvalidChild = true, console.error(
               "Cannot infer the option value of complex children. Pass a `value` prop or use a plain string as children to <option>."
             ));
@@ -18515,14 +18515,14 @@
           ));
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var Scheduler = require_scheduler(), React4 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
+        var Scheduler = require_scheduler(), React5 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
         /* @__PURE__ */ Symbol.for("react.scope");
         var REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity");
         /* @__PURE__ */ Symbol.for("react.legacy_hidden");
         /* @__PURE__ */ Symbol.for("react.tracing_marker");
         var REACT_MEMO_CACHE_SENTINEL = /* @__PURE__ */ Symbol.for("react.memo_cache_sentinel");
         /* @__PURE__ */ Symbol.for("react.view_transition");
-        var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React4.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
+        var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React5.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
           pending: false,
           data: null,
           method: null,
@@ -21310,7 +21310,7 @@
           }
         };
         (function() {
-          var isomorphicReactPackageVersion = React4.version;
+          var isomorphicReactPackageVersion = React5.version;
           if ("19.2.3" !== isomorphicReactPackageVersion)
             throw Error(
               'Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:\n  - react:      ' + (isomorphicReactPackageVersion + "\n  - react-dom:  19.2.3\nLearn more: https://react.dev/warnings/version-mismatch")
@@ -21664,18 +21664,18 @@
         function isValidElement(object) {
           return "object" === typeof object && null !== object && object.$$typeof === REACT_ELEMENT_TYPE;
         }
-        var React4 = require_react(), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), ReactSharedInternals = React4.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
+        var React5 = require_react(), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), ReactSharedInternals = React5.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
           return null;
         };
-        React4 = {
+        React5 = {
           react_stack_bottom_frame: function(callStackForError) {
             return callStackForError();
           }
         };
         var specialPropKeyWarningShown;
         var didWarnAboutElementRef = {};
-        var unknownOwnerDebugStack = React4.react_stack_bottom_frame.bind(
-          React4,
+        var unknownOwnerDebugStack = React5.react_stack_bottom_frame.bind(
+          React5,
           UnknownOwner
         )();
         var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
@@ -21723,7 +21723,7 @@
   var import_client = __toESM(require_client());
 
   // src/components/IssueList.tsx
-  var import_react3 = __toESM(require_react());
+  var import_react4 = __toESM(require_react());
 
   // src/components/TaskGrid.tsx
   var import_react2 = __toESM(require_react());
@@ -22399,18 +22399,318 @@
   };
   var TaskGrid_default = TaskGrid;
 
-  // src/components/IssueList.tsx
+  // src/components/StatusFilter.tsx
+  var import_react3 = __toESM(require_react());
   var import_jsx_runtime4 = __toESM(require_jsx_runtime());
-  var IssueList = () => {
-    const [allTasks, setAllTasks] = (0, import_react3.useState)([]);
-    const [selectedStatuses, setSelectedStatuses] = (0, import_react3.useState)(/* @__PURE__ */ new Set(["ready", "open", "in_progress"]));
-    const [expandedTasks, setExpandedTasks] = (0, import_react3.useState)(/* @__PURE__ */ new Set());
-    const [expandedDescriptions, setExpandedDescriptions] = (0, import_react3.useState)(/* @__PURE__ */ new Set());
+  var StatusFilter = ({ selectedStatuses, onStatusChange }) => {
     const [isPopoverOpen, setIsPopoverOpen] = (0, import_react3.useState)(false);
-    const [activeActionDropdown, setActiveActionDropdown] = (0, import_react3.useState)(null);
-    const [deleteConfirmPopup, setDeleteConfirmPopup] = (0, import_react3.useState)(null);
-    const vscode = (0, import_react3.useRef)(null);
+    const togglePopover = () => {
+      setIsPopoverOpen(!isPopoverOpen);
+    };
+    const toggleStatusFilter = (status) => {
+      const newStatuses = new Set(selectedStatuses);
+      if (newStatuses.has(status)) {
+        newStatuses.delete(status);
+      } else {
+        newStatuses.add(status);
+      }
+      onStatusChange(newStatuses);
+    };
+    const removeStatusFilter = (status) => {
+      const newStatuses = new Set(selectedStatuses);
+      newStatuses.delete(status);
+      onStatusChange(newStatuses);
+    };
+    const clearAllFilters = () => {
+      onStatusChange(/* @__PURE__ */ new Set());
+    };
+    const getStatusIcon = (status) => {
+      switch (status) {
+        case "ready":
+          return "\u{1F680}";
+        case "open":
+          return "\u{1F4CB}";
+        case "in_progress":
+          return "\u26A1";
+        case "closed":
+          return "\u2705";
+        case "blocked":
+          return "\u{1F6AB}";
+        default:
+          return "\u{1F4CB}";
+      }
+    };
+    const getStatusLabel = (status) => {
+      switch (status) {
+        case "ready":
+          return "Ready";
+        case "open":
+          return "Open";
+        case "in_progress":
+          return "In Progress";
+        case "closed":
+          return "Closed";
+        case "blocked":
+          return "Blocked";
+        default:
+          return status;
+      }
+    };
     (0, import_react3.useEffect)(() => {
+      const handleClickOutside = (e) => {
+        const target = e.target;
+        const trigger = document.getElementById("status-filter-trigger");
+        const popover = document.getElementById("status-popover");
+        if (!trigger?.contains(target) && isPopoverOpen) {
+          setIsPopoverOpen(false);
+        }
+      };
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }, [isPopoverOpen]);
+    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      marginBottom: "16px",
+      padding: "8px 0",
+      fontSize: "13px"
+    }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: { position: "relative" }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
+          "button",
+          {
+            id: "status-filter-trigger",
+            style: {
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "6px 12px",
+              border: "none",
+              borderRadius: "6px",
+              color: "var(--vscode-foreground)",
+              cursor: "pointer",
+              fontSize: "13px",
+              position: "relative",
+              transition: "all 0.15s",
+              backgroundColor: selectedStatuses.size > 0 ? "rgba(255, 255, 255, 0.05)" : "transparent"
+            },
+            onClick: togglePopover,
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: {
+                opacity: 0.5,
+                fontSize: "16px",
+                marginRight: "2px",
+                display: "inline-flex",
+                alignItems: "center"
+              }, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("svg", { viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("path", { d: "M19 3H5C3.58579 3 2.87868 3 2.43934 3.4122C2 3.8244 2 4.48782 2 5.81466V6.50448C2 7.54232 2 8.06124 2.2596 8.49142C2.5192 8.9216 2.99347 9.18858 3.94202 9.72255L6.85504 11.3624C7.49146 11.7206 7.80967 11.8998 8.03751 12.0976C8.51199 12.5095 8.80408 12.9935 8.93644 13.5872C9 13.8722 9 14.2058 9 14.8729L9 17.5424C9 18.452 9 18.9067 9.25192 19.2613C9.50385 19.6158 9.95128 19.7907 10.8462 20.1406C12.7248 20.875 13.6641 21.2422 14.3321 20.8244C15 20.4066 15 19.4519 15 17.5424V14.8729C15 14.2058 15 13.8722 15.0636 13.5872C15.1959 12.9935 15.488 12.5095 15.9625 12.0976C16.1903 11.8998 16.5085 11.7206 17.145 11.3624L20.058 9.72255C21.0065 9.18858 21.4808 8.9216 21.7404 8.49142C22 8.06124 22 7.54232 22 6.50448V5.81466C22 4.48782 22 3.8244 21.5607 3.4122C21.1213 3 20.4142 3 19 3Z", fill: "currentColor" }) }) }),
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: { fontWeight: 500, opacity: 0.9 }, children: "Status:" }),
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: { opacity: 0.5, fontSize: "10px", marginLeft: "2px" }, children: "\u25BC" })
+            ]
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
+          "div",
+          {
+            id: "status-popover",
+            style: {
+              position: "absolute",
+              top: "calc(100% + 4px)",
+              left: 0,
+              minWidth: "180px",
+              backgroundColor: "var(--vscode-dropdown-background)",
+              border: "1px solid var(--vscode-dropdown-border)",
+              borderRadius: "4px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+              zIndex: 1e3,
+              padding: "6px 0",
+              display: isPopoverOpen ? "block" : "none"
+            },
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: {
+                padding: "8px 12px",
+                fontSize: "11px",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                opacity: 0.6,
+                letterSpacing: "0.5px"
+              }, children: "Status" }),
+              ["ready", "open", "in_progress", "closed", "blocked"].map((status) => /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
+                "div",
+                {
+                  style: {
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "6px 12px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    transition: "background-color 0.1s"
+                  },
+                  onMouseEnter: (e) => e.currentTarget.style.backgroundColor = "var(--vscode-list-hoverBackground)",
+                  onMouseLeave: (e) => e.currentTarget.style.backgroundColor = "transparent",
+                  children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+                      "div",
+                      {
+                        onClick: () => toggleStatusFilter(status),
+                        style: {
+                          width: "14px",
+                          height: "14px",
+                          border: "1.5px solid var(--vscode-input-border)",
+                          borderRadius: "2px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          transition: "all 0.15s",
+                          backgroundColor: selectedStatuses.has(status) ? "var(--vscode-button-background)" : "transparent",
+                          borderColor: selectedStatuses.has(status) ? "var(--vscode-button-background)" : "var(--vscode-input-border)"
+                        },
+                        children: selectedStatuses.has(status) && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: {
+                          color: "var(--vscode-button-foreground)",
+                          fontSize: "10px",
+                          fontWeight: "bold"
+                        }, children: "\u2713" })
+                      }
+                    ),
+                    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { onClick: () => toggleStatusFilter(status), children: getStatusLabel(status) })
+                  ]
+                },
+                status
+              )),
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: {
+                height: "1px",
+                backgroundColor: "var(--vscode-dropdown-border)",
+                margin: "4px 0"
+              } }),
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+                "div",
+                {
+                  style: {
+                    padding: "6px 12px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    opacity: 0.8,
+                    transition: "all 0.1s"
+                  },
+                  onClick: clearAllFilters,
+                  onMouseEnter: (e) => {
+                    e.currentTarget.style.backgroundColor = "var(--vscode-list-hoverBackground)";
+                    e.currentTarget.style.opacity = "1";
+                  },
+                  onMouseLeave: (e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.opacity = "0.8";
+                  },
+                  children: "Clear"
+                }
+              )
+            ]
+          }
+        )
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: { display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }, children: Array.from(selectedStatuses).map((status) => /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
+        "div",
+        {
+          className: `filter-chip ${status}`,
+          style: {
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "6px 12px",
+            borderRadius: "6px",
+            fontSize: "13px",
+            fontWeight: 500,
+            cursor: "default",
+            transition: "all 0.15s"
+          },
+          children: [
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: { fontSize: "14px", lineHeight: 1 }, children: getStatusIcon(status) }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: getStatusLabel(status) }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+              "span",
+              {
+                style: {
+                  cursor: "pointer",
+                  opacity: 0.7,
+                  fontSize: "16px",
+                  lineHeight: 1,
+                  padding: "0 0 0 4px",
+                  transition: "opacity 0.15s"
+                },
+                onClick: () => removeStatusFilter(status),
+                onMouseEnter: (e) => e.currentTarget.style.opacity = "1",
+                onMouseLeave: (e) => e.currentTarget.style.opacity = "0.7",
+                children: "\u2715"
+              }
+            )
+          ]
+        },
+        status
+      )) }),
+      selectedStatuses.size > 0 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+        "button",
+        {
+          style: {
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "5px 10px",
+            background: "transparent",
+            border: "none",
+            color: "var(--vscode-foreground)",
+            cursor: "pointer",
+            fontSize: "12px",
+            opacity: 0.6,
+            transition: "opacity 0.15s",
+            textDecoration: "underline"
+          },
+          onClick: clearAllFilters,
+          onMouseEnter: (e) => e.currentTarget.style.opacity = "1",
+          onMouseLeave: (e) => e.currentTarget.style.opacity = "0.6",
+          children: "Clear filters"
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
+        "button",
+        {
+          style: {
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "5px",
+            padding: "6px 10px",
+            background: "transparent",
+            border: "none",
+            borderRadius: "4px",
+            color: "#58a6ff",
+            cursor: "pointer",
+            fontSize: "13px",
+            fontWeight: 500,
+            transition: "all 0.15s"
+          },
+          onMouseEnter: (e) => e.currentTarget.style.backgroundColor = "rgba(88, 166, 255, 0.1)",
+          onMouseLeave: (e) => e.currentTarget.style.backgroundColor = "transparent",
+          children: [
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: { fontSize: "16px", lineHeight: 1 }, children: "+" }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: "Add Filter" })
+          ]
+        }
+      )
+    ] });
+  };
+  var StatusFilter_default = StatusFilter;
+
+  // src/components/IssueList.tsx
+  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
+  var IssueList = () => {
+    const [allTasks, setAllTasks] = (0, import_react4.useState)([]);
+    const [selectedStatuses, setSelectedStatuses] = (0, import_react4.useState)(/* @__PURE__ */ new Set(["ready", "open", "in_progress"]));
+    const [expandedTasks, setExpandedTasks] = (0, import_react4.useState)(/* @__PURE__ */ new Set());
+    const [expandedDescriptions, setExpandedDescriptions] = (0, import_react4.useState)(/* @__PURE__ */ new Set());
+    const [activeActionDropdown, setActiveActionDropdown] = (0, import_react4.useState)(null);
+    const [deleteConfirmPopup, setDeleteConfirmPopup] = (0, import_react4.useState)(null);
+    const vscode = (0, import_react4.useRef)(null);
+    (0, import_react4.useEffect)(() => {
       vscode.current = acquireVsCodeApi();
       console.log("Cairn issues webview script loaded");
       vscode.current.postMessage({ type: "webviewReady" });
@@ -22506,43 +22806,7 @@
       };
       return labels[status] || status;
     };
-    const toggleStatusFilter = (status) => {
-      setSelectedStatuses((prev) => {
-        const newSet = new Set(prev);
-        if (newSet.has(status)) {
-          newSet.delete(status);
-        } else {
-          newSet.add(status);
-        }
-        return newSet;
-      });
-    };
-    const removeStatusFilter = (status) => {
-      setSelectedStatuses((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(status);
-        return newSet;
-      });
-    };
-    const clearAllFilters = () => {
-      setSelectedStatuses(/* @__PURE__ */ new Set());
-    };
-    const togglePopover = () => {
-      setIsPopoverOpen(!isPopoverOpen);
-    };
-    (0, import_react3.useEffect)(() => {
-      const handleClickOutside = (e) => {
-        const target = e.target;
-        const trigger = document.getElementById("status-filter-trigger");
-        const popover = document.getElementById("status-popover");
-        if (!trigger?.contains(target) && isPopoverOpen) {
-          setIsPopoverOpen(false);
-        }
-      };
-      document.addEventListener("click", handleClickOutside);
-      return () => document.removeEventListener("click", handleClickOutside);
-    }, [isPopoverOpen]);
-    (0, import_react3.useEffect)(() => {
+    (0, import_react4.useEffect)(() => {
       const handleClickOutside = (e) => {
         const target = e.target;
         if (activeActionDropdown) {
@@ -22562,21 +22826,19 @@
       document.addEventListener("click", handleClickOutside);
       return () => document.removeEventListener("click", handleClickOutside);
     }, [activeActionDropdown, deleteConfirmPopup]);
-    (0, import_react3.useEffect)(() => {
+    (0, import_react4.useEffect)(() => {
       const handleKeyDown = (e) => {
         if (e.key === "Escape") {
           if (deleteConfirmPopup) {
             setDeleteConfirmPopup(null);
           } else if (activeActionDropdown) {
             setActiveActionDropdown(null);
-          } else if (isPopoverOpen) {
-            setIsPopoverOpen(false);
           }
         }
       };
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [activeActionDropdown, deleteConfirmPopup, isPopoverOpen]);
+    }, [activeActionDropdown, deleteConfirmPopup]);
     const startTask = (id) => {
       console.log("Starting task", id);
       vscode.current?.postMessage({ type: "startTask", id });
@@ -22672,7 +22934,7 @@
     };
     const filteredTasks = getFilteredTasks();
     const taskTree = buildTaskTree(filteredTasks);
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: {
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: {
       fontFamily: "var(--vscode-font-family)",
       fontSize: "var(--vscode-font-size)",
       backgroundColor: "var(--vscode-sideBar-background)",
@@ -22686,237 +22948,15 @@
       overflow: "hidden",
       boxSizing: "border-box"
     }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: { marginBottom: "20px" }, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h1", { style: { color: "#D4A556", fontSize: "24px", margin: 0 }, children: "Cairn Issues" }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: {
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-        marginBottom: "16px",
-        padding: "8px 0",
-        fontSize: "13px"
-      }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: { position: "relative" }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
-            "button",
-            {
-              id: "status-filter-trigger",
-              style: {
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "6px 12px",
-                border: "none",
-                borderRadius: "6px",
-                color: "var(--vscode-foreground)",
-                cursor: "pointer",
-                fontSize: "13px",
-                position: "relative",
-                transition: "all 0.15s",
-                backgroundColor: selectedStatuses.size > 0 ? "rgba(255, 255, 255, 0.05)" : "transparent"
-              },
-              onClick: togglePopover,
-              children: [
-                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: {
-                  opacity: 0.5,
-                  fontSize: "16px",
-                  marginRight: "2px",
-                  display: "inline-flex",
-                  alignItems: "center"
-                }, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("svg", { viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("path", { d: "M19 3H5C3.58579 3 2.87868 3 2.43934 3.4122C2 3.8244 2 4.48782 2 5.81466V6.50448C2 7.54232 2 8.06124 2.2596 8.49142C2.5192 8.9216 2.99347 9.18858 3.94202 9.72255L6.85504 11.3624C7.49146 11.7206 7.80967 11.8998 8.03751 12.0976C8.51199 12.5095 8.80408 12.9935 8.93644 13.5872C9 13.8722 9 14.2058 9 14.8729L9 17.5424C9 18.452 9 18.9067 9.25192 19.2613C9.50385 19.6158 9.95128 19.7907 10.8462 20.1406C12.7248 20.875 13.6641 21.2422 14.3321 20.8244C15 20.4066 15 19.4519 15 17.5424V14.8729C15 14.2058 15 13.8722 15.0636 13.5872C15.1959 12.9935 15.488 12.5095 15.9625 12.0976C16.1903 11.8998 16.5085 11.7206 17.145 11.3624L20.058 9.72255C21.0065 9.18858 21.4808 8.9216 21.7404 8.49142C22 8.06124 22 7.54232 22 6.50448V5.81466C22 4.48782 22 3.8244 21.5607 3.4122C21.1213 3 20.4142 3 19 3Z", fill: "currentColor" }) }) }),
-                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: { fontWeight: 500, opacity: 0.9 }, children: "Status:" }),
-                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: { opacity: 0.5, fontSize: "10px", marginLeft: "2px" }, children: "\u25BC" })
-              ]
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
-            "div",
-            {
-              id: "status-popover",
-              style: {
-                position: "absolute",
-                top: "calc(100% + 4px)",
-                left: 0,
-                minWidth: "180px",
-                backgroundColor: "var(--vscode-dropdown-background)",
-                border: "1px solid var(--vscode-dropdown-border)",
-                borderRadius: "4px",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
-                zIndex: 1e3,
-                padding: "6px 0",
-                display: isPopoverOpen ? "block" : "none"
-              },
-              children: [
-                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: {
-                  padding: "8px 12px",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  opacity: 0.6,
-                  letterSpacing: "0.5px"
-                }, children: "Status" }),
-                ["ready", "open", "in_progress", "closed", "blocked"].map((status) => /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
-                  "div",
-                  {
-                    style: {
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      padding: "6px 12px",
-                      cursor: "pointer",
-                      fontSize: "13px",
-                      transition: "background-color 0.1s"
-                    },
-                    onMouseEnter: (e) => e.currentTarget.style.backgroundColor = "var(--vscode-list-hoverBackground)",
-                    onMouseLeave: (e) => e.currentTarget.style.backgroundColor = "transparent",
-                    children: [
-                      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-                        "div",
-                        {
-                          onClick: () => toggleStatusFilter(status),
-                          style: {
-                            width: "14px",
-                            height: "14px",
-                            border: "1.5px solid var(--vscode-input-border)",
-                            borderRadius: "2px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexShrink: 0,
-                            transition: "all 0.15s",
-                            backgroundColor: selectedStatuses.has(status) ? "var(--vscode-button-background)" : "transparent",
-                            borderColor: selectedStatuses.has(status) ? "var(--vscode-button-background)" : "var(--vscode-input-border)"
-                          },
-                          children: selectedStatuses.has(status) && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: {
-                            color: "var(--vscode-button-foreground)",
-                            fontSize: "10px",
-                            fontWeight: "bold"
-                          }, children: "\u2713" })
-                        }
-                      ),
-                      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { onClick: () => toggleStatusFilter(status), children: getStatusLabel(status) })
-                    ]
-                  },
-                  status
-                )),
-                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: {
-                  height: "1px",
-                  backgroundColor: "var(--vscode-dropdown-border)",
-                  margin: "4px 0"
-                } }),
-                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-                  "div",
-                  {
-                    style: {
-                      padding: "6px 12px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      opacity: 0.8,
-                      transition: "all 0.1s"
-                    },
-                    onClick: clearAllFilters,
-                    onMouseEnter: (e) => {
-                      e.currentTarget.style.backgroundColor = "var(--vscode-list-hoverBackground)";
-                      e.currentTarget.style.opacity = "1";
-                    },
-                    onMouseLeave: (e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                      e.currentTarget.style.opacity = "0.8";
-                    },
-                    children: "Clear"
-                  }
-                )
-              ]
-            }
-          )
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: { display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }, children: Array.from(selectedStatuses).map((status) => /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
-          "div",
-          {
-            className: `filter-chip ${status}`,
-            style: {
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "6px 12px",
-              borderRadius: "6px",
-              fontSize: "13px",
-              fontWeight: 500,
-              cursor: "default",
-              transition: "all 0.15s"
-            },
-            children: [
-              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: { fontSize: "14px", lineHeight: 1 }, children: getStatusIcon(status) }),
-              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: getStatusLabel(status) }),
-              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-                "span",
-                {
-                  style: {
-                    cursor: "pointer",
-                    opacity: 0.7,
-                    fontSize: "16px",
-                    lineHeight: 1,
-                    padding: "0 0 0 4px",
-                    transition: "opacity 0.15s"
-                  },
-                  onClick: () => removeStatusFilter(status),
-                  onMouseEnter: (e) => e.currentTarget.style.opacity = "1",
-                  onMouseLeave: (e) => e.currentTarget.style.opacity = "0.7",
-                  children: "\u2715"
-                }
-              )
-            ]
-          },
-          status
-        )) }),
-        selectedStatuses.size > 0 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-          "button",
-          {
-            style: {
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "5px 10px",
-              background: "transparent",
-              border: "none",
-              color: "var(--vscode-foreground)",
-              cursor: "pointer",
-              fontSize: "12px",
-              opacity: 0.6,
-              transition: "opacity 0.15s",
-              textDecoration: "underline"
-            },
-            onClick: clearAllFilters,
-            onMouseEnter: (e) => e.currentTarget.style.opacity = "1",
-            onMouseLeave: (e) => e.currentTarget.style.opacity = "0.6",
-            children: "Clear filters"
-          }
-        ),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
-          "button",
-          {
-            style: {
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "5px",
-              padding: "6px 10px",
-              background: "transparent",
-              border: "none",
-              borderRadius: "4px",
-              color: "#58a6ff",
-              cursor: "pointer",
-              fontSize: "13px",
-              fontWeight: 500,
-              transition: "all 0.15s"
-            },
-            onMouseEnter: (e) => e.currentTarget.style.backgroundColor = "rgba(88, 166, 255, 0.1)",
-            onMouseLeave: (e) => e.currentTarget.style.backgroundColor = "transparent",
-            children: [
-              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: { fontSize: "16px", lineHeight: 1 }, children: "+" }),
-              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: "Add Filter" })
-            ]
-          }
-        )
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { id: "task-container", style: { overflow: "hidden" }, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: { marginBottom: "20px" }, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("h1", { style: { color: "#D4A556", fontSize: "24px", margin: 0 }, children: "Cairn Issues" }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+        StatusFilter_default,
+        {
+          selectedStatuses,
+          onStatusChange: setSelectedStatuses
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { id: "task-container", style: { overflow: "hidden" }, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
         TaskGrid_default,
         {
           taskTree,
@@ -22941,14 +22981,14 @@
   var IssueList_default = IssueList;
 
   // src/components/index.tsx
-  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime6 = __toESM(require_jsx_runtime());
   var App = () => {
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(IssueList_default, {});
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(IssueList_default, {});
   };
   var container = document.getElementById("root");
   if (container) {
     const root = (0, import_client.createRoot)(container);
-    root.render(/* @__PURE__ */ (0, import_jsx_runtime5.jsx)(App, {}));
+    root.render(/* @__PURE__ */ (0, import_jsx_runtime6.jsx)(App, {}));
   }
 })();
 /*! Bundled license information:
