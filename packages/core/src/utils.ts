@@ -246,7 +246,13 @@ export function sanitizeFilePath(filePath: string, allowedExtensions: string[] =
  * For leaf issues: uses acceptance criteria completion, or status-based completion if no criteria.
  * Returns percentage as number (0-100).
  */
-export function calculateCompletionPercentage(issue: Issue, allIssues: Issue[]): number {
+export function calculateCompletionPercentage(issue: Issue, allIssues: Issue[], visited = new Set<string>()): number {
+  if (visited.has(issue.id)) {
+    // Cycle detected, return 0 to break recursion
+    return 0;
+  }
+  visited.add(issue.id);
+
   const subtasks = allIssues.filter(i => i.dependencies?.some(d => d.id === issue.id && d.type === 'parent-child'));
   const hasSubtasks = subtasks.length > 0;
 
@@ -265,13 +271,15 @@ export function calculateCompletionPercentage(issue: Issue, allIssues: Issue[]):
   // Calculate subtask completion average
   if (hasSubtasks) {
     const subtaskCompletions = subtasks
-      .map(st => calculateCompletionPercentage(st, allIssues))
+      .map(st => calculateCompletionPercentage(st, allIssues, visited))
       .filter(cp => cp !== null);
     if (subtaskCompletions.length > 0) {
       const avgSubtaskCompletion = subtaskCompletions.reduce((sum, cp) => sum + cp, 0) / subtaskCompletions.length;
       completionValues.push(avgSubtaskCompletion);
     }
   }
+
+  visited.delete(issue.id);
 
   // If we have completion values, average them
   if (completionValues.length > 0) {
