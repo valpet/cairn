@@ -48,9 +48,11 @@ export class StorageService implements IStorageService {
   async loadIssues(): Promise<Issue[]> {
     const issues = await this.loadIssuesInternal();
 
-    // Calculate completion percentages for all issues
+    // Calculate completion percentages for all issues with a shared visited set to handle circular dependencies
+    const visited = new Set<string>();
     for (const issue of issues) {
-      issue.completion_percentage = calculateCompletionPercentage(issue, issues);
+      issue.completion_percentage = calculateCompletionPercentage(issue, issues, visited);
+      visited.clear(); // Clear after each top-level calculation
     }
 
     return issues;

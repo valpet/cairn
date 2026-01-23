@@ -11,12 +11,37 @@ export const useTaskHierarchy = (filteredTasks: Issue[]) => {
       taskMap.set(task.id, { ...task, children: [] });
     });
 
+    // Function to check if adding parent would create a cycle
+    const wouldCreateCycle = (childId: string, parentId: string): boolean => {
+      const visited = new Set<string>();
+      const stack = [parentId];
+      
+      while (stack.length > 0) {
+        const current = stack.pop()!;
+        if (visited.has(current)) continue;
+        visited.add(current);
+        
+        if (current === childId) return true;
+        
+        const currentTask = taskMap.get(current);
+        if (currentTask) {
+          // Check parent-child dependencies
+          for (const dep of currentTask.dependencies || []) {
+            if (dep.type === 'parent-child') {
+              stack.push(dep.id);
+            }
+          }
+        }
+      }
+      return false;
+    };
+
     filteredTasks.forEach(task => {
       const node = taskMap.get(task.id)!;
 
       // Check for parent-child relationship
       const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
-      if (parentDep) {
+      if (parentDep && !wouldCreateCycle(task.id, parentDep.id)) {
         const parent = taskMap.get(parentDep.id);
         if (parent) {
           parent.children.push(node);
@@ -26,7 +51,7 @@ export const useTaskHierarchy = (filteredTasks: Issue[]) => {
 
       // Check for blocks relationship (task is blocked by another task)
       const blocksDep = (task.dependencies || []).find(dep => dep.type === 'blocks');
-      if (blocksDep && !parentDep) { // Only if not already a child via parent-child
+      if (blocksDep && !parentDep && !wouldCreateCycle(task.id, blocksDep.id)) { // Only if not already a child via parent-child
         const blocker = taskMap.get(blocksDep.id);
         if (blocker) {
           blocker.children.push(node);

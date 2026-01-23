@@ -462,8 +462,11 @@ export function activate(context: vscode.ExtensionContext) {
     // Register command to open task list webview
     context.subscriptions.push(
       vscode.commands.registerCommand('cairn.openTaskList', async () => {
+        console.log('=== cairn.openTaskList command called ===');
         outputChannel.appendLine('=== cairn.openTaskList command called ===');
+        outputChannel.show();
         try {
+          console.log('Creating task list panel...');
           outputChannel.appendLine('Creating task list panel...');
           const panel = vscode.window.createWebviewPanel(
             'cairnTaskList',
@@ -481,6 +484,7 @@ export function activate(context: vscode.ExtensionContext) {
 
           // Handle messages from webview
           const disposable = panel.webview.onDidReceiveMessage(async (message) => {
+            console.log(`=== WEBVIEW MESSAGE RECEIVED ===`, message);
             outputChannel.appendLine(`=== WEBVIEW MESSAGE RECEIVED ===`);
             outputChannel.appendLine(`Message type: ${message.type}`);
             outputChannel.appendLine(`Full message: ${JSON.stringify(message)}`);
@@ -586,6 +590,8 @@ export function activate(context: vscode.ExtensionContext) {
               const issues = await storage.loadIssues();
               outputChannel.appendLine(`Loaded ${issues.length} issues`);
               outputChannel.appendLine(`Issue IDs: ${issues.map(i => i.id).join(', ')}`);
+              
+              // IMPORTANT: Map issues to the format expected by the webview
               const allTasks = issues.map(task => ({
                 id: task.id,
                 title: task.title,
@@ -603,8 +609,10 @@ export function activate(context: vscode.ExtensionContext) {
                   priority: s.priority
                 }))
               }));
+              outputChannel.appendLine(`Mapped to ${allTasks.length} tasks for webview`);
               outputChannel.appendLine(`Sending updateTasks with ${allTasks.length} tasks`);
-              outputChannel.appendLine(`Tasks data: ${JSON.stringify(allTasks.slice(0, 2))}`);
+              outputChannel.appendLine(`First task: ${JSON.stringify(allTasks[0])}`);
+              
               const messageResult = panel.webview.postMessage({
                 type: 'updateTasks',
                 tasks: allTasks

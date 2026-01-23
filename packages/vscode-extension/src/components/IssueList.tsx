@@ -21,6 +21,8 @@ const IssueList: React.FC<IssueListProps> = () => {
     toggleDescription,
   } = useTaskState();
 
+  console.log('IssueList rendering, allTasks:', allTasks.length);
+
   const {
     activeActionDropdown,
     deleteConfirmPopup,
@@ -35,6 +37,8 @@ const IssueList: React.FC<IssueListProps> = () => {
 
   const { filteredTasks } = useTaskFiltering(allTasks, selectedStatuses);
   const { taskTree } = useTaskHierarchy(filteredTasks);
+
+  console.log('IssueList: filteredTasks:', filteredTasks.length, 'taskTree:', taskTree.length);
 
   return (
     <div style={{

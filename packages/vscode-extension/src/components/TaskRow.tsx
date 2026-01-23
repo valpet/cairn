@@ -58,9 +58,14 @@ const computeSubIssueStatus = (subtasks: Issue[]) => {
 // Get all subtasks recursively from children
 const getAllSubtasks = (task: Issue & { children: Issue[] }, allTasks: Issue[]): Issue[] => {
   const subtasks: Issue[] = [];
-  const taskMap = new Map(allTasks.map(t => [t.id, t]));
+  const visited = new Set<string>();
   
   function collectSubtasks(taskId: string) {
+    if (visited.has(taskId)) {
+      return; // Prevent infinite recursion on circular dependencies
+    }
+    visited.add(taskId);
+    
     allTasks.forEach(task => {
       const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
       if (parentDep && parentDep.id === taskId) {
