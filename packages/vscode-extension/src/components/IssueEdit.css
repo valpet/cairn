@@ -1420,3 +1420,68 @@ button.secondary:hover {
   flex-shrink: 0;
   margin-left: auto;
 }
+
+/* Add acceptance criteria input section */
+.add-acceptance-criteria {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--vscode-widget-border);
+}
+
+.acceptance-criteria-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-input-foreground);
+  background-color: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 3px;
+  outline: none;
+  resize: vertical;
+  min-height: 36px;
+}
+
+.acceptance-criteria-input:focus {
+  border-color: var(--vscode-focusBorder);
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.acceptance-criteria-input::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+.add-acceptance-criteria .add-button {
+  padding: 8px 16px;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  font-weight: 500;
+  color: var(--vscode-button-foreground);
+  background-color: var(--vscode-button-background);
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: 3px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.add-acceptance-criteria .add-button:hover:not(:disabled) {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+.add-acceptance-criteria .add-button:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 2px;
+}
+
+.add-acceptance-criteria .add-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+}

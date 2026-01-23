@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import EditableField from './EditableField';
 
 interface AcceptanceCriteria {
@@ -8,7 +8,7 @@ interface AcceptanceCriteria {
 
 interface AcceptanceCriteriaSectionProps {
   acceptanceCriteria: AcceptanceCriteria[];
-  onAdd: () => void;
+  onAdd: (text: string) => void;
   onToggle: (index: number) => void;
   onRemove: (index: number) => void;
   onEdit: (fieldName: string, value: string) => void;
@@ -21,6 +21,22 @@ const AcceptanceCriteriaSection: React.FC<AcceptanceCriteriaSectionProps> = ({
   onRemove,
   onEdit
 }) => {
+  const [newCriteriaText, setNewCriteriaText] = useState('');
+
+  const handleAdd = () => {
+    if (newCriteriaText.trim()) {
+      onAdd(newCriteriaText.trim());
+      setNewCriteriaText('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAdd();
+    }
+  };
+
   return (
     <>
       <div className="acceptance-criteria-list">
@@ -63,9 +79,24 @@ const AcceptanceCriteriaSection: React.FC<AcceptanceCriteriaSectionProps> = ({
           ))
         )}
       </div>
-      <button type="button" className="secondary" onClick={onAdd}>
-        Add Acceptance Criteria
-      </button>
+      <div className="add-acceptance-criteria">
+        <input
+          type="text"
+          className="acceptance-criteria-input"
+          placeholder="Enter acceptance criteria..."
+          value={newCriteriaText}
+          onChange={(e) => setNewCriteriaText(e.target.value)}
+          onKeyPress={handleKeyPress}
+        />
+        <button
+          type="button"
+          className="primary add-button"
+          onClick={handleAdd}
+          disabled={!newCriteriaText.trim()}
+        >
+          Add
+        </button>
+      </div>
     </>
   );
 };

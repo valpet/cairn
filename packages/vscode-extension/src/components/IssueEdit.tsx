@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './IssueEdit.css';
 import EditableField from './EditableField';
 import { UserIcon, AgentIcon } from './Icons';
@@ -11,6 +11,16 @@ import CommentsSection from './CommentsSection';
 import DeleteConfirmation from './DeleteConfirmation';
 import SubtaskSelectionModal from './SubtaskSelectionModal';
 import DependencySelectionModal from './DependencySelectionModal';
+import { useVSCodeMessaging } from './useVSCodeMessaging';
+import {
+  IssueEditIssue,
+  Comment,
+  Subtask,
+  Dependency,
+  AcceptanceCriteria,
+  AvailableItem,
+  IssueEditProps
+} from './types';
 import {
   getTypeIcon,
   getTypeLabel,
@@ -20,97 +30,49 @@ import {
   getStatusLabel,
   computeSubIssueStatus,
   getComputedStatusClass,
-  getStatusDisplayText,
-  showErrorMessage
+  getStatusDisplayText
 } from './utils';
 
-interface Issue {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-  priority: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  closed_at?: string;
-  comments: Comment[];
-  subtasks: Subtask[];
-  dependencies: Dependency[];
-  acceptance_criteria: AcceptanceCriteria[];
-  completion_percentage: number;
-}
-
-interface Comment {
-  author: string;
-  content: string;
-  created_at: string;
-}
-
-interface Subtask {
-  id: string;
-  title: string;
-  type: string;
-  status: string;
-  priority: string;
-  completion_percentage: number;
-}
-
-interface Dependency {
-  id: string;
-  title: string;
-  type: string;
-  status: string;
-  priority: string;
-  direction: 'blocks' | 'blocked_by';
-  completion_percentage: number;
-}
-
-interface AcceptanceCriteria {
-  text: string;
-  completed: boolean;
-}
-
-interface AvailableItem {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-  status: string;
-  priority: string;
-}
-
-interface IssueEditProps {
-  vscode: any;
-}
-
 const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
-  const [issue, setIssue] = useState<Issue | null>(null);
+  const {
+    issue,
+    comments,
+    subtasks,
+    dependencies,
+    acceptanceCriteria,
+    availableSubtasks,
+    availableDependencies,
+    currentCommentAuthor,
+    newComment,
+    subtaskModalOpen,
+    dependencyModalOpen,
+    subtaskSearch,
+    dependencySearch,
+    setComments,
+    setSubtasks,
+    setDependencies,
+    setAcceptanceCriteria,
+    setCurrentCommentAuthor,
+    setNewComment,
+    setSubtaskModalOpen,
+    setDependencyModalOpen,
+    setSubtaskSearch,
+    setDependencySearch,
+    setPreviousStatus,
+  } = useVSCodeMessaging(vscode);
+
   const [currentTitle, setCurrentTitle] = useState('');
   const [currentDescription, setCurrentDescription] = useState('');
   const [currentType, setCurrentType] = useState('task');
   const [currentPriority, setCurrentPriority] = useState('medium');
   const [currentStatus, setCurrentStatus] = useState('open');
-  const [previousStatus, setPreviousStatus] = useState('open');
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [subtasks, setSubtasks] = useState<Subtask[]>([]);
-  const [dependencies, setDependencies] = useState<Dependency[]>([]);
-  const [acceptanceCriteria, setAcceptanceCriteria] = useState<AcceptanceCriteria[]>([]);
-  const [currentCommentAuthor, setCurrentCommentAuthor] = useState('user');
-  const [newComment, setNewComment] = useState('');
 
   // Dropdown states
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   // Modal states
-  const [subtaskModalOpen, setSubtaskModalOpen] = useState(false);
-  const [dependencyModalOpen, setDependencyModalOpen] = useState(false);
-  const [availableSubtasks, setAvailableSubtasks] = useState<AvailableItem[]>([]);
-  const [availableDependencies, setAvailableDependencies] = useState<AvailableItem[]>([]);
   const [selectedSubtaskIds, setSelectedSubtaskIds] = useState<Set<string>>(new Set());
   const [selectedDependencyIds, setSelectedDependencyIds] = useState<Set<string>>(new Set());
-  const [subtaskSearch, setSubtaskSearch] = useState('');
-  const [dependencySearch, setDependencySearch] = useState('');
   const [dependencyDirection, setDependencyDirection] = useState<'blocks' | 'blocked_by'>('blocks');
 
   // Collapsible sections
@@ -130,90 +92,17 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
 
+  // Sync form state when issue loads
   useEffect(() => {
-    // Notify extension that webview is ready
-    vscode.postMessage({ type: 'webviewReady' });
-    vscode.postMessage({ type: 'getGitUser' });
-
-    // Listen for messages from extension
-    const messageHandler = (event: MessageEvent) => {
-      const message = event.data;
-      console.log('Webview received message:', message);
-
-      if (message.type === 'loadTicket') {
-        const ticket = message.ticket;
-        setIssue(ticket);
-        setCurrentTitle(ticket.title || '');
-        setCurrentDescription(ticket.description || '');
-        setCurrentType(ticket.type || 'task');
-        setCurrentPriority(ticket.priority || 'medium');
-        setCurrentStatus(ticket.status || 'open');
-        setPreviousStatus(ticket.status || 'open');
-        setComments(ticket.comments || []);
-        setSubtasks(ticket.subtasks || []);
-        setDependencies(ticket.dependencies || []);
-        setAcceptanceCriteria(ticket.acceptance_criteria || []);
-      } else if (message.type === 'availableSubtasks') {
-        setAvailableSubtasks(message.subtasks);
-        setSubtaskModalOpen(true);
-        setSubtaskSearch('');
-      } else if (message.type === 'availableDependencies') {
-        setAvailableDependencies(message.dependencies);
-        setDependencyModalOpen(true);
-        setDependencySearch('');
-      } else if (message.type === 'commentAdded') {
-        setComments(prev => [...prev, message.comment]);
-        setNewComment('');
-      } else if (message.type === 'gitUserInfo') {
-        let authorName = 'user';
-        if (message.userName) {
-          authorName = message.userName;
-        } else if (message.userEmail) {
-          authorName = message.userEmail;
-        }
-        setCurrentCommentAuthor(authorName);
-      } else if (message.type === 'saveFailed') {
-        // Revert status on save failure
-        setCurrentStatus(previousStatus);
-        showErrorMessage(message.error, message.errorCode);
-      }
-    };
-
-    window.addEventListener('message', messageHandler);
-    return () => window.removeEventListener('message', messageHandler);
-  }, [vscode]);
-
-  const showErrorMessage = (error: string, errorCode?: string) => {
-    let message = error;
-    if (errorCode === 'CANNOT_CLOSE_WITH_OPEN_SUBTASKS') {
-      message = 'Cannot close issue as it has open sub-issues.';
+    if (issue) {
+      setCurrentTitle(issue.title || '');
+      setCurrentDescription(issue.description || '');
+      setCurrentType(issue.type || 'task');
+      setCurrentPriority(issue.priority || 'medium');
+      setCurrentStatus(issue.status || 'open');
+      setPreviousStatus(issue.status || 'open');
     }
-
-    // Create temporary error notification
-    const errorDiv = document.createElement('div');
-    errorDiv.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #f85149;
-      color: white;
-      padding: 12px 16px;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      z-index: 10000;
-      max-width: 400px;
-      font-size: 13px;
-      line-height: 1.4;
-    `;
-    errorDiv.textContent = message;
-    document.body.appendChild(errorDiv);
-
-    setTimeout(() => {
-      if (errorDiv.parentNode) {
-        errorDiv.parentNode.removeChild(errorDiv);
-      }
-    }, 5000);
-  };
+  }, [issue, setPreviousStatus]);
 
   const saveTicket = (overrides?: Partial<{ type: string; priority: string; status: string }>) => {
     if (!issue) return;
@@ -284,8 +173,8 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
     saveTicket();
   };
 
-  const addAcceptanceCriteria = () => {
-    setAcceptanceCriteria(prev => [...prev, { text: 'New acceptance criteria', completed: false }]);
+  const addAcceptanceCriteria = (text: string) => {
+    setAcceptanceCriteria(prev => [...prev, { text, completed: false }]);
     saveTicket();
   };
 
