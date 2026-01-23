@@ -1,11 +1,8 @@
 import React from 'react';
 import './IssueList.css';
-import TreeLinesSVG from './TreeLinesSVG';
-import TaskRow from './TaskRow';
 import TaskGrid from './TaskGrid';
 import StatusFilter from './StatusFilter';
-import { createTypeBadge, createStatusPill, createPriorityPill, isReady, isBlocked, getStatusIcon, getStatusLabel } from './taskUtils';
-import { Issue, IssueListProps } from './types';
+import { IssueListProps } from './types';
 import { useVSCodeMessaging } from './hooks/useVSCodeMessaging';
 import { useTaskState } from './hooks/useTaskState';
 import { useTaskInteractions } from './hooks/useTaskInteractions';
