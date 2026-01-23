@@ -1,5 +1,6 @@
 import React from 'react';
 import { formatDate } from './utils';
+import { ProgressPie } from './Icons';
 
 interface Issue {
   id: string;
@@ -8,6 +9,15 @@ interface Issue {
   updated_at: string;
   closed_at?: string;
   completion_percentage: number;
+  acceptance_criteria?: Array<{
+    text: string;
+    completed: boolean;
+  }>;
+  subtasks?: Array<{
+    id: string;
+    title: string;
+    completion_percentage: number;
+  }>;
 }
 
 interface HeaderSectionProps {
@@ -34,7 +44,11 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({ issue, copyToClipboard })
               <rect x="0" y="0" width="36" height="36" fillOpacity="0" />
             </svg>
           </button>
-          <span className="completion-percentage">[{issue.completion_percentage}%]</span>
+          <ProgressPie 
+            percentage={issue.completion_percentage} 
+            size={16}
+            tooltip={`${issue.completion_percentage}%\n${(issue.acceptance_criteria?.filter(ac => ac.completed).length || 0)} of ${(issue.acceptance_criteria?.length || 0)} acceptance criteria\n${(issue.subtasks?.filter(st => st.completion_percentage === 100).length || 0)} of ${(issue.subtasks?.length || 0)} sub-issues`}
+          />
         </h1>
       </div>
       <div className="header-metadata">

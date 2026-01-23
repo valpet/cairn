@@ -1,5 +1,6 @@
 import React from 'react';
 import { getStatusLabel, getPriorityLabel } from './utils';
+import { ProgressPie } from './Icons';
 
 interface Task {
   id: string;
@@ -55,7 +56,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onEdit, onRemove, copyToClip
               </span>
             </div>
           </div>
-          <span className="completion-percentage">{task.completion_percentage}%</span>
+          <ProgressPie percentage={task.completion_percentage} size={16} tooltip={`${task.completion_percentage}%`} />
           <span className={`subtask-status ${task.status}`}>{getStatusLabel(task.status)}</span>
           <span className={`subtask-priority ${task.priority}`}>{getPriorityLabel(task.priority)}</span>
           <button

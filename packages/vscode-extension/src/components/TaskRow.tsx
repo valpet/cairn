@@ -1,4 +1,5 @@
 import React from 'react';
+import { ProgressPie } from './Icons';
 
 interface Issue {
   id: string;
@@ -8,6 +9,10 @@ interface Issue {
   status: string;
   priority?: string;
   completion_percentage?: number;
+  acceptance_criteria?: Array<{
+    text: string;
+    completed: boolean;
+  }>;
   dependencies?: Array<{
     id: string;
     type: string;
@@ -282,13 +287,21 @@ const TaskRow: React.FC<TaskRowProps> = ({
 
         {/* Completion cell */}
         <td style={{ padding: '12px 16px', textAlign: 'center', verticalAlign: 'top' }}>
-          <span style={{
-            fontSize: '13px',
-            color: 'var(--vscode-foreground)',
-            fontWeight: 500
-          }}>
-            {task.completion_percentage !== undefined ? `${task.completion_percentage}%` : '—'}
-          </span>
+          {task.completion_percentage !== undefined ? (
+            <ProgressPie 
+              percentage={task.completion_percentage} 
+              size={16}
+              tooltip={`${task.completion_percentage}%\n${(task.acceptance_criteria?.filter(ac => ac.completed).length || 0)} of ${(task.acceptance_criteria?.length || 0)} acceptance criteria\n${subtasks.filter(st => st.status === 'closed').length} of ${subtasks.length} sub-issues`}
+            />
+          ) : (
+            <span style={{
+              fontSize: '13px',
+              color: 'var(--vscode-foreground)',
+              fontWeight: 500
+            }}>
+              —
+            </span>
+          )}
         </td>
 
         {/* Status cell */}

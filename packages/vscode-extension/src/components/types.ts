@@ -6,6 +6,10 @@ export interface Issue {
   status: string;
   priority?: string;
   completion_percentage?: number;
+  acceptance_criteria?: Array<{
+    text: string;
+    completed: boolean;
+  }>;
   dependencies?: Array<{
     id: string;
     type: string;

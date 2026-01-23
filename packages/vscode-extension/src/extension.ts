@@ -600,13 +600,15 @@ export function activate(context: vscode.ExtensionContext) {
                 description: task.description || '',
                 type: task.type || 'task',
                 completion_percentage: task.completion_percentage,
+                acceptance_criteria: task.acceptance_criteria || [],
                 dependencies: task.dependencies || [],
                 subtasks: graph.getEpicSubtasks(task.id, issues).map(s => ({
                   id: s.id,
                   title: s.title,
                   type: s.type,
                   status: s.status,
-                  priority: s.priority
+                  priority: s.priority,
+                  completion_percentage: s.completion_percentage
                 }))
               }));
               outputChannel.appendLine(`Mapped to ${allTasks.length} tasks for webview`);
