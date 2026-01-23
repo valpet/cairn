@@ -156,40 +156,104 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
   };
 
   const handleFieldEdit = (fieldName: string, value: string) => {
+    let updatedTitle = currentTitle;
+    let updatedDescription = currentDescription;
+    let updatedCommentAuthor = currentCommentAuthor;
+    let updatedAcceptanceCriteria = acceptanceCriteria;
+
     if (fieldName === 'title') {
+      updatedTitle = value;
       setCurrentTitle(value);
     } else if (fieldName === 'description') {
+      updatedDescription = value;
       setCurrentDescription(value);
     } else if (fieldName === 'commentAuthor') {
+      updatedCommentAuthor = value || 'user';
       setCurrentCommentAuthor(value || 'user');
     } else if (fieldName.startsWith('acceptance-criteria-')) {
       const index = parseInt(fieldName.split('-')[2]);
-      setAcceptanceCriteria(prev => {
-        const newCriteria = [...prev];
-        newCriteria[index].text = value;
-        return newCriteria;
-      });
+      updatedAcceptanceCriteria = acceptanceCriteria.map((criteria, i) =>
+        i === index ? { ...criteria, text: value } : criteria
+      );
+      setAcceptanceCriteria(updatedAcceptanceCriteria);
     }
-    saveTicket();
+
+    // Save with the updated values
+    const ticket = {
+      id: issue!.id,
+      title: updatedTitle,
+      description: updatedDescription,
+      comments,
+      type: currentType,
+      priority: currentPriority,
+      status: currentStatus,
+      subtasks,
+      dependencies,
+      acceptance_criteria: updatedAcceptanceCriteria,
+    };
+    vscode.postMessage({ type: 'saveTicket', ticket });
   };
 
   const addAcceptanceCriteria = (text: string) => {
-    setAcceptanceCriteria(prev => [...prev, { text, completed: false }]);
-    saveTicket();
+    const updatedCriteria = [...acceptanceCriteria, { text, completed: false }];
+    setAcceptanceCriteria(updatedCriteria);
+
+    // Save with the updated acceptance criteria
+    const ticket = {
+      id: issue!.id,
+      title: currentTitle,
+      description: currentDescription,
+      comments,
+      type: currentType,
+      priority: currentPriority,
+      status: currentStatus,
+      subtasks,
+      dependencies,
+      acceptance_criteria: updatedCriteria,
+    };
+    vscode.postMessage({ type: 'saveTicket', ticket });
   };
 
   const toggleAcceptanceCriteria = (index: number) => {
-    setAcceptanceCriteria(prev => {
-      const newCriteria = [...prev];
-      newCriteria[index].completed = !newCriteria[index].completed;
-      return newCriteria;
-    });
-    saveTicket();
+    const updatedCriteria = acceptanceCriteria.map((criteria, i) =>
+      i === index ? { ...criteria, completed: !criteria.completed } : criteria
+    );
+    setAcceptanceCriteria(updatedCriteria);
+
+    // Save with the updated acceptance criteria
+    const ticket = {
+      id: issue!.id,
+      title: currentTitle,
+      description: currentDescription,
+      comments,
+      type: currentType,
+      priority: currentPriority,
+      status: currentStatus,
+      subtasks,
+      dependencies,
+      acceptance_criteria: updatedCriteria,
+    };
+    vscode.postMessage({ type: 'saveTicket', ticket });
   };
 
   const removeAcceptanceCriteria = (index: number) => {
-    setAcceptanceCriteria(prev => prev.filter((_, i) => i !== index));
-    saveTicket();
+    const updatedCriteria = acceptanceCriteria.filter((_, i) => i !== index);
+    setAcceptanceCriteria(updatedCriteria);
+
+    // Save with the updated acceptance criteria
+    const ticket = {
+      id: issue!.id,
+      title: currentTitle,
+      description: currentDescription,
+      comments,
+      type: currentType,
+      priority: currentPriority,
+      status: currentStatus,
+      subtasks,
+      dependencies,
+      acceptance_criteria: updatedCriteria,
+    };
+    vscode.postMessage({ type: 'saveTicket', ticket });
   };
 
   const addComment = () => {
