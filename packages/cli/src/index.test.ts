@@ -106,6 +106,7 @@ describe('CLI Commands', () => {
       getEpicSubtasks: vi.fn(),
       calculateEpicProgress: vi.fn(),
       shouldCloseEpic: vi.fn(),
+      canCloseIssue: vi.fn(),
     };
     mockCompaction = {
       compactIssues: vi.fn(),
@@ -305,6 +306,7 @@ describe('CLI Commands', () => {
     it('should update multiple fields', async () => {
       const mockIssues = [{ id: 'issue-456', title: 'Test Issue', status: 'open' }];
       mockStorage.loadIssues.mockReturnValue(mockIssues);
+      mockGraph.canCloseIssue.mockReturnValue({ canClose: true });
 
       await importCLI();
 
@@ -317,6 +319,139 @@ describe('CLI Commands', () => {
         labels: 'bug,urgent'
       });
 
+      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('issue-456', mockIssues);
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+    });
+
+    it('should prevent closing issue with open subtasks', async () => {
+      const mockIssues = [
+        { id: 'parent-123', title: 'Parent Issue', status: 'open' },
+        { id: 'sub-1', title: 'Open Subtask', status: 'open' }
+      ];
+      mockStorage.loadIssues.mockReturnValue(mockIssues);
+      mockGraph.canCloseIssue.mockReturnValue({
+        canClose: false,
+        openSubtasks: [{ id: 'sub-1', title: 'Open Subtask', status: 'open' }],
+        reason: 'has 1 open subtask(s)'
+      });
+
+      await importCLI();
+
+      const updateCmd = commanderCommands.get('update <id>');
+      const updateAction = updateCmd?._action;
+
+      await expect(async () => {
+        await updateAction('parent-123', { status: 'closed' });
+      }).rejects.toThrow('process.exit called');
+
+      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('parent-123', mockIssues);
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        expect.stringContaining('Cannot close issue parent-123 because it has 1 open subtask(s)')
+      );
+      expect(mockProcessExit).toHaveBeenCalledWith(1);
+      expect(mockStorage.updateIssues).not.toHaveBeenCalled();
+    });
+
+    it('should prevent closing issue with incomplete acceptance criteria', async () => {
+      const mockIssues = [
+        {
+          id: 'task-789',
+          title: 'Task with AC',
+          status: 'open',
+          acceptance_criteria: [
+            { text: 'AC 1', completed: true },
+            { text: 'AC 2', completed: false }
+          ]
+        }
+      ];
+      mockStorage.loadIssues.mockReturnValue(mockIssues);
+      mockGraph.canCloseIssue.mockReturnValue({
+        canClose: false,
+        openSubtasks: undefined,
+        reason: 'has 1 incomplete acceptance criteria'
+      });
+
+      await importCLI();
+
+      const updateCmd = commanderCommands.get('update <id>');
+      const updateAction = updateCmd?._action;
+
+      await expect(async () => {
+        await updateAction('task-789', { status: 'closed' });
+      }).rejects.toThrow('process.exit called');
+
+      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('task-789', mockIssues);
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        expect.stringContaining('Cannot close issue task-789 because it has 1 incomplete acceptance criteria')
+      );
+      expect(mockProcessExit).toHaveBeenCalledWith(1);
+      expect(mockStorage.updateIssues).not.toHaveBeenCalled();
+    });
+
+    it('should allow closing issue when all requirements are met', async () => {
+      const mockIssues = [
+        {
+          id: 'task-complete',
+          title: 'Complete Task',
+          status: 'open',
+          acceptance_criteria: [
+            { text: 'AC 1', completed: true },
+            { text: 'AC 2', completed: true }
+          ]
+        }
+      ];
+      mockStorage.loadIssues.mockReturnValue(mockIssues);
+      mockGraph.canCloseIssue.mockReturnValue({ canClose: true });
+
+      await importCLI();
+
+      const updateCmd = commanderCommands.get('update <id>');
+      const updateAction = updateCmd?._action;
+
+      await updateAction('task-complete', { status: 'closed' });
+
+      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('task-complete', mockIssues);
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockConsoleError).not.toHaveBeenCalled();
+      expect(mockProcessExit).not.toHaveBeenCalled();
+    });
+
+    it('should not validate when issue is already closed', async () => {
+      const mockIssues = [
+        {
+          id: 'already-closed',
+          title: 'Closed Task',
+          status: 'closed',
+          closed_at: '2023-01-01T00:00:00Z'
+        }
+      ];
+      mockStorage.loadIssues.mockReturnValue(mockIssues);
+
+      await importCLI();
+
+      const updateCmd = commanderCommands.get('update <id>');
+      const updateAction = updateCmd?._action;
+
+      await updateAction('already-closed', { status: 'closed' });
+
+      expect(mockGraph.canCloseIssue).not.toHaveBeenCalled();
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+    });
+
+    it('should allow updating other fields without validation when not changing to closed', async () => {
+      const mockIssues = [
+        { id: 'task-xyz', title: 'Some Task', status: 'in_progress' }
+      ];
+      mockStorage.loadIssues.mockReturnValue(mockIssues);
+
+      await importCLI();
+
+      const updateCmd = commanderCommands.get('update <id>');
+      const updateAction = updateCmd?._action;
+
+      await updateAction('task-xyz', { title: 'Updated Title', priority: 'high' });
+
+      expect(mockGraph.canCloseIssue).not.toHaveBeenCalled();
       expect(mockStorage.updateIssues).toHaveBeenCalled();
     });
   });

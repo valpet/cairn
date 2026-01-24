@@ -43,7 +43,7 @@ export function generateId(issues: { id: string }[]): string {
  * Type guard to check if a value is a valid IssueStatus
  */
 export function isValidIssueStatus(status: any): status is IssueStatus {
-  return typeof status === 'string' && ['open', 'in_progress', 'closed', 'blocked'].includes(status);
+  return typeof status === 'string' && ['open', 'in_progress', 'closed'].includes(status);
 }
 
 /**
@@ -64,7 +64,7 @@ export function isValidIssueType(type: any): type is IssueType {
  * Type guard to check if a value is a valid DependencyType
  */
 export function isValidDependencyType(type: any): type is DependencyType {
-  return typeof type === 'string' && ['blocks', 'related', 'parent-child', 'discovered-from'].includes(type);
+  return typeof type === 'string' && ['blocked_by', 'blocks', 'related', 'parent-child', 'discovered-from'].includes(type);
 }
 
 /**
@@ -246,43 +246,44 @@ export function sanitizeFilePath(filePath: string, allowedExtensions: string[] =
  * For leaf issues: uses acceptance criteria completion, or status-based completion if no criteria.
  * Returns percentage as number (0-100).
  */
-export function calculateCompletionPercentage(issue: Issue, allIssues: Issue[]): number {
+export function calculateCompletionPercentage(issue: Issue, allIssues: Issue[], visited = new Set<string>()): number {
+  // If issue is closed, it's 100% complete regardless of acceptance criteria or subtasks
+  if (issue.status === 'closed') {
+    return 100;
+  }
+
+  if (visited.has(issue.id)) {
+    // Cycle detected, return 0 to break recursion
+    return 0;
+  }
+  visited.add(issue.id);
+
   const subtasks = allIssues.filter(i => i.dependencies?.some(d => d.id === issue.id && d.type === 'parent-child'));
   const hasSubtasks = subtasks.length > 0;
 
+  // Calculate own completion
+  const acCompleted = issue.acceptance_criteria?.filter(ac => ac.completed).length || 0;
   const acTotal = issue.acceptance_criteria?.length || 0;
-  const hasAcceptanceCriteria = acTotal > 0;
-
-  let completionValues: number[] = [];
-
-  // Calculate own acceptance criteria completion
-  if (hasAcceptanceCriteria) {
-    const acCompleted = issue.acceptance_criteria!.filter(ac => ac.completed).length;
-    const acCompletion = acTotal > 0 ? (acCompleted / acTotal) * 100 : 0;
-    completionValues.push(acCompletion);
+  let ownCompletion: number;
+  if (acTotal > 0) {
+    ownCompletion = (acCompleted / acTotal) * 100;
+  } else {
+    ownCompletion = 0; // Only open/in_progress issues reach here
   }
 
   // Calculate subtask completion average
   if (hasSubtasks) {
     const subtaskCompletions = subtasks
-      .map(st => calculateCompletionPercentage(st, allIssues))
+      .map(st => calculateCompletionPercentage(st, allIssues, visited))
       .filter(cp => cp !== null);
     if (subtaskCompletions.length > 0) {
       const avgSubtaskCompletion = subtaskCompletions.reduce((sum, cp) => sum + cp, 0) / subtaskCompletions.length;
-      completionValues.push(avgSubtaskCompletion);
+      const average = (ownCompletion + avgSubtaskCompletion) / 2;
+      visited.delete(issue.id);
+      return Math.round(average);
     }
   }
 
-  // If we have completion values, average them
-  if (completionValues.length > 0) {
-    const average = completionValues.reduce((sum, val) => sum + val, 0) / completionValues.length;
-    return Math.round(average);
-  }
-
-  // Leaf issue with no acceptance criteria: use status
-  if (issue.status === 'closed') {
-    return 100;
-  } else {
-    return 0;
-  }
+  visited.delete(issue.id);
+  return Math.round(ownCompletion);
 }

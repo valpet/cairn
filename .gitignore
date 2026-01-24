@@ -5,3 +5,4 @@ coverage/
 # .cairn/  # Uncomment for stealth mode
 .npmrc
 packages/vscode-extension/cairn-extension-*.vsix
+packages/vscode-extension/media/

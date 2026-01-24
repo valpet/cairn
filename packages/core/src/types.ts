@@ -29,7 +29,7 @@ export interface Comment {
   created_at: string;
 }
 
-export type IssueStatus = 'open' | 'in_progress' | 'closed' | 'blocked';
+export type IssueStatus = 'open' | 'in_progress' | 'closed';
 
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
@@ -40,7 +40,10 @@ export interface Dependency {
   type: DependencyType;
 }
 
-export type DependencyType = 'blocks' | 'related' | 'parent-child' | 'discovered-from';
+// Stored dependency types: only 'blocked_by' for blocking relationships.
+// 'blocks' is supported for backward compatibility during migration and
+// may appear in legacy data, but new writes should use 'blocked_by' only.
+export type DependencyType = 'blocked_by' | 'blocks' | 'related' | 'parent-child' | 'discovered-from';
 
 export interface CairnConfig {
   cairnDir: string;

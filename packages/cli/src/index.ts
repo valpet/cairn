@@ -227,12 +227,35 @@ program
   .option('-l, --labels <labels>', 'Labels (comma-separated)')
   .option('-c, --acceptance-criteria <criteria>', 'Add acceptance criteria (comma-separated for multiple)')
   .action(async (id: string, options) => {
-    const { storage } = setupServices();
+    const { storage, graph } = setupServices();
     const issues = await storage.loadIssues();
     const issue = issues.find(i => i.id === id);
     if (!issue) {
       console.error(`Issue ${id} not found`);
       return;
+    }
+
+    // Validate before closing issue
+    if (options.status === 'closed' && issue.status !== 'closed') {
+      const validation = graph.canCloseIssue(id, issues);
+      if (!validation.canClose) {
+        // Build detailed error message
+        let errorMsg = `Cannot close issue ${id}`;
+        if (validation.reason) {
+          errorMsg += ` because it ${validation.reason}`;
+        }
+        if (validation.completionPercentage !== undefined) {
+          errorMsg += ` (currently ${validation.completionPercentage}% complete)`;
+        }
+        if (validation.openSubtasks && validation.openSubtasks.length > 0) {
+          const subtaskList = validation.openSubtasks.map(s => `${s.id} (${s.status})`).join(', ');
+          errorMsg += `\nOpen subtasks: ${subtaskList}`;
+        }
+        errorMsg += '.\nPlease complete all requirements before closing.';
+        
+        console.error(errorMsg);
+        process.exit(1);
+      }
     }
 
     // Handle acceptance criteria

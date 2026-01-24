@@ -387,11 +387,41 @@ src/extension.ts          # Main extension entry point
 ├── Webview Management    # Panel creation and messaging
 └── Service Integration   # Core library usage
 
-media/
-├── index.html           # Task list interface
-├── edit.html            # Ticket editor interface
-└── styles/              # Shared CSS
+src/components/           # React components for webviews
+├── IssueList.tsx         # Main task list component
+├── IssueEdit.tsx         # Ticket editor component
+├── TaskGrid.tsx          # Task display grid
+├── AcceptanceCriteriaSection.tsx  # AC management
+├── CommentsSection.tsx   # Comment system
+├── hooks/                # React hooks for state management
+└── utils.ts              # Shared utilities
+
+assets/                   # Static assets
+└── cairn-icon.png        # Extension icon
 ```
+
+## React Components
+
+The extension uses React for building interactive webview interfaces. Key components include:
+
+### Core Components
+
+- **IssueList**: Main task list with filtering, sorting, and hierarchy display
+- **IssueEdit**: Full-featured ticket editor with metadata, dependencies, and comments
+- **TaskGrid**: Efficient grid layout for task display with virtual scrolling
+- **AcceptanceCriteriaSection**: Interactive acceptance criteria management
+- **CommentsSection**: Comment thread with real-time updates
+
+### Hooks and Utilities
+
+- **useTaskState**: Manages task data and synchronization
+- **useTaskHierarchy**: Handles parent-child relationships and tree structure
+- **useTaskInteractions**: Manages user interactions and state updates
+- **useVSCodeMessaging**: Handles communication with the VS Code extension host
+
+### State Management
+
+The extension uses React hooks for local state management, with data synchronized through VS Code's webview messaging API. Changes are persisted to the `issues.jsonl` file via the extension host.
 
 ## Development
 

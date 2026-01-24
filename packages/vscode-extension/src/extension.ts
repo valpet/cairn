@@ -116,14 +116,26 @@ class CairnUpdateTool implements vscode.LanguageModelTool<any> {
 
         if (!validation.canClose) {
           const currentIssue = issues.find(i => i.id === inputs.id);
-          const subtaskList = validation.openSubtasks!.map(subtask =>
-            `- ${subtask.title} (${subtask.id}) - ${subtask.status}`
-          ).join('\n');
+          let errorMsg = `Cannot close issue "${currentIssue?.title || inputs.id}" (${inputs.id})`;
+          
+          if (validation.reason) {
+            errorMsg += ` because it ${validation.reason}`;
+          }
+          if (validation.completionPercentage !== undefined) {
+            errorMsg += ` (currently ${validation.completionPercentage}% complete)`;
+          }
+          if (validation.openSubtasks && validation.openSubtasks.length > 0) {
+            const subtaskList = validation.openSubtasks.map(subtask =>
+              `- ${subtask.title} (${subtask.id}) - ${subtask.status}`
+            ).join('\n');
+            errorMsg += `:\n${subtaskList}`;
+          }
+          errorMsg += '.\n\nPlease complete all requirements before closing this issue.';
 
           return new vscode.LanguageModelToolResult([
             new vscode.LanguageModelTextPart(JSON.stringify({
               success: false,
-              message: `Cannot close issue "${currentIssue?.title || inputs.id}" (${inputs.id}) because it has ${validation.openSubtasks!.length} open subtask(s):\n${subtaskList}\n\nPlease close all subtasks before closing this issue.`
+              message: errorMsg
             }))
           ]);
         }
@@ -462,8 +474,11 @@ export function activate(context: vscode.ExtensionContext) {
     // Register command to open task list webview
     context.subscriptions.push(
       vscode.commands.registerCommand('cairn.openTaskList', async () => {
+        console.log('=== cairn.openTaskList command called ===');
         outputChannel.appendLine('=== cairn.openTaskList command called ===');
+        outputChannel.show();
         try {
+          console.log('Creating task list panel...');
           outputChannel.appendLine('Creating task list panel...');
           const panel = vscode.window.createWebviewPanel(
             'cairnTaskList',
@@ -481,6 +496,7 @@ export function activate(context: vscode.ExtensionContext) {
 
           // Handle messages from webview
           const disposable = panel.webview.onDidReceiveMessage(async (message) => {
+            console.log(`=== WEBVIEW MESSAGE RECEIVED ===`, message);
             outputChannel.appendLine(`=== WEBVIEW MESSAGE RECEIVED ===`);
             outputChannel.appendLine(`Message type: ${message.type}`);
             outputChannel.appendLine(`Full message: ${JSON.stringify(message)}`);
@@ -506,13 +522,17 @@ export function activate(context: vscode.ExtensionContext) {
                 const validation = graph.canCloseIssue(message.id, issues);
 
                 if (!validation.canClose) {
-                  const reason = validation.openSubtasks && validation.openSubtasks.length > 0
-                    ? `it has ${validation.openSubtasks.length} open subtask(s)`
-                    : 'it is not 100% complete (check acceptance criteria)';
+                  let errorMsg = `Cannot close task "${message.id}"`;
+                  
+                  if (validation.reason) {
+                    errorMsg += ` because it ${validation.reason}`;
+                  }
+                  if (validation.completionPercentage !== undefined) {
+                    errorMsg += ` (currently ${validation.completionPercentage}% complete)`;
+                  }
+                  errorMsg += '. Please complete all requirements before closing this task.';
 
-                  vscode.window.showErrorMessage(
-                    `Cannot close task "${message.id}" because ${reason}. Please complete all requirements before closing this task.`
-                  );
+                  vscode.window.showErrorMessage(errorMsg);
                   return;
                 }
 
@@ -557,20 +577,24 @@ export function activate(context: vscode.ExtensionContext) {
           });
           context.subscriptions.push(disposable);
 
-          // Load HTML
-          outputChannel.appendLine('Loading HTML...');
-          const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'index.html'));
-          outputChannel.appendLine(`HTML path: ${htmlPath.fsPath}`);
-          if (fs.existsSync(htmlPath.fsPath)) {
-            const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
-            outputChannel.appendLine(`HTML content length: ${htmlContent.length} characters`);
-            outputChannel.appendLine(`HTML starts with: ${htmlContent.substring(0, 100)}`);
-            panel.webview.html = htmlContent;
-            outputChannel.appendLine('HTML loaded successfully');
-          } else {
-            outputChannel.appendLine(`ERROR: HTML file not found: ${htmlPath.fsPath}`);
-            panel.webview.html = '<html><body><h1>HTML file not found</h1></body></html>';
-          }
+          // Generate HTML programmatically
+          const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'index.js')));
+          const cssUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'index.css')));
+          const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${panel.webview.cspSource}; style-src ${panel.webview.cspSource};">
+  <title>Cairn Task List</title>
+  <link rel="stylesheet" href="${cssUri}">
+</head>
+<body>
+  <div id="root"></div>
+  <script src="${scriptUri}"></script>
+</body>
+</html>`;
+          panel.webview.html = htmlContent;
 
           // Function to update tasks
           const updateTasks = async () => {
@@ -583,6 +607,8 @@ export function activate(context: vscode.ExtensionContext) {
               const issues = await storage.loadIssues();
               outputChannel.appendLine(`Loaded ${issues.length} issues`);
               outputChannel.appendLine(`Issue IDs: ${issues.map(i => i.id).join(', ')}`);
+              
+              // IMPORTANT: Map issues to the format expected by the webview
               const allTasks = issues.map(task => ({
                 id: task.id,
                 title: task.title,
@@ -591,17 +617,21 @@ export function activate(context: vscode.ExtensionContext) {
                 description: task.description || '',
                 type: task.type || 'task',
                 completion_percentage: task.completion_percentage,
+                acceptance_criteria: task.acceptance_criteria || [],
                 dependencies: task.dependencies || [],
                 subtasks: graph.getEpicSubtasks(task.id, issues).map(s => ({
                   id: s.id,
                   title: s.title,
                   type: s.type,
                   status: s.status,
-                  priority: s.priority
+                  priority: s.priority,
+                  completion_percentage: s.completion_percentage
                 }))
               }));
+              outputChannel.appendLine(`Mapped to ${allTasks.length} tasks for webview`);
               outputChannel.appendLine(`Sending updateTasks with ${allTasks.length} tasks`);
-              outputChannel.appendLine(`Tasks data: ${JSON.stringify(allTasks.slice(0, 2))}`);
+              outputChannel.appendLine(`First task: ${JSON.stringify(allTasks[0])}`);
+              
               const messageResult = panel.webview.postMessage({
                 type: 'updateTasks',
                 tasks: allTasks
@@ -663,15 +693,23 @@ export function activate(context: vscode.ExtensionContext) {
           let webviewReady = false;
           let saveQueue = Promise.resolve();
 
-          // Load HTML
-          const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'edit.html'));
-          if (fs.existsSync(htmlPath.fsPath)) {
-            const htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf-8');
-            panel.webview.html = htmlContent;
-          } else {
-            outputChannel.appendLine(`Edit HTML file not found: ${htmlPath.fsPath}`);
-            panel.webview.html = '<html><body><h1>Edit HTML file not found</h1></body></html>';
-          }
+          // Generate HTML programmatically
+          const scriptUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'edit.js')));
+          const cssUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'edit.css')));
+          const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Issue</title>
+  <link rel="stylesheet" href="${cssUri}">
+</head>
+<body>
+  <div id="root"></div>
+  <script src="${scriptUri}"></script>
+</body>
+</html>`;
+          panel.webview.html = htmlContent;
 
           // Load ticket data
           const loadTicket = async (ticketId: string) => {
@@ -719,7 +757,8 @@ export function activate(context: vscode.ExtensionContext) {
               // Get dependencies
               const dependencies: any[] = [];
               if (ticket) {
-                const blockerDeps = ticket.dependencies?.filter((d: any) => d.type === 'blocks') || [];
+                // Get issues that block this issue (blocked_by stored)
+                const blockerDeps = ticket.dependencies?.filter((d: any) => d.type === 'blocked_by' || d.type === 'blocks') || [];
                 for (const dep of blockerDeps) {
                   const blocker = issues.find(i => i.id === dep.id);
                   if (blocker) {
@@ -729,12 +768,16 @@ export function activate(context: vscode.ExtensionContext) {
                       type: blocker.type,
                       status: blocker.status,
                       priority: blocker.priority,
-                      direction: 'blocks',
+                      direction: 'blocked_by', // This issue is blocked by these
                       completion_percentage: blocker.completion_percentage
                     });
                   }
                 }
-                const blockedByIssues = issues.filter(i => i.dependencies?.some((d: any) => d.id === ticketId && d.type === 'blocks'));
+                
+                // Get issues that this issue blocks (blocking) - COMPUTED from other issues' 'blocked_by' dependencies
+                const blockedByIssues = issues.filter(i => 
+                  i.dependencies?.some((d: any) => d.id === ticketId && (d.type === 'blocked_by' || d.type === 'blocks'))
+                );
                 for (const blocked of blockedByIssues) {
                   dependencies.push({
                     id: blocked.id,
@@ -742,7 +785,7 @@ export function activate(context: vscode.ExtensionContext) {
                     type: blocked.type,
                     status: blocked.status,
                     priority: blocked.priority,
-                    direction: 'blocked_by',
+                    direction: 'blocks', // This issue blocks these
                     completion_percentage: blocked.completion_percentage
                   });
                 }
@@ -794,13 +837,18 @@ export function activate(context: vscode.ExtensionContext) {
                 const issues = await storage.loadIssues();
                 const availableSubtasks = graph.getNonParentedIssues(issues)
                   .filter(issue => issue.id !== pendingTicketId)
+                  .filter(issue => {
+                    // Check if adding this as a subtask would create a circular dependency
+                    return !graph.wouldCreateCycle(issue.id, pendingTicketId, 'parent-child', issues);
+                  })
                   .map(issue => ({
                     id: issue.id,
                     title: issue.title,
                     type: issue.type,
                     status: issue.status,
                     priority: issue.priority,
-                    description: issue.description || ''
+                    description: issue.description || '',
+                    wouldCreateCycle: false // All remaining items are safe
                   }));
                 panel.webview.postMessage({
                   type: 'availableSubtasks',
@@ -813,14 +861,26 @@ export function activate(context: vscode.ExtensionContext) {
                   .filter(issue => issue.id !== pendingTicketId)
                   .filter(issue => !graph.getEpicSubtasks(pendingTicketId, issues).some(s => s.id === issue.id))
                   .filter(issue => !issue.dependencies?.some((d: any) => d.type === 'parent-child' && (d.from === pendingTicketId || d.to === pendingTicketId)))
-                  .map(issue => ({
-                    id: issue.id,
-                    title: issue.title,
-                    type: issue.type,
-                    status: issue.status,
-                    priority: issue.priority,
-                    description: issue.description || ''
-                  }));
+                  .map(issue => {
+                    // Check if adding this as a dependency would create a circular dependency
+                    let wouldCreateCycle = false;
+                    try {
+                      // For blocked_by dependencies, we need to check cycles
+                      // This is a simplified check - we'll mark items that would create cycles
+                      graph.addDependency(pendingTicketId, issue.id, 'blocked_by', issues);
+                    } catch (error) {
+                      wouldCreateCycle = true;
+                    }
+                    return {
+                      id: issue.id,
+                      title: issue.title,
+                      type: issue.type,
+                      status: issue.status,
+                      priority: issue.priority,
+                      description: issue.description || '',
+                      wouldCreateCycle
+                    };
+                  });
                 panel.webview.postMessage({
                   type: 'availableDependencies',
                   dependencies: availableDependencies
@@ -859,14 +919,18 @@ export function activate(context: vscode.ExtensionContext) {
                             errorCode: 'CANNOT_CLOSE_INCOMPLETE'
                           });
 
-                          const reason = validation.openSubtasks && validation.openSubtasks.length > 0
-                            ? `it has ${validation.openSubtasks.length} open subtask(s)`
-                            : 'it is not 100% complete (check acceptance criteria)';
-
                           const currentIssue = updatedIssues.find(i => i.id === ticketData.id);
-                          vscode.window.showErrorMessage(
-                            `Cannot close issue "${currentIssue?.title || ticketData.id}" (${ticketData.id}) because ${reason}. Please complete all requirements before closing this issue.`
-                          );
+                          let errorMsg = `Cannot close issue "${currentIssue?.title || ticketData.id}" (${ticketData.id})`;
+                          
+                          if (validation.reason) {
+                            errorMsg += ` because it ${validation.reason}`;
+                          }
+                          if (validation.completionPercentage !== undefined) {
+                            errorMsg += ` (currently ${validation.completionPercentage}% complete)`;
+                          }
+                          errorMsg += '. Please complete all requirements before closing this issue.';
+
+                          vscode.window.showErrorMessage(errorMsg);
                           return; // Don't save the ticket
                         }
                       }
@@ -920,32 +984,26 @@ export function activate(context: vscode.ExtensionContext) {
 
                       // Handle dependencies
                       if (originalIssue) {
-                        const currentBlockers = originalIssue.dependencies?.filter((d: any) => d.type === 'blocks').map((d: any) => d.id) || [];
-                        const newBlockers = ticketData.dependencies.filter((d: any) => d.direction === 'blocks').map((d: any) => d.id);
-                        const currentBlockedBy = updatedIssues.filter((i: any) => i.dependencies?.some((d: any) => d.id === ticketData.id && d.type === 'blocks')).map((i: any) => i.id);
-                        const newBlockedBy = ticketData.dependencies.filter((d: any) => d.direction === 'blocked_by').map((d: any) => d.id);
+                        // Get current blockers (what blocks this issue)
+                        const currentBlockers = originalIssue.dependencies?.filter((d: any) => d.type === 'blocked_by' || d.type === 'blocks').map((d: any) => d.id) || [];
+                        // Get new blockers from UI (only 'blocked_by' direction is stored)
+                        const newBlockers = ticketData.dependencies.filter((d: any) => d.direction === 'blocked_by').map((d: any) => d.id);
+                        
+                        // Note: We ignore 'blocks' direction from UI since that's computed
+                        // The 'blocks' list in the UI shows issues that this one blocks,
+                        // but we never modify those relationships from this issue's save
 
+                        // Remove blockers that were deleted
                         for (const blockerId of currentBlockers) {
                           if (!newBlockers.includes(blockerId)) {
                             updatedIssues = graph.removeDependency(ticketData.id, blockerId, updatedIssues);
                           }
                         }
 
+                        // Add new blockers
                         for (const blockerId of newBlockers) {
                           if (!currentBlockers.includes(blockerId)) {
-                            updatedIssues = graph.addDependency(ticketData.id, blockerId, 'blocks', updatedIssues);
-                          }
-                        }
-
-                        for (const blockedId of currentBlockedBy) {
-                          if (!newBlockedBy.includes(blockedId)) {
-                            updatedIssues = graph.removeDependency(blockedId, ticketData.id, updatedIssues);
-                          }
-                        }
-
-                        for (const blockedId of newBlockedBy) {
-                          if (!currentBlockedBy.includes(blockedId)) {
-                            updatedIssues = graph.addDependency(blockedId, ticketData.id, 'blocks', updatedIssues);
+                            updatedIssues = graph.addDependency(ticketData.id, blockerId, 'blocked_by', updatedIssues);
                           }
                         }
                       }

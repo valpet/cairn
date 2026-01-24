@@ -35,10 +35,10 @@
     "theme": "dark"
   },
   "preview": true,
-  "icon": "media/cairn-icon.png",
+  "icon": "assets/cairn-icon.png",
   "main": "dist/src/extension.js",
   "scripts": {
-    "build": "esbuild src/extension.ts --bundle --outfile=dist/src/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "build": "node scripts/build.js",
     "dev-setup": "cd ../core && npm link && cd ../vscode-extension && npm link @valpet/cairn-core",
     "prepackage": "node -e \"const fs = require('fs'); const path = require('path'); const srcDir = path.join(__dirname, '../core/dist'); const destDir = path.join(__dirname, 'node_modules/@cairn/core'); if (!fs.existsSync(path.dirname(destDir))) fs.mkdirSync(path.dirname(destDir), { recursive: true }); fs.cpSync(srcDir, destDir, { recursive: true }); fs.copyFileSync(path.join(__dirname, '../core/package.json'), path.join(destDir, 'package.json')); console.log('Copied core package to node_modules');\"",
     "package": "npx vsce package",
@@ -439,6 +439,8 @@
     "@vscode/vsce": "^2.24.0",
     "esbuild": "^0.27.2",
     "eslint": "^8.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "typedoc": "^0.28.16",
     "typescript": "^5.0.0",
     "vitest": "^1.6.1"
