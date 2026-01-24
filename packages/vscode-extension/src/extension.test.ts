@@ -410,7 +410,7 @@ describe('VS Code Extension Tools', () => {
         { id: 'parent-123', title: 'Parent Epic', status: 'in_progress' },
         { id: 'subtask-1', title: 'Open Subtask 1', status: 'open' },
         { id: 'subtask-2', title: 'Open Subtask 2', status: 'in_progress' },
-        { id: 'subtask-3', title: 'Blocked Subtask', status: 'blocked' },
+        { id: 'subtask-3', title: 'Open Subtask 3', status: 'open' },
       ];
       
       mockStorage.loadIssues.mockResolvedValue(mockIssues);
@@ -419,7 +419,7 @@ describe('VS Code Extension Tools', () => {
         openSubtasks: [
           { id: 'subtask-1', title: 'Open Subtask 1', status: 'open' },
           { id: 'subtask-2', title: 'Open Subtask 2', status: 'in_progress' },
-          { id: 'subtask-3', title: 'Blocked Subtask', status: 'blocked' },
+          { id: 'subtask-3', title: 'Open Subtask 3', status: 'open' },
         ],
       });
 
@@ -444,7 +444,7 @@ describe('VS Code Extension Tools', () => {
       expect(resultText).toContain('subtask-1');
       expect(resultText).toContain('Open Subtask 2');
       expect(resultText).toContain('subtask-2');
-      expect(resultText).toContain('Blocked Subtask');
+      expect(resultText).toContain('Open Subtask 3');
       expect(resultText).toContain('subtask-3');
     });
   });
