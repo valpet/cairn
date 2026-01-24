@@ -7,6 +7,94 @@ let container: any;
 let storage: IStorageService;
 let graph: IGraphService;
 let outputChannel: vscode.OutputChannel;
+let cairnDir: string;
+let repoRoot: string;
+let statusBarItem: vscode.StatusBarItem;
+let configWatcher: vscode.FileSystemWatcher | undefined;
+let lastKnownActiveFile: string = 'default';
+let internalChangeCount: number = 0;
+let lastInternalWriteTime: number = 0;
+let taskListPanels: Map<vscode.WebviewPanel, () => Promise<void>> = new Map();
+
+// Config file management
+interface CairnConfig {
+  activeFile: string;
+}
+
+function getConfigPath(cairnDir: string): string {
+  return path.join(cairnDir, 'config.json');
+}
+
+function readConfig(cairnDir: string): CairnConfig {
+  const configPath = getConfigPath(cairnDir);
+  if (!fs.existsSync(configPath)) {
+    return { activeFile: 'default' };
+  }
+  try {
+    const data = fs.readFileSync(configPath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    return { activeFile: 'default' };
+  }
+}
+
+// NOTE: The logical name "default" is special: it always maps to "issues.jsonl",
+// which is the canonical / historical default issues file for a Cairn workspace.
+// To avoid ambiguity and file collisions, the logical name "issues" is effectively
+// reserved and must not be used by callers, because it would also map to
+// "issues.jsonl". This ensures we never have both a "default" mapping and a
+// user-named "issues" file attempting to coexist in the same directory.
+/**
+ * Converts a logical issue file name to its actual filename.
+ *
+ * @param name - The logical name of the issue file (e.g., 'default', 'feature-auth')
+ * @returns The actual filename (e.g., 'issues.jsonl', 'feature-auth.jsonl')
+ *
+ * @remarks
+ * The logical name "default" is special: it always maps to "issues.jsonl",
+ * which is the canonical/historical default issues file for a Cairn workspace.
+ *
+ * To avoid ambiguity and file collisions, the logical name "issues" is effectively
+ * reserved and must not be used by callers, because it would also map to
+ * "issues.jsonl". This ensures we never have both a "default" mapping and a
+ * user-named "issues" file attempting to coexist in the same directory.
+ */
+function getIssueFileName(name: string): string {
+  return name === 'default' ? 'issues.jsonl' : `${name}.jsonl`;
+}
+
+function writeConfig(cairnDir: string, config: CairnConfig): void {
+  const configPath = getConfigPath(cairnDir);
+  internalChangeCount++;
+  lastInternalWriteTime = Date.now();
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+  // File watcher will ignore changes for a short time after internal writes
+}
+
+function getAvailableIssueFiles(cairnDir: string): string[] {
+  return fs.readdirSync(cairnDir)
+    .filter(f => f.endsWith('.jsonl'))
+    .map(f => f.replace('.jsonl', ''))
+    .map(f => f === 'issues' ? 'default' : f)
+    .sort((a, b) => {
+      if (a === 'default') return -1;
+      if (b === 'default') return 1;
+      return a.localeCompare(b);
+    });
+}
+
+function reinitializeServices(issuesFileName: string) {
+  outputChannel.appendLine(`Reinitializing services with file: ${issuesFileName}`);
+  container = createContainer(cairnDir, repoRoot, issuesFileName);
+  storage = container.get(TYPES.IStorageService);
+  graph = container.get(TYPES.IGraphService);
+  outputChannel.appendLine('Services reinitialized successfully');
+}
+
+function updateStatusBar(activeFile: string) {
+  statusBarItem.text = `$(file) Cairn: ${activeFile}`;
+  statusBarItem.tooltip = `Current issue file: ${getIssueFileName(activeFile)}\nClick to switch files`;
+}
 
 // Tool implementations
 class CairnCreateTool implements vscode.LanguageModelTool<any> {
@@ -443,7 +531,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     outputChannel.appendLine(`Using workspace folder: ${workspaceFolder.uri.fsPath}`);
     const startDir = workspaceFolder.uri.fsPath;
-    const { cairnDir, repoRoot } = findCairnDir(startDir);
+    const cairnDirResult = findCairnDir(startDir);
+    cairnDir = cairnDirResult.cairnDir;
+    repoRoot = cairnDirResult.repoRoot;
     outputChannel.appendLine(`Cairn dir: ${cairnDir}, Repo root: ${repoRoot}`);
 
     if (!fs.existsSync(cairnDir)) {
@@ -453,12 +543,65 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     outputChannel.appendLine('Creating container...');
-    container = createContainer(cairnDir, repoRoot);
+    const config = readConfig(cairnDir);
+    const issuesFileName = getIssueFileName(config.activeFile);
+    lastKnownActiveFile = config.activeFile;
+    container = createContainer(cairnDir, repoRoot, issuesFileName);
+    outputChannel.appendLine(`Using issue file: ${issuesFileName}`);
     outputChannel.appendLine('Getting storage service...');
     storage = container.get(TYPES.IStorageService);
     outputChannel.appendLine('Getting graph service...');
     graph = container.get(TYPES.IGraphService);
     outputChannel.appendLine('Services initialized successfully');
+
+    // Create status bar item
+    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    updateStatusBar(config.activeFile);
+    statusBarItem.command = 'cairn.switchFile';
+    statusBarItem.show();
+    context.subscriptions.push(statusBarItem);
+
+    // Watch config file for changes
+    const configPath = getConfigPath(cairnDir);
+    configWatcher = vscode.workspace.createFileSystemWatcher(configPath);
+    configWatcher.onDidChange(() => {
+      // Ignore changes that occur shortly after an internal write to handle multiple events
+      const timeSinceLastWrite = Date.now() - lastInternalWriteTime;
+      if (timeSinceLastWrite < 200) { // 200ms debounce window
+        outputChannel.appendLine('Config changed by extension (debounced), ignoring');
+        return;
+      }
+
+      const newConfig = readConfig(cairnDir);
+      if (newConfig.activeFile !== lastKnownActiveFile) {
+        outputChannel.appendLine(`External config change detected: ${lastKnownActiveFile} -> ${newConfig.activeFile}`);
+        const newFileName = getIssueFileName(newConfig.activeFile);
+
+        vscode.window.showInformationMessage(
+          `Cairn context changed to: ${newConfig.activeFile} (${newFileName})`,
+          'Switch Now',
+          'Stay Here'
+        ).then(selection => {
+          if (selection === 'Switch Now') {
+            lastKnownActiveFile = newConfig.activeFile;
+            reinitializeServices(newFileName);
+            updateStatusBar(newConfig.activeFile);
+
+            // Update file indicators in all open task list panels (not the tasks themselves)
+            taskListPanels.forEach((updateFn, panel) => {
+              panel.webview.postMessage({
+                type: 'updateActiveFile',
+                currentFile: newConfig.activeFile,
+                availableFiles: getAvailableIssueFiles(cairnDir)
+              });
+            });
+
+            vscode.window.showInformationMessage(`Switched to ${newConfig.activeFile}`);
+          }
+        });
+      }
+    });
+    context.subscriptions.push(configWatcher);
 
     // Register tools
     context.subscriptions.push(vscode.lm.registerTool('cairn_create', new CairnCreateTool()));
@@ -470,6 +613,90 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.lm.registerTool('cairn_ac_update', new CairnAcUpdateTool()));
     context.subscriptions.push(vscode.lm.registerTool('cairn_ac_remove', new CairnAcRemoveTool()));
     context.subscriptions.push(vscode.lm.registerTool('cairn_ac_toggle', new CairnAcToggleTool()));
+
+    // Register command to switch issue files
+    context.subscriptions.push(
+      vscode.commands.registerCommand('cairn.switchFile', async () => {
+        try {
+          const availableFiles = getAvailableIssueFiles(cairnDir);
+          const currentConfig = readConfig(cairnDir);
+          
+          const items = availableFiles.map(file => ({
+            label: file === currentConfig.activeFile ? `$(check) ${file}` : file,
+            description: getIssueFileName(file),
+            detail: file === currentConfig.activeFile ? 'Currently active' : undefined,
+            file: file
+          }));
+          
+          items.push({
+            label: '$(add) Create New Issue File',
+            description: 'Create a new .jsonl file',
+            detail: undefined,
+            file: '__new__'
+          });
+          
+          const selected = await vscode.window.showQuickPick(items, {
+            placeHolder: 'Select an issue file to switch to',
+            title: 'Cairn Issue Files'
+          });
+          
+          if (!selected) return;
+          
+          let targetFile = selected.file;
+          
+          if (targetFile === '__new__') {
+            const newFileName = await vscode.window.showInputBox({
+              prompt: 'Enter name for new issue file (without .jsonl extension)',
+              placeHolder: 'e.g., feature-auth, bugfixes, sprint-2',
+              validateInput: (value) => {
+                if (!value) return 'Name cannot be empty';
+                if (value === 'issues') return 'The name "issues" is reserved. Use "default" to access issues.jsonl';
+                if (!/^[a-zA-Z0-9_-]+$/.test(value)) return 'Name can only contain letters, numbers, hyphens, and underscores';
+                return null;
+              }
+            });
+            
+            if (!newFileName) return;
+            targetFile = newFileName;
+            
+            // Create the new file
+            const newFilePath = path.join(cairnDir, getIssueFileName(newFileName));
+            if (!fs.existsSync(newFilePath)) {
+              fs.writeFileSync(newFilePath, '');
+              outputChannel.appendLine(`Created new issue file: ${getIssueFileName(newFileName)}`);
+            }
+          }
+          
+          if (targetFile === currentConfig.activeFile) {
+            vscode.window.showInformationMessage(`Already using ${targetFile}`);
+            return;
+          }
+          
+          // Update config
+          writeConfig(cairnDir, { activeFile: targetFile });
+          lastKnownActiveFile = targetFile;
+          
+          // Reinitialize services
+          const newFileName = getIssueFileName(targetFile);
+          reinitializeServices(newFileName);
+          updateStatusBar(targetFile);
+          
+          // Update file indicators in all open task list panels (not the tasks themselves)
+          taskListPanels.forEach((updateFn, panel) => {
+            panel.webview.postMessage({
+              type: 'updateActiveFile',
+              currentFile: targetFile,
+              availableFiles: getAvailableIssueFiles(cairnDir)
+            });
+          });
+          
+          vscode.window.showInformationMessage(`Switched to ${targetFile} (${newFileName})`);
+        } catch (error) {
+          vscode.window.showErrorMessage(`Failed to switch file: ${error}`);
+          outputChannel.appendLine(`Error switching file: ${error}`);
+        }
+      })
+    );
 
     // Register command to open task list webview
     context.subscriptions.push(
@@ -493,6 +720,8 @@ export function activate(context: vscode.ExtensionContext) {
           outputChannel.appendLine('Panel created successfully');
 
           let webviewReady = false;
+          const noopWatcher = { close: () => { /* no-op */ } } as unknown as fs.FSWatcher;
+          let watcher: fs.FSWatcher = noopWatcher;
 
           // Handle messages from webview
           const disposable = panel.webview.onDidReceiveMessage(async (message) => {
@@ -545,6 +774,79 @@ export function activate(context: vscode.ExtensionContext) {
                   });
                 });
                 await updateTasks();
+              } else if (message.type === 'switchViewingFile') {
+                outputChannel.appendLine(`Switch viewing file message received: ${message.file}`);
+                // Load tasks from the requested file without updating system config
+                const newFileName = getIssueFileName(message.file);
+                const tempIssuesPath = path.join(cairnDir, newFileName);
+                
+                try {
+                  let viewTasks: any[] = [];
+                  if (fs.existsSync(tempIssuesPath)) {
+                    const content = fs.readFileSync(tempIssuesPath, 'utf-8');
+                    viewTasks = content.trim().split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
+                  }
+                  
+                  const currentConfig = readConfig(cairnDir);
+                  const availableFiles = getAvailableIssueFiles(cairnDir);
+                  
+                  // Send tasks for viewing, but keep system active file unchanged
+                  panel.webview.postMessage({
+                    type: 'updateViewTasks',
+                    tasks: viewTasks,
+                    viewingFile: message.file,
+                    systemActiveFile: currentConfig.activeFile,
+                    availableFiles: availableFiles
+                  });
+                } catch (error) {
+                  outputChannel.appendLine(`Error loading view file: ${error}`);
+                }
+              } else if (message.type === 'switchFile') {
+                outputChannel.appendLine(`Switch file message received: ${message.file}`);
+                const currentConfig = readConfig(cairnDir);
+                
+                if (message.file === currentConfig.activeFile) {
+                  outputChannel.appendLine('File matches system active file');
+                  // Just reload tasks from this file
+                  await updateTasks();
+                  return;
+                }
+                
+                // Update config to match what user is viewing
+                writeConfig(cairnDir, { activeFile: message.file });
+                lastKnownActiveFile = message.file;
+                
+                // Reinitialize services
+                const newFileName = getIssueFileName(message.file);
+                reinitializeServices(newFileName);
+                updateStatusBar(message.file);
+                
+                // Update file watcher to watch the new file
+                watcher.close();
+                const newIssuesPath = storage.getIssuesFilePath();
+                outputChannel.appendLine(`Switching watcher to: ${newIssuesPath}`);
+                watcher = fs.watch(newIssuesPath, async (eventType) => {
+                  if (eventType === 'change') {
+                    outputChannel.appendLine('Issues file changed, updating tasks...');
+                    await updateTasks();
+                  }
+                });
+                
+                // Update indicators in other panels
+                taskListPanels.forEach((updateFn, otherPanel) => {
+                  if (otherPanel !== panel) {
+                    otherPanel.webview.postMessage({
+                      type: 'updateActiveFile',
+                      currentFile: message.file,
+                      availableFiles: getAvailableIssueFiles(cairnDir)
+                    });
+                  }
+                });
+                
+                // Reload tasks in THIS webview
+                await updateTasks();
+                
+                vscode.window.showInformationMessage(`Switched to ${message.file} (${newFileName})`);
               } else if (message.type === 'editTicket') {
                 outputChannel.appendLine(`Edit ticket message received for: ${message.id}`);
                 try {
@@ -632,9 +934,18 @@ export function activate(context: vscode.ExtensionContext) {
               outputChannel.appendLine(`Sending updateTasks with ${allTasks.length} tasks`);
               outputChannel.appendLine(`First task: ${JSON.stringify(allTasks[0])}`);
               
+              // Get file context info
+              const currentConfig = readConfig(cairnDir);
+              const availableFiles = getAvailableIssueFiles(cairnDir);
+              
+              outputChannel.appendLine(`Current file from config: ${currentConfig.activeFile}`);
+              outputChannel.appendLine(`Available files: ${availableFiles.join(', ')}`);
+              
               const messageResult = panel.webview.postMessage({
                 type: 'updateTasks',
-                tasks: allTasks
+                tasks: allTasks,
+                currentFile: currentConfig.activeFile,
+                availableFiles: availableFiles
               });
               outputChannel.appendLine(`PostMessage result: ${messageResult}`);
             } catch (error) {
@@ -645,10 +956,10 @@ export function activate(context: vscode.ExtensionContext) {
             }
           };
 
-          // Watch for file changes
-          const issuesPath = path.join(cairnDir, 'issues.jsonl');
-          outputChannel.appendLine(`Watching issues file: ${issuesPath}`);
-          const watcher = fs.watch(issuesPath, async (eventType) => {
+          // Watch for file changes - use the current active file
+          const currentIssuesPath = storage.getIssuesFilePath();
+          outputChannel.appendLine(`Watching issues file: ${currentIssuesPath}`);
+          watcher = fs.watch(currentIssuesPath, async (eventType) => {
             if (eventType === 'change') {
               outputChannel.appendLine('Issues file changed, updating tasks...');
               await updateTasks();
@@ -659,7 +970,11 @@ export function activate(context: vscode.ExtensionContext) {
           panel.onDidDispose(() => {
             outputChannel.appendLine('Panel disposed, closing watcher');
             watcher.close();
+            taskListPanels.delete(panel);
           });
+          
+          // Register this panel and its update function
+          taskListPanels.set(panel, updateTasks);
 
           outputChannel.appendLine('Task list setup complete');
         } catch (error) {

@@ -16,17 +16,57 @@ program
 
 const cwd = process.cwd();
 
+// Config file management
+interface CairnConfig {
+  activeFile: string;
+}
+
+function getConfigPath(cairnDir: string): string {
+  return path.join(cairnDir, 'config.json');
+}
+
+function readConfig(cairnDir: string): CairnConfig {
+  const configPath = getConfigPath(cairnDir);
+  if (!fs.existsSync(configPath)) {
+    return { activeFile: 'default' };
+  }
+  try {
+    const data = fs.readFileSync(configPath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Error reading config:', error);
+    return { activeFile: 'default' };
+  }
+}
+
+function writeConfig(cairnDir: string, config: CairnConfig): void {
+  const configPath = getConfigPath(cairnDir);
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+}
+
+// NOTE: The logical name "default" is special: it always maps to "issues.jsonl",
+// which is the canonical / historical default issues file for a Cairn workspace.
+// To avoid ambiguity and file collisions, the logical name "issues" is effectively
+// reserved and must not be used by callers, because it would also map to
+// "issues.jsonl". This ensures we never have both a "default" mapping and a
+// user-named "issues" file attempting to coexist in the same directory.
+function getIssueFileName(name: string): string {
+  return name === 'default' ? 'issues.jsonl' : `${name}.jsonl`;
+}
+
 function setupServices() {
   const { cairnDir, repoRoot } = findCairnDir(cwd);
   if (!fs.existsSync(cairnDir)) {
     console.error('No .cairn directory found. Run `npx cairn init` in your project root.');
     process.exit(1);
   }
-  const container = createContainer(cairnDir, repoRoot);
+  const config = readConfig(cairnDir);
+  const issuesFileName = getIssueFileName(config.activeFile);
+  const container = createContainer(cairnDir, repoRoot, issuesFileName);
   const storage = container.get<IStorageService>(TYPES.IStorageService);
   const graph = container.get<IGraphService>(TYPES.IGraphService);
   const compaction = container.get<ICompactionService>(TYPES.ICompactionService);
-  return { storage, graph, compaction };
+  return { storage, graph, compaction, cairnDir };
 }
 
 // Init command
@@ -175,8 +215,62 @@ CRITICAL: ALWAYS use Cairn for task management in this project. Do not work on a
       console.log('Created .github/copilot-instructions.md with Cairn workflow guidelines');
     }
 
+    // Create default config
+    const configPath = path.join(cwd, '.cairn', 'config.json');
+    if (!fs.existsSync(configPath)) {
+      await fs.promises.writeFile(configPath, JSON.stringify({ activeFile: 'default' }, null, 2));
+      console.log('Created config.json');
+    }
+
     console.log('Cairn initialized. Start by creating your first task with `cairn create <title>`');
 
+  });
+
+// Use command
+program
+  .command('use [name]')
+  .description('Switch between issue files or list available files')
+  .action(async (name?: string) => {
+    const { cairnDir } = setupServices();
+    const config = readConfig(cairnDir);
+
+    // If no name provided, list all files and show current
+    if (!name) {
+      const files = fs.readdirSync(cairnDir)
+        .filter(f => f.endsWith('.jsonl'))
+        .map(f => f.replace('.jsonl', ''))
+        .map(f => f === 'issues' ? 'default' : f);
+
+      if (files.length === 0) {
+        console.log('No issue files found.');
+        return;
+      }
+
+      console.log(`Current: ${config.activeFile} (${getIssueFileName(config.activeFile)})`);
+      console.log('');
+      console.log('Available issue files:');
+      files.forEach(file => {
+        const marker = file === config.activeFile ? '  *' : '   ';
+        const fileName = getIssueFileName(file);
+        console.log(`${marker} ${file} (${fileName})`);
+      });
+      return;
+    }
+
+    // Switch to specified file
+    const targetFileName = getIssueFileName(name);
+    const targetPath = path.join(cairnDir, targetFileName);
+
+    // Create file if it doesn't exist
+    if (!fs.existsSync(targetPath)) {
+      await fs.promises.writeFile(targetPath, '');
+      console.log(`Created new issue file: ${targetFileName}`);
+    }
+
+    // Update config
+    config.activeFile = name;
+    writeConfig(cairnDir, config);
+    console.log(`Switched to: ${name} (${targetFileName})`);
   });
 
 // Create command

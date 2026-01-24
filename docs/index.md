@@ -76,7 +76,21 @@ cairn update task-1 -s in_progress
 cairn update task-1 -s closed
 ```
 
-### 4. Install VS Code Extension
+### 4. Multiple Contexts (Optional)
+
+```bash
+# Create separate contexts for different work streams
+cairn use bugfixes          # Switch to bug tracking
+cairn create "Fix login issue" -t bug
+
+cairn use feature-auth      # Switch to feature work
+cairn create "Add OAuth" -t feature
+
+cairn use                   # List all contexts
+cairn use default           # Back to main context
+```
+
+### 5. Install VS Code Extension
 
 ```bash
 code --install-extension cairn-extension
@@ -123,6 +137,21 @@ Cairn automatically identifies **ready work** - tasks that are:
 - Open (not completed)
 - Not blocked by dependencies
 - Available to start immediately
+
+### Multiple Issue Files
+
+Cairn supports **multiple issue files** for context separation:
+
+- **File Switching**: Use `cairn use <name>` to switch between contexts
+- **Isolated Contexts**: Each file has its own independent task graph
+- **Flexible Organization**: Organize by feature, team, phase, or any other criteria
+- **Seamless Integration**: VS Code extension and CLI stay synchronized
+
+**Common Use Cases:**
+- Separate features, bugs, and technical debt
+- Team-specific task lists
+- Development phase separation (planning, development, testing)
+- Feature branch alignment
 
 ## Workflows
 
@@ -201,12 +230,24 @@ jobs:
 
 ### JSONL Format
 
-Tasks are stored in `.cairn/issues.jsonl`:
+Tasks are stored in `.cairn/issues.jsonl` (or other `.jsonl` files):
 
 ```jsonl
 {"id":"task-1","title":"Implement login","status":"open","type":"feature"}
 {"id":"task-2","title":"Design database","status":"closed","type":"task"}
 ```
+
+### Configuration
+
+Active file selection is stored in `.cairn/config.json`:
+
+```json
+{
+  "activeFile": "default"
+}
+```
+
+This file tracks which issue file is currently active, allowing seamless switching between contexts.
 
 ### File Locking
 

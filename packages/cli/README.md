@@ -27,17 +27,24 @@ cairn list --ready
 # Update task status
 cairn update task-1 -s in_progress
 cairn update task-1 -s closed -c "Implementation complete"
+
+# Switch between issue files
+cairn use                  # Show current file and list available files
+cairn use test             # Switch to test.jsonl (creates if doesn't exist)
+cairn use default          # Switch back to issues.jsonl
 ```
 
 ## Commands
 
+- `cairn init` - Initialize Cairn in current directory
 - `cairn create <title>` - Create a new task
 - `cairn list` - List all tasks
 - `cairn list --ready` - Show unblocked tasks
 - `cairn update <id> [options]` - Update task status
 - `cairn dep add <from> <to> --type <type>` - Add dependencies
+- `cairn use` - Show current issue file and list all available files
+- `cairn use <name>` - Switch to a specific issue file (creates if doesn't exist)
 - `cairn comment <id> <message>` - Add comments
-- `cairn init` - Initialize Cairn in current directory
 
 ## Options
 

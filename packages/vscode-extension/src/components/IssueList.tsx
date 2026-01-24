@@ -2,6 +2,7 @@ import React from 'react';
 import './IssueList.css';
 import TaskGrid from './TaskGrid';
 import StatusFilter from './StatusFilter';
+import FileSelector from './FileSelector';
 import { IssueListProps } from './types';
 import { useVSCodeMessaging } from './hooks/useVSCodeMessaging';
 import { useTaskState } from './hooks/useTaskState';
@@ -13,6 +14,9 @@ const IssueList: React.FC<IssueListProps> = () => {
   const { postMessage } = useVSCodeMessaging();
   const {
     allTasks,
+    viewingFile,
+    systemActiveFile,
+    availableFiles,
     selectedStatuses,
     setSelectedStatuses,
     expandedTasks,
@@ -40,6 +44,11 @@ const IssueList: React.FC<IssueListProps> = () => {
 
   console.log('IssueList: filteredTasks:', filteredTasks.length, 'taskTree:', taskTree.length);
 
+  const handleFileChange = (file: string) => {
+    console.log('Switch viewing file requested:', file);
+    postMessage({ type: 'switchViewingFile', file });
+  };
+
   return (
     <div style={{
       fontFamily: 'var(--vscode-font-family)',
@@ -58,6 +67,13 @@ const IssueList: React.FC<IssueListProps> = () => {
       <div style={{ marginBottom: '20px' }}>
         <h1 style={{ color: '#D4A556', fontSize: '24px', margin: 0 }}>Cairn Issues</h1>
       </div>
+
+      <FileSelector
+        currentFile={viewingFile}
+        systemActiveFile={systemActiveFile}
+        availableFiles={availableFiles}
+        onFileChange={handleFileChange}
+      />
 
       <StatusFilter
         selectedStatuses={selectedStatuses}

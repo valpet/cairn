@@ -15,6 +15,11 @@ cairn create "My Task"
 cairn list
 cairn update <id> --status closed
 cairn dep add <child> <parent> --type blocks
+
+# Multiple issue files
+cairn use              # Show current file and list available files
+cairn use test         # Switch to test.jsonl
+cairn use default      # Switch back to issues.jsonl
 ```
 
 ## Development

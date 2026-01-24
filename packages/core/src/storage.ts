@@ -16,6 +16,7 @@ export interface IStorageService {
 
 export interface StorageConfig {
   cairnDir: string;
+  issuesFileName?: string;
   lockMaxRetries?: number;
   lockRetryDelay?: number;
   lockTimeout?: number;
@@ -35,8 +36,19 @@ export class StorageService implements IStorageService {
     @inject('config') private config: StorageConfig,
     @inject('ILogger') @optional() logger?: ILogger
   ) {
-    this.issuesFilePath = path.join(config.cairnDir, 'issues.jsonl');
-    this.lockFilePath = path.join(config.cairnDir, 'issues.lock');
+    const issuesFileName = config.issuesFileName || 'issues.jsonl';
+    const issuesFilePath = path.join(config.cairnDir, issuesFileName);
+    const issuesFileParsed = path.parse(issuesFilePath);
+    if (issuesFileParsed.ext !== '.jsonl') {
+      throw new Error(`Invalid issues file name "${issuesFileName}". Expected extension ".jsonl".`);
+    }
+    this.issuesFilePath = issuesFilePath;
+    const lockFilePath = path.format({
+      ...issuesFileParsed,
+      base: undefined,
+      ext: '.lock',
+    });
+    this.lockFilePath = lockFilePath;
     this.lockMaxRetries = config.lockMaxRetries ?? 50;
     this.lockRetryDelay = config.lockRetryDelay ?? 100;
     this.lockTimeout = config.lockTimeout ?? 30000;

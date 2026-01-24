@@ -59,6 +59,7 @@
     "onCommand:cairn.openTaskList",
     "onCommand:cairn.editTicket",
     "onCommand:cairn.createTicket",
+    "onCommand:cairn.switchFile",
     "onLanguageModelTool:cairn_create",
     "onLanguageModelTool:cairn_list_ready",
     "onLanguageModelTool:cairn_update",
@@ -82,6 +83,10 @@
       {
         "command": "cairn.createTicket",
         "title": "Cairn: Create New Issue"
+      },
+      {
+        "command": "cairn.switchFile",
+        "title": "Cairn: Switch Issue File"
       }
     ],
     "languageModelTools": [

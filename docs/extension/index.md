@@ -67,6 +67,20 @@ Opens the ticket editing interface for an existing task.
 - Dependency relationship editing
 - Comment system
 
+### cairn.switchFile
+
+Opens a quick pick menu to switch between issue files.
+
+**Command ID:** `cairn.switchFile`
+**Keybinding:** None (available via status bar and command palette)
+
+**Description:**
+- Shows all available issue files
+- Indicates current active file with checkmark
+- Allows creating new issue files
+- Hot-swaps services without window reload
+- Updates status bar and task list automatically
+
 ## Language Model Tools
 
 The extension provides Copilot integration through language model tools.
@@ -267,8 +281,13 @@ interface ExtensionMessage {
 
 **updateTasks**
 - Direction: Extension → Webview
-- Payload: `{ tasks: Issue[] }`
-- Description: Updates the displayed task list
+- Payload: `{ tasks: Issue[], currentFile: string, availableFiles: string[] }`
+- Description: Updates the displayed task list and file context information
+
+**switchFile**
+- Direction: Webview → Extension
+- Payload: `{ file: string }`
+- Description: Requests switching to a different issue file
 
 **startTask**
 - Direction: Webview → Extension
@@ -353,6 +372,50 @@ The extension respects VS Code settings:
 - **Font Settings**: Uses VS Code font family and size
 - **Color Scheme**: Matches VS Code color tokens
 
+## Multiple Issue Files
+
+The extension supports working with multiple issue files for context separation.
+
+### File Switching
+
+**Three Ways to Switch Files:**
+
+1. **Status Bar**: Click the status bar item showing `Cairn: {filename}` to open the file selector
+2. **Command Palette**: Run `Cairn: Switch Issue File` command
+3. **Task List**: Use the dropdown selector at the top of the task list webview
+
+### Smart Synchronization
+
+When the CLI changes the active file (via `cairn use`), the extension:
+
+1. **Detects the Change**: Monitors `.cairn/config.json` for modifications
+2. **Notifies the User**: Shows an information message with the new context
+3. **Offers Choice**: Provides "Switch Now" or "Stay Here" buttons
+4. **Respects Decision**: Only switches if user explicitly chooses to
+
+This prevents disruption when working while allowing easy synchronization across tools.
+
+### Creating New Files
+
+From the file selector quick pick:
+1. Select `$(add) Create New Issue File`
+2. Enter a name (letters, numbers, hyphens, underscores only)
+3. File is created and automatically activated
+
+### Status Bar Indicator
+
+The status bar always shows the current active file:
+- Format: `$(file) Cairn: {filename}`
+- Tooltip: Shows full filename (e.g., `issues.jsonl`, `feature-auth.jsonl`)
+- Click to switch files
+
+### File Watching
+
+The extension automatically watches the currently active file:
+- When you switch files, the watcher updates to the new file
+- Changes from CLI commands are reflected in real-time
+- Task list updates automatically when the file changes
+
 ## File Watching
 
 The extension monitors the `issues.jsonl` file for changes:
@@ -409,6 +472,8 @@ The extension uses React for building interactive webview interfaces. Key compon
 - **IssueList**: Main task list with filtering, sorting, and hierarchy display
 - **IssueEdit**: Full-featured ticket editor with metadata, dependencies, and comments
 - **TaskGrid**: Efficient grid layout for task display with virtual scrolling
+- **FileSelector**: Dropdown for switching between issue files
+- **StatusFilter**: Filter tasks by status (open, in_progress, closed, etc.)
 - **AcceptanceCriteriaSection**: Interactive acceptance criteria management
 - **CommentsSection**: Comment thread with real-time updates
 
