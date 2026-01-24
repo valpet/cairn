@@ -823,12 +823,7 @@ export function activate(context: vscode.ExtensionContext) {
                   .filter(issue => issue.id !== pendingTicketId)
                   .filter(issue => {
                     // Check if adding this as a subtask would create a circular dependency
-                    try {
-                      graph.addDependency(issue.id, pendingTicketId, 'parent-child', issues);
-                      return true; // No cycle would be created
-                    } catch (error) {
-                      return false; // Would create a cycle, so exclude
-                    }
+                    return !graph.wouldCreateCycle(issue.id, pendingTicketId, 'parent-child', issues);
                   })
                   .map(issue => ({
                     id: issue.id,

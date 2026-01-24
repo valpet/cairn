@@ -13,6 +13,7 @@ export interface IGraphService {
   shouldCloseEpic(epicId: string, issues: Issue[]): boolean;
   canCloseIssue(issueId: string, issues: Issue[]): { canClose: boolean; openSubtasks?: Issue[] };
   getNonParentedIssues(issues: Issue[]): Issue[];
+  wouldCreateCycle(fromId: string, toId: string, type: DependencyType, issues: Issue[]): boolean;
 }
 
 @injectable()
@@ -95,7 +96,23 @@ export class GraphService implements IGraphService {
     return updated;
   }
 
-  private wouldCreateCycle(fromId: string, toId: string, type: DependencyType, issues: Issue[]): boolean {
+  /**
+   * Determines whether adding a dependency from one issue to another would introduce
+   * a cycle in the dependency graph.
+   *
+   * This method does not modify the provided issues; it conceptually simulates adding
+   * a dependency of the given {@link DependencyType} from {@code fromId} to {@code toId}
+   * and checks if that relationship would create a cyclic dependency.
+   *
+   * @param fromId The ID of the issue that would gain a new dependency.
+   * @param toId The ID of the issue that would be depended on.
+   * @param type The type of dependency being added.
+   * @param issues The full set of issues used to build the dependency graph.
+   * @returns {@code true} if adding this dependency would create a cycle in the graph,
+   *          {@code false} otherwise (including when the edge is effectively a no-op
+   *          or the IDs do not correspond to existing issues).
+   */
+  wouldCreateCycle(fromId: string, toId: string, type: DependencyType, issues: Issue[]): boolean {
     // For now, only check parent-child relationships for cycles
     // Blocks relationships can have cycles in some cases (A blocks B, B blocks A)
     // but we'll be conservative and prevent cycles for blocks too

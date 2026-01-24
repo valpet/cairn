@@ -1,0 +1,6 @@
+{
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "typescript.preferences.tsconfig": {
+    "src/components/**/*": "tsconfig.webview.json"
+  }
+}

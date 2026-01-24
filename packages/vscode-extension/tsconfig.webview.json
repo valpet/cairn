@@ -8,11 +8,11 @@
     "types": ["vite/client"]
   },
   "include": [
-    "webview-ui/**/*"
+    "src/components/**/*"
   ],
   "exclude": [
     "node_modules",
     "out",
-    "src"
+    "src/**/*.test.ts"
   ]
 }
