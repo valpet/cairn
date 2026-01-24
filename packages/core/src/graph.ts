@@ -47,7 +47,7 @@ export class GraphService implements IGraphService {
       // Check if blocked
       if (issue.dependencies) {
         for (const dep of issue.dependencies) {
-          if (dep.type === 'blocks') {
+          if (dep.type === 'blocked_by' || dep.type === 'blocks') {
             const depIssue = graph.get(dep.id);
             if (depIssue && depIssue.status !== 'closed') {
               return false;
@@ -65,7 +65,7 @@ export class GraphService implements IGraphService {
       if (issue.status === 'closed') return false;
       if (issue.dependencies) {
         for (const dep of issue.dependencies) {
-          if (dep.type === 'blocks') {
+          if (dep.type === 'blocked_by' || dep.type === 'blocks') {
             const depIssue = graph.get(dep.id);
             if (depIssue && depIssue.status !== 'closed') {
               return true;
@@ -116,7 +116,7 @@ export class GraphService implements IGraphService {
     // For now, only check parent-child relationships for cycles
     // Blocks relationships can have cycles in some cases (A blocks B, B blocks A)
     // but we'll be conservative and prevent cycles for blocks too
-    if (type !== 'parent-child' && type !== 'blocks') {
+    if (type !== 'parent-child' && type !== 'blocked_by' && type !== 'blocks') {
       return false; // Other types don't create cycles we're concerned about
     }
 
@@ -132,11 +132,11 @@ export class GraphService implements IGraphService {
         return true; // Found a path from toId to fromId, so adding fromId -> toId would create a cycle
       }
 
-      // Find issues that current depends on with the same type
+      // Find issues that current depends on with the same type (treat blocks/blocked_by equivalently)
       const currentIssue = issues.find(issue => issue.id === current);
       if (currentIssue?.dependencies) {
         for (const dep of currentIssue.dependencies) {
-          if (dep.type === type) {
+          if (type === 'parent-child' ? dep.type === 'parent-child' : (dep.type === 'blocked_by' || dep.type === 'blocks')) {
             stack.push(dep.id);
           }
         }

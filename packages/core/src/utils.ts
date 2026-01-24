@@ -43,7 +43,7 @@ export function generateId(issues: { id: string }[]): string {
  * Type guard to check if a value is a valid IssueStatus
  */
 export function isValidIssueStatus(status: any): status is IssueStatus {
-  return typeof status === 'string' && ['open', 'in_progress', 'closed', 'blocked'].includes(status);
+  return typeof status === 'string' && ['open', 'in_progress', 'closed'].includes(status);
 }
 
 /**
@@ -64,7 +64,7 @@ export function isValidIssueType(type: any): type is IssueType {
  * Type guard to check if a value is a valid DependencyType
  */
 export function isValidDependencyType(type: any): type is DependencyType {
-  return typeof type === 'string' && ['blocks', 'related', 'parent-child', 'discovered-from'].includes(type);
+  return typeof type === 'string' && ['blocked_by', 'blocks', 'related', 'parent-child', 'discovered-from'].includes(type);
 }
 
 /**

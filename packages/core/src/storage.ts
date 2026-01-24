@@ -90,7 +90,10 @@ export class StorageService implements IStorageService {
       this.logger.error('Invalid issues were skipped. Consider repairing the data file.');
     }
 
-    return issues;
+    // Run migration to fix any old formats (status and dependencies)
+    const migratedIssues = this.migrateIssues(issues);
+
+    return migratedIssues;
   }
 
   async saveIssue(issue: Issue): Promise<void> {
@@ -189,6 +192,95 @@ export class StorageService implements IStorageService {
     });
 
     return comment;
+  }
+
+  private migrateIssues(issues: Issue[]): Issue[] {
+    let hasMigrations = false;
+    const migratedIssues = issues.map(issue => {
+      let issueUpdated = false;
+
+      // Migration: Convert 'blocked' status to 'open' (removing blocked as a stored status)
+      if (issue.status === 'blocked') {
+        issue.status = 'open';
+        issue.updated_at = new Date().toISOString();
+        hasMigrations = true;
+        issueUpdated = true;
+        this.logger.info(`Migrated status for issue ${issue.id}: 'blocked' -> 'open'`);
+      }
+
+      if (!issue.dependencies || issue.dependencies.length === 0) {
+        return issueUpdated ? { ...issue } : issue;
+      }
+
+      // Check for any old dependency formats that need migration
+      const migratedDeps = issue.dependencies
+        .filter(dep => ['blocked_by', 'blocks', 'related', 'parent-child', 'discovered-from'].includes(dep.type))
+        .map(dep => {
+          // Convert legacy 'blocks' to stored 'blocked_by'
+          if (dep.type === 'blocks') {
+            hasMigrations = true;
+            issueUpdated = true;
+            this.logger.info(`Converted legacy dependency for issue ${issue.id}: blocks(${dep.id}) -> blocked_by(${dep.id})`);
+            return { id: dep.id, type: 'blocked_by' as const };
+          }
+          return dep;
+        });
+
+      // Check if any dependencies were filtered out
+      if (migratedDeps.length !== issue.dependencies.length) {
+        hasMigrations = true;
+        issueUpdated = true;
+        this.logger.info(`Migrated dependencies for issue ${issue.id}: removed ${issue.dependencies.length - migratedDeps.length} invalid dependencies`);
+      }
+
+      // Check for potential bidirectional dependencies that might create duplicates
+      // If issue A is blocked_by B, and B is blocked_by A (mutual block),
+      // remove the redundant one and keep deterministically on the lexicographically larger issue ID
+      const cleanedDeps = migratedDeps.filter((dep, index) => {
+        if (dep.type === 'blocked_by') {
+          // Check if the target issue also has a 'blocked_by' dependency back to this issue
+          const targetIssue = issues.find(i => i.id === dep.id);
+          if (targetIssue && targetIssue.dependencies) {
+            const hasReverseDep = targetIssue.dependencies.some(reverseDep =>
+              reverseDep.id === issue.id && (reverseDep.type === 'blocked_by' || reverseDep.type === 'blocks')
+            );
+            if (hasReverseDep) {
+              // Mutual block: keep only on the lexicographically larger issue ID
+              if (issue.id < targetIssue.id) {
+                hasMigrations = true;
+                issueUpdated = true;
+                this.logger.info(`Removed mutual blocked_by duplicate: ${issue.id} <- ${dep.id} (keeping on ${targetIssue.id})`);
+                return false; // Remove this dependency
+              }
+            }
+          }
+        }
+        return true;
+      });
+
+      if (cleanedDeps.length !== migratedDeps.length) {
+        hasMigrations = true;
+        issueUpdated = true;
+      }
+
+      if (issueUpdated) {
+        return {
+          ...issue,
+          dependencies: cleanedDeps.length !== issue.dependencies.length ? cleanedDeps : issue.dependencies,
+          updated_at: new Date().toISOString()
+        };
+      }
+
+      return issue;
+    });
+
+    if (hasMigrations) {
+      this.logger.info('Issue migration completed. Some issues were updated to fix old formats.');
+      // Note: We don't auto-save here as this is called during load. The migration will be persisted
+      // when issues are next saved through updateIssues.
+    }
+
+    return migratedIssues;
   }
 
   private async withLock<T>(operation: () => Promise<T>): Promise<T> {

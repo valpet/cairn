@@ -23,11 +23,11 @@ describe('Validation Functions', () => {
       expect(isValidIssueStatus('open')).toBe(true);
       expect(isValidIssueStatus('in_progress')).toBe(true);
       expect(isValidIssueStatus('closed')).toBe(true);
-      expect(isValidIssueStatus('blocked')).toBe(true);
     });
 
     it('should return false for invalid statuses', () => {
       expect(isValidIssueStatus('pending')).toBe(false);
+      expect(isValidIssueStatus('blocked')).toBe(false);
       expect(isValidIssueStatus('')).toBe(false);
       expect(isValidIssueStatus(null)).toBe(false);
       expect(isValidIssueStatus(undefined)).toBe(false);

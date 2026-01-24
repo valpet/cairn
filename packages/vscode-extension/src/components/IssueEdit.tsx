@@ -478,7 +478,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
                 <h4>Blocked by</h4>
                 <div className="dependency-list">
                   <TaskList
-                    tasks={dependencies.filter(dep => dep.direction === 'blocks')}
+                    tasks={dependencies.filter(dep => dep.direction === 'blocked_by')}
                     onEdit={editTask}
                     onRemove={removeDependency}
                     copyToClipboard={copyToClipboard}
@@ -490,7 +490,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
                 <h4>This issue is blocking</h4>
                 <div className="dependency-list">
                   <TaskList
-                    tasks={dependencies.filter(dep => dep.direction === 'blocked_by')}
+                    tasks={dependencies.filter(dep => dep.direction === 'blocks')}
                     onEdit={editTask}
                     onRemove={null}
                     copyToClipboard={copyToClipboard}
