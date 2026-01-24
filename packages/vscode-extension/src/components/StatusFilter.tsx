@@ -59,8 +59,6 @@ const StatusFilter: React.FC<StatusFilterProps> = ({ selectedStatuses, onStatusC
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const trigger = document.getElementById('status-filter-trigger');
-      const popover = document.getElementById('status-popover');
-
       if (!trigger?.contains(target) && isPopoverOpen) {
         setIsPopoverOpen(false);
       }
