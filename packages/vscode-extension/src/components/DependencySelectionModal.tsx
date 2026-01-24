@@ -16,10 +16,8 @@ interface DependencySelectionModalProps {
   availableDependencies: AvailableItem[];
   selectedIds: Set<string>;
   search: string;
-  direction: 'blocks' | 'blocked_by';
   onClose: () => void;
   onSearchChange: (value: string) => void;
-  onDirectionChange: (direction: 'blocks' | 'blocked_by') => void;
   onSelectionChange: (id: string) => void;
   onConfirm: () => void;
   copyToClipboard: (text: string) => void;
@@ -30,10 +28,8 @@ const DependencySelectionModal: React.FC<DependencySelectionModalProps> = ({
   availableDependencies,
   selectedIds,
   search,
-  direction,
   onClose,
   onSearchChange,
-  onDirectionChange,
   onSelectionChange,
   onConfirm,
   copyToClipboard
@@ -44,36 +40,12 @@ const DependencySelectionModal: React.FC<DependencySelectionModalProps> = ({
     <div className="modal">
       <div className="modal-content">
         <div className="modal-header">
-          <h2 className="modal-title">Select Dependencies</h2>
+          <h2 className="modal-title">Select Dependencies (Blocked by)</h2>
         </div>
         <div className="modal-body">
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '500' }}>
-              Dependency Direction:
-            </label>
-            <div style={{ display: 'flex', gap: '16px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
-                <input
-                  type="radio"
-                  name="dependencyDirection"
-                  value="blocks"
-                  checked={direction === 'blocks'}
-                  onChange={(e) => onDirectionChange(e.target.value as 'blocks' | 'blocked_by')}
-                />
-                This task depends on selected tasks (Blocked by)
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
-                <input
-                  type="radio"
-                  name="dependencyDirection"
-                  value="blocked_by"
-                  checked={direction === 'blocked_by'}
-                  onChange={(e) => onDirectionChange(e.target.value as 'blocks' | 'blocked_by')}
-                />
-                Selected tasks depend on this task (Blocking)
-              </label>
-            </div>
-          </div>
+          <p style={{ marginBottom: '12px', fontSize: '13px', color: 'var(--vscode-descriptionForeground)' }}>
+            Select issues that must be completed before this issue can be worked on.
+          </p>
           <input
             type="text"
             className="search-input"

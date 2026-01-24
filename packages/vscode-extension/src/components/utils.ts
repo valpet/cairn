@@ -4,6 +4,39 @@ interface Subtask {
   status: string;
 }
 
+interface Issue {
+  id: string;
+  status: string;
+  dependencies?: Array<{ id: string; type: string }>;
+}
+
+// Compute if an issue is blocked based on its dependencies
+export const isIssueBlocked = (issue: Issue, allIssues: Issue[]): boolean => {
+  if (!issue.dependencies || issue.dependencies.length === 0) {
+    return false;
+  }
+  
+  // Check if any blocking dependency is not closed
+  const blockingDeps = issue.dependencies.filter(d => d.type === 'blocks');
+  return blockingDeps.some(dep => {
+    const blocker = allIssues.find(i => i.id === dep.id);
+    return blocker && blocker.status !== 'closed';
+  });
+};
+
+// Get the computed status including blocked state
+export const getComputedStatus = (issue: Issue, allIssues: Issue[]): string => {
+  if (issue.status === 'closed') {
+    return 'closed';
+  }
+  
+  if (isIssueBlocked(issue, allIssues)) {
+    return 'blocked';
+  }
+  
+  return issue.status;
+};
+
 export const getTypeIcon = (type: string) => {
   const icons: Record<string, string> = {
     task: '•',

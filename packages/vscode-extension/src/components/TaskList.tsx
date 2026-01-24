@@ -14,7 +14,7 @@ interface Task {
 interface TaskListProps {
   tasks: Task[];
   onEdit: (id: string) => void;
-  onRemove: (id: string) => void;
+  onRemove: ((id: string) => void) | null;
   copyToClipboard: (text: string) => void;
   emptyMessage: string;
 }
@@ -59,16 +59,18 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onEdit, onRemove, copyToClip
           <ProgressPie percentage={task.completion_percentage} size={16} tooltip={`${task.completion_percentage}%`} />
           <span className={`subtask-status ${task.status}`}>{getStatusLabel(task.status)}</span>
           <span className={`subtask-priority ${task.priority}`}>{getPriorityLabel(task.priority)}</span>
-          <button
-            type="button"
-            className="icon-button remove"
-            title="Remove"
-            onClick={() => onRemove(task.id)}
-          >
-            <svg viewBox="0 0 1024 1024" fill="currentColor">
-              <path d="M195.2 195.2a64 64 0 0 1 90.496 0L512 421.504 738.304 195.2a64 64 0 0 1 90.496 90.496L602.496 512 828.8 738.304a64 64 0 0 1-90.496 90.496L512 602.496 285.696 828.8a64 64 0 0 1-90.496-90.496L421.504 512 195.2 285.696a64 64 0 0 1 0-90.496z" />
-            </svg>
-          </button>
+          {onRemove && (
+            <button
+              type="button"
+              className="icon-button remove"
+              title="Remove"
+              onClick={() => onRemove(task.id)}
+            >
+              <svg viewBox="0 0 1024 1024" fill="currentColor">
+                <path d="M195.2 195.2a64 64 0 0 1 90.496 0L512 421.504 738.304 195.2a64 64 0 0 1 90.496 90.496L602.496 512 828.8 738.304a64 64 0 0 1-90.496 90.496L512 602.496 285.696 828.8a64 64 0 0 1-90.496-90.496L421.504 512 195.2 285.696a64 64 0 0 1 0-90.496z" />
+              </svg>
+            </button>
+          )}
         </div>
       ))}
     </>

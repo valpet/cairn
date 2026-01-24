@@ -39,7 +39,7 @@ export const useTaskHierarchy = (filteredTasks: Issue[]) => {
     filteredTasks.forEach(task => {
       const node = taskMap.get(task.id)!;
 
-      // Check for parent-child relationship
+      // Check for parent-child relationship ONLY
       const parentDep = (task.dependencies || []).find(dep => dep.type === 'parent-child');
       if (parentDep && !wouldCreateCycle(task.id, parentDep.id)) {
         const parent = taskMap.get(parentDep.id);
@@ -48,16 +48,9 @@ export const useTaskHierarchy = (filteredTasks: Issue[]) => {
           hasParent.add(task.id);
         }
       }
-
-      // Check for blocks relationship (task is blocked by another task)
-      const blocksDep = (task.dependencies || []).find(dep => dep.type === 'blocks');
-      if (blocksDep && !parentDep && !wouldCreateCycle(task.id, blocksDep.id)) { // Only if not already a child via parent-child
-        const blocker = taskMap.get(blocksDep.id);
-        if (blocker) {
-          blocker.children.push(node);
-          hasParent.add(task.id);
-        }
-      }
+      
+      // Note: 'blocks' dependencies do not create hierarchical relationships
+      // They are only for dependency tracking, not tree structure
     });
 
     // Add all tasks without parents to roots

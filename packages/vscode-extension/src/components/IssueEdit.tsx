@@ -73,7 +73,6 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
   // Modal states
   const [selectedSubtaskIds, setSelectedSubtaskIds] = useState<Set<string>>(new Set());
   const [selectedDependencyIds, setSelectedDependencyIds] = useState<Set<string>>(new Set());
-  const [dependencyDirection, setDependencyDirection] = useState<'blocks' | 'blocked_by'>('blocks');
 
   // Collapsible sections
   const [sectionsCollapsed, setSectionsCollapsed] = useState<Record<string, boolean>>({
@@ -329,7 +328,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
           type: d.type,
           status: d.status,
           priority: d.priority,
-          direction: dependencyDirection,
+          direction: 'blocks' as const, // Always 'blocks' - this issue is blocked by the selected dependencies
           completion_percentage: 0, // Would be calculated by extension
         }));
       const updatedDependencies = [...dependencies, ...selectedDeps];
@@ -394,7 +393,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
           label="Status"
           currentValue={currentStatus}
           className={`status-${getComputedStatusClass(currentStatus, subtasks)}`}
-          options={['open', 'in_progress', 'closed', 'blocked'].map(status => ({ value: status, label: getStatusLabel(status) }))}
+          options={['open', 'in_progress', 'closed'].map(status => ({ value: status, label: getStatusLabel(status) }))}
           getIcon={getStatusIcon}
           onSelect={(value) => selectMetadata('status', value)}
           activeDropdown={activeDropdown}
@@ -493,7 +492,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
                   <TaskList
                     tasks={dependencies.filter(dep => dep.direction === 'blocked_by')}
                     onEdit={editTask}
-                    onRemove={removeDependency}
+                    onRemove={null}
                     copyToClipboard={copyToClipboard}
                     emptyMessage="This issue doesn't block any other work."
                   />
@@ -504,7 +503,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
                 className="secondary"
                 onClick={() => vscode.postMessage({ type: 'getAvailableDependencies' })}
               >
-                Add Dependency
+                Add Blocked by
               </button>
             </CollapsibleSection>
 
@@ -577,10 +576,8 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
         availableDependencies={availableDependencies}
         selectedIds={selectedDependencyIds}
         search={dependencySearch}
-        direction={dependencyDirection}
         onClose={() => setDependencyModalOpen(false)}
         onSearchChange={setDependencySearch}
-        onDirectionChange={setDependencyDirection}
         onSelectionChange={(id) => {
           const newSelected = new Set(selectedDependencyIds);
           if (newSelected.has(id)) {

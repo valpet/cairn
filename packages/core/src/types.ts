@@ -29,7 +29,7 @@ export interface Comment {
   created_at: string;
 }
 
-export type IssueStatus = 'open' | 'in_progress' | 'closed' | 'blocked';
+export type IssueStatus = 'open' | 'in_progress' | 'closed';
 
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 

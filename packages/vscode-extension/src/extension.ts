@@ -740,6 +740,7 @@ export function activate(context: vscode.ExtensionContext) {
               // Get dependencies
               const dependencies: any[] = [];
               if (ticket) {
+                // Get issues that block this issue (blocked_by)
                 const blockerDeps = ticket.dependencies?.filter((d: any) => d.type === 'blocks') || [];
                 for (const dep of blockerDeps) {
                   const blocker = issues.find(i => i.id === dep.id);
@@ -750,12 +751,16 @@ export function activate(context: vscode.ExtensionContext) {
                       type: blocker.type,
                       status: blocker.status,
                       priority: blocker.priority,
-                      direction: 'blocks',
+                      direction: 'blocks', // This issue is blocked by these
                       completion_percentage: blocker.completion_percentage
                     });
                   }
                 }
-                const blockedByIssues = issues.filter(i => i.dependencies?.some((d: any) => d.id === ticketId && d.type === 'blocks'));
+                
+                // Get issues that this issue blocks (blocking) - COMPUTED from other issues' dependencies
+                const blockedByIssues = issues.filter(i => 
+                  i.dependencies?.some((d: any) => d.id === ticketId && d.type === 'blocks')
+                );
                 for (const blocked of blockedByIssues) {
                   dependencies.push({
                     id: blocked.id,
@@ -763,7 +768,7 @@ export function activate(context: vscode.ExtensionContext) {
                     type: blocked.type,
                     status: blocked.status,
                     priority: blocked.priority,
-                    direction: 'blocked_by',
+                    direction: 'blocked_by', // This issue blocks these
                     completion_percentage: blocked.completion_percentage
                   });
                 }
@@ -963,32 +968,26 @@ export function activate(context: vscode.ExtensionContext) {
 
                       // Handle dependencies
                       if (originalIssue) {
+                        // Get current blockers (what blocks this issue)
                         const currentBlockers = originalIssue.dependencies?.filter((d: any) => d.type === 'blocks').map((d: any) => d.id) || [];
+                        // Get new blockers from UI (only 'blocks' direction matters - what blocks this issue)
                         const newBlockers = ticketData.dependencies.filter((d: any) => d.direction === 'blocks').map((d: any) => d.id);
-                        const currentBlockedBy = updatedIssues.filter((i: any) => i.dependencies?.some((d: any) => d.id === ticketData.id && d.type === 'blocks')).map((i: any) => i.id);
-                        const newBlockedBy = ticketData.dependencies.filter((d: any) => d.direction === 'blocked_by').map((d: any) => d.id);
+                        
+                        // Note: We ignore 'blocked_by' direction from UI since that's computed
+                        // The 'blocked_by' list in the UI shows issues that depend on this one,
+                        // but we never modify those relationships from this issue's save
 
+                        // Remove blockers that were deleted
                         for (const blockerId of currentBlockers) {
                           if (!newBlockers.includes(blockerId)) {
                             updatedIssues = graph.removeDependency(ticketData.id, blockerId, updatedIssues);
                           }
                         }
 
+                        // Add new blockers
                         for (const blockerId of newBlockers) {
                           if (!currentBlockers.includes(blockerId)) {
                             updatedIssues = graph.addDependency(ticketData.id, blockerId, 'blocks', updatedIssues);
-                          }
-                        }
-
-                        for (const blockedId of currentBlockedBy) {
-                          if (!newBlockedBy.includes(blockedId)) {
-                            updatedIssues = graph.removeDependency(blockedId, ticketData.id, updatedIssues);
-                          }
-                        }
-
-                        for (const blockedId of newBlockedBy) {
-                          if (!currentBlockedBy.includes(blockedId)) {
-                            updatedIssues = graph.addDependency(blockedId, ticketData.id, 'blocks', updatedIssues);
                           }
                         }
                       }
