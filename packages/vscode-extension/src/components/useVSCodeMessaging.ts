@@ -21,6 +21,7 @@ interface UseVSCodeMessagingReturn {
   availableSubtasks: AvailableItem[];
   availableDependencies: AvailableItem[];
   currentCommentAuthor: string;
+  newComment: string;
   subtaskModalOpen: boolean;
   dependencyModalOpen: boolean;
   subtaskSearch: string;
@@ -119,6 +120,7 @@ export const useVSCodeMessaging = (vscode: any): UseVSCodeMessagingReturn => {
     availableSubtasks,
     availableDependencies,
     currentCommentAuthor,
+    newComment,
     subtaskModalOpen,
     dependencyModalOpen,
     subtaskSearch,
