@@ -201,13 +201,24 @@ export class GraphService implements IGraphService {
     const subtasks = this.getEpicSubtasks(issueId, issues);
     const openSubtasks = subtasks.filter(subtask => subtask.status !== 'closed');
 
-    // Check if issue is 100% complete
-    const isComplete = issue.completion_percentage === 100;
+    // Check if issue would be 100% complete when closed
+    // For closed issues, they're already 100% complete
+    // For open/in_progress issues, check if they would be 100% complete when closed
+    const wouldBeComplete = issue.status === 'closed' || this.wouldBeCompleteIfClosed(issue);
 
     return {
-      canClose: openSubtasks.length === 0 && isComplete,
+      canClose: openSubtasks.length === 0 && wouldBeComplete,
       openSubtasks: openSubtasks.length > 0 ? openSubtasks : undefined
     };
+  }
+
+  private wouldBeCompleteIfClosed(issue: Issue): boolean {
+    // If issue has acceptance criteria, check if they're all complete
+    if (issue.acceptance_criteria && issue.acceptance_criteria.length > 0) {
+      return issue.acceptance_criteria.every(ac => ac.completed);
+    }
+    // If issue has no acceptance criteria, it would be 100% complete when closed
+    return true;
   }
 
   getNonParentedIssues(issues: Issue[]): Issue[] {

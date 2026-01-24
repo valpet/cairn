@@ -247,6 +247,11 @@ export function sanitizeFilePath(filePath: string, allowedExtensions: string[] =
  * Returns percentage as number (0-100).
  */
 export function calculateCompletionPercentage(issue: Issue, allIssues: Issue[], visited = new Set<string>()): number {
+  // If issue is closed, it's 100% complete regardless of acceptance criteria or subtasks
+  if (issue.status === 'closed') {
+    return 100;
+  }
+
   if (visited.has(issue.id)) {
     // Cycle detected, return 0 to break recursion
     return 0;
@@ -263,7 +268,7 @@ export function calculateCompletionPercentage(issue: Issue, allIssues: Issue[], 
   if (acTotal > 0) {
     ownCompletion = (acCompleted / acTotal) * 100;
   } else {
-    ownCompletion = issue.status === 'closed' ? 100 : 0;
+    ownCompletion = 0; // Only open/in_progress issues reach here
   }
 
   // Calculate subtask completion average

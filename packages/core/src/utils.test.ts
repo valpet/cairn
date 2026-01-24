@@ -309,8 +309,11 @@ describe('Validation Functions', () => {
       expect(calculateCompletionPercentage(issue, allIssues)).toBe(0);
     });
 
-    it('should return 100% for closed leaf issue with no AC', () => {
-      const issue = mockIssue('1');
+    it('should return 100% for closed leaf issue with incomplete AC', () => {
+      const issue = mockIssue('1', [
+        { text: 'AC1', completed: false },
+        { text: 'AC2', completed: false }
+      ]);
       issue.status = 'closed';
       const allIssues = [issue];
       expect(calculateCompletionPercentage(issue, allIssues)).toBe(100);

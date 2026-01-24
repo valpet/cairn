@@ -720,7 +720,7 @@ describe('GraphService', () => {
       });
     });
     describe('canCloseIssue', () => {
-      it('should return canClose: true when issue has no subtasks', () => {
+      it('should return canClose: true when issue has no subtasks and no acceptance criteria', () => {
         const issues: Issue[] = [
           {
             id: 'task-1',
@@ -728,12 +728,32 @@ describe('GraphService', () => {
             status: 'open',
             created_at: '2023-01-01T00:00:00Z',
             updated_at: '2023-01-01T00:00:00Z',
-            completion_percentage: 100,
+            completion_percentage: 0, // Open issues with no AC have 0% completion
           },
         ];
 
         const result = graphService.canCloseIssue('task-1', issues);
         expect(result.canClose).toBe(true);
+        expect(result.openSubtasks).toBeUndefined();
+      });
+
+      it('should return canClose: false when issue has incomplete acceptance criteria', () => {
+        const issues: Issue[] = [
+          {
+            id: 'task-1',
+            title: 'Task 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            acceptance_criteria: [
+              { text: 'AC1', completed: true },
+              { text: 'AC2', completed: false },
+            ],
+          },
+        ];
+
+        const result = graphService.canCloseIssue('task-1', issues);
+        expect(result.canClose).toBe(false);
         expect(result.openSubtasks).toBeUndefined();
       });
 

@@ -200,7 +200,7 @@ export class StorageService implements IStorageService {
       let issueUpdated = false;
 
       // Migration: Convert 'blocked' status to 'open' (removing blocked as a stored status)
-      if (issue.status === 'blocked') {
+      if ((issue as any).status === 'blocked') {
         issue.status = 'open';
         issue.updated_at = new Date().toISOString();
         hasMigrations = true;
