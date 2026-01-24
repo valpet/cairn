@@ -401,7 +401,7 @@ describe('Validation Functions', () => {
       const issueE = mockIssue('E', [{ text: 'AC1', completed: true }], [{ id: 'D', type: 'parent-child' }]);
       const allIssues = [issueA, issueB, issueC, issueD, issueE];
       // D should calculate correctly despite cycle in A-B-C
-      expect(calculateCompletionPercentage(issueD, allIssues)).toBe(50); // (0 + 100) / 2 = 50 (no AC for D, E has 100% AC)
+      expect(calculateCompletionPercentage(issueD, allIssues)).toBe(50); // (0% own completion for D + 100% for child E) / 2 = 50
     });
   });
 });
