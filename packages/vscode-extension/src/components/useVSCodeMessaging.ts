@@ -36,7 +36,6 @@ interface UseVSCodeMessagingReturn {
   setDependencyModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setSubtaskSearch: React.Dispatch<React.SetStateAction<string>>;
   setDependencySearch: React.Dispatch<React.SetStateAction<string>>;
-  setPreviousStatus: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const useVSCodeMessaging = (vscode: any): UseVSCodeMessagingReturn => {
@@ -56,9 +55,6 @@ export const useVSCodeMessaging = (vscode: any): UseVSCodeMessagingReturn => {
   const [subtaskSearch, setSubtaskSearch] = useState('');
   const [dependencySearch, setDependencySearch] = useState('');
 
-  // Status management
-  const [previousStatus, setPreviousStatus] = useState('open');
-
   useEffect(() => {
     // Notify extension that webview is ready
     vscode.postMessage({ type: 'webviewReady' });
@@ -77,7 +73,6 @@ export const useVSCodeMessaging = (vscode: any): UseVSCodeMessagingReturn => {
         setSubtasks(ticket.subtasks || []);
         setDependencies(ticket.dependencies || []);
         setAcceptanceCriteria(ticket.acceptance_criteria || []);
-        setPreviousStatus(ticket.status || 'open');
       } else if (message.type === 'availableSubtasks') {
         const subtasksMessage = message as AvailableSubtasksMessage;
         setAvailableSubtasks(subtasksMessage.subtasks);
@@ -135,6 +130,5 @@ export const useVSCodeMessaging = (vscode: any): UseVSCodeMessagingReturn => {
     setDependencyModalOpen,
     setSubtaskSearch,
     setDependencySearch,
-    setPreviousStatus,
   };
 };

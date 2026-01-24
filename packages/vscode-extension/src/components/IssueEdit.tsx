@@ -58,7 +58,6 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
     setDependencyModalOpen,
     setSubtaskSearch,
     setDependencySearch,
-    setPreviousStatus,
   } = useVSCodeMessaging(vscode);
 
   const [currentTitle, setCurrentTitle] = useState('');
@@ -99,9 +98,8 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
       setCurrentType(issue.type || 'task');
       setCurrentPriority(issue.priority || 'medium');
       setCurrentStatus(issue.status || 'open');
-      setPreviousStatus(issue.status || 'open');
     }
-  }, [issue, setPreviousStatus]);
+  }, [issue]);
 
   const saveTicket = (overrides?: Partial<{ type: string; priority: string; status: string }>) => {
     if (!issue) return;
@@ -130,7 +128,6 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
       setCurrentPriority(value);
       saveTicket({ priority: value });
     } else if (type === 'status') {
-      setPreviousStatus(currentStatus);
       setCurrentStatus(value);
       onStatusChange(value);
       saveTicket({ status: value });
