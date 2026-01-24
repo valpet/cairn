@@ -569,6 +569,7 @@ export function activate(context: vscode.ExtensionContext) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${webview.cspSource}; style-src ${webview.cspSource};">
   <title>Cairn Task List</title>
   <link rel="stylesheet" href="${cssUri}">
 </head>
