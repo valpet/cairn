@@ -331,7 +331,8 @@ describe('CLI Commands', () => {
       mockStorage.loadIssues.mockReturnValue(mockIssues);
       mockGraph.canCloseIssue.mockReturnValue({
         canClose: false,
-        openSubtasks: [{ id: 'sub-1', title: 'Open Subtask', status: 'open' }]
+        openSubtasks: [{ id: 'sub-1', title: 'Open Subtask', status: 'open' }],
+        reason: 'has 1 open subtask(s)'
       });
 
       await importCLI();
@@ -366,7 +367,8 @@ describe('CLI Commands', () => {
       mockStorage.loadIssues.mockReturnValue(mockIssues);
       mockGraph.canCloseIssue.mockReturnValue({
         canClose: false,
-        openSubtasks: undefined
+        openSubtasks: undefined,
+        reason: 'has 1 incomplete acceptance criteria'
       });
 
       await importCLI();
@@ -380,7 +382,7 @@ describe('CLI Commands', () => {
 
       expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('task-789', mockIssues);
       expect(mockConsoleError).toHaveBeenCalledWith(
-        expect.stringContaining('Cannot close issue task-789 because it is not 100% complete (check acceptance criteria)')
+        expect.stringContaining('Cannot close issue task-789 because it has 1 incomplete acceptance criteria')
       );
       expect(mockProcessExit).toHaveBeenCalledWith(1);
       expect(mockStorage.updateIssues).not.toHaveBeenCalled();

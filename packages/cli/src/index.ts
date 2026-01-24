@@ -239,10 +239,21 @@ program
     if (options.status === 'closed' && issue.status !== 'closed') {
       const validation = graph.canCloseIssue(id, issues);
       if (!validation.canClose) {
-        const reason = validation.openSubtasks && validation.openSubtasks.length > 0
-          ? `it has ${validation.openSubtasks.length} open subtask(s): ${validation.openSubtasks.map(s => `${s.id} (${s.status})`).join(', ')}`
-          : 'it is not 100% complete (check acceptance criteria)';
-        console.error(`Cannot close issue ${id} because ${reason}. Please complete all requirements before closing.`);
+        // Build detailed error message
+        let errorMsg = `Cannot close issue ${id}`;
+        if (validation.reason) {
+          errorMsg += ` because it ${validation.reason}`;
+        }
+        if (validation.completionPercentage !== undefined) {
+          errorMsg += ` (currently ${validation.completionPercentage}% complete)`;
+        }
+        if (validation.openSubtasks && validation.openSubtasks.length > 0) {
+          const subtaskList = validation.openSubtasks.map(s => `${s.id} (${s.status})`).join(', ');
+          errorMsg += `\nOpen subtasks: ${subtaskList}`;
+        }
+        errorMsg += '.\nPlease complete all requirements before closing.';
+        
+        console.error(errorMsg);
         process.exit(1);
       }
     }

@@ -116,14 +116,26 @@ class CairnUpdateTool implements vscode.LanguageModelTool<any> {
 
         if (!validation.canClose) {
           const currentIssue = issues.find(i => i.id === inputs.id);
-          const subtaskList = validation.openSubtasks!.map(subtask =>
-            `- ${subtask.title} (${subtask.id}) - ${subtask.status}`
-          ).join('\n');
+          let errorMsg = `Cannot close issue "${currentIssue?.title || inputs.id}" (${inputs.id})`;
+          
+          if (validation.reason) {
+            errorMsg += ` because it ${validation.reason}`;
+          }
+          if (validation.completionPercentage !== undefined) {
+            errorMsg += ` (currently ${validation.completionPercentage}% complete)`;
+          }
+          if (validation.openSubtasks && validation.openSubtasks.length > 0) {
+            const subtaskList = validation.openSubtasks.map(subtask =>
+              `- ${subtask.title} (${subtask.id}) - ${subtask.status}`
+            ).join('\n');
+            errorMsg += `:\n${subtaskList}`;
+          }
+          errorMsg += '.\n\nPlease complete all requirements before closing this issue.';
 
           return new vscode.LanguageModelToolResult([
             new vscode.LanguageModelTextPart(JSON.stringify({
               success: false,
-              message: `Cannot close issue "${currentIssue?.title || inputs.id}" (${inputs.id}) because it has ${validation.openSubtasks!.length} open subtask(s):\n${subtaskList}\n\nPlease close all subtasks before closing this issue.`
+              message: errorMsg
             }))
           ]);
         }
@@ -510,13 +522,17 @@ export function activate(context: vscode.ExtensionContext) {
                 const validation = graph.canCloseIssue(message.id, issues);
 
                 if (!validation.canClose) {
-                  const reason = validation.openSubtasks && validation.openSubtasks.length > 0
-                    ? `it has ${validation.openSubtasks.length} open subtask(s)`
-                    : 'it is not 100% complete (check acceptance criteria)';
+                  let errorMsg = `Cannot close task "${message.id}"`;
+                  
+                  if (validation.reason) {
+                    errorMsg += ` because it ${validation.reason}`;
+                  }
+                  if (validation.completionPercentage !== undefined) {
+                    errorMsg += ` (currently ${validation.completionPercentage}% complete)`;
+                  }
+                  errorMsg += '. Please complete all requirements before closing this task.';
 
-                  vscode.window.showErrorMessage(
-                    `Cannot close task "${message.id}" because ${reason}. Please complete all requirements before closing this task.`
-                  );
+                  vscode.window.showErrorMessage(errorMsg);
                   return;
                 }
 
@@ -903,14 +919,18 @@ export function activate(context: vscode.ExtensionContext) {
                             errorCode: 'CANNOT_CLOSE_INCOMPLETE'
                           });
 
-                          const reason = validation.openSubtasks && validation.openSubtasks.length > 0
-                            ? `it has ${validation.openSubtasks.length} open subtask(s)`
-                            : 'it is not 100% complete (check acceptance criteria)';
-
                           const currentIssue = updatedIssues.find(i => i.id === ticketData.id);
-                          vscode.window.showErrorMessage(
-                            `Cannot close issue "${currentIssue?.title || ticketData.id}" (${ticketData.id}) because ${reason}. Please complete all requirements before closing this issue.`
-                          );
+                          let errorMsg = `Cannot close issue "${currentIssue?.title || ticketData.id}" (${ticketData.id})`;
+                          
+                          if (validation.reason) {
+                            errorMsg += ` because it ${validation.reason}`;
+                          }
+                          if (validation.completionPercentage !== undefined) {
+                            errorMsg += ` (currently ${validation.completionPercentage}% complete)`;
+                          }
+                          errorMsg += '. Please complete all requirements before closing this issue.';
+
+                          vscode.window.showErrorMessage(errorMsg);
                           return; // Don't save the ticket
                         }
                       }

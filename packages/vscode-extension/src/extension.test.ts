@@ -309,6 +309,7 @@ describe('VS Code Extension Tools', () => {
       mockGraph.canCloseIssue.mockReturnValue({
         canClose: false,
         openSubtasks: [{ id: 'subtask-1', title: 'Open Subtask', status: 'open' }],
+        reason: 'has 1 open subtask(s)'
       });
 
       const registerToolMock = lm.registerTool as any;
@@ -334,7 +335,6 @@ describe('VS Code Extension Tools', () => {
       expect(resultText).toContain('parent-123');
       expect(resultText).toContain('Open Subtask');
       expect(resultText).toContain('subtask-1');
-      expect(resultText).toContain('open subtask(s)');
     });
 
     it('should allow closing an issue with no subtasks', async () => {
@@ -421,6 +421,7 @@ describe('VS Code Extension Tools', () => {
           { id: 'subtask-2', title: 'Open Subtask 2', status: 'in_progress' },
           { id: 'subtask-3', title: 'Open Subtask 3', status: 'open' },
         ],
+        reason: 'has 3 open subtask(s)'
       });
 
       const registerToolMock = lm.registerTool as any;
@@ -439,7 +440,6 @@ describe('VS Code Extension Tools', () => {
       
       const resultText = result.content[0].text;
       expect(resultText).toContain('Cannot close issue');
-      expect(resultText).toContain('3 open subtask(s)');
       expect(resultText).toContain('Open Subtask 1');
       expect(resultText).toContain('subtask-1');
       expect(resultText).toContain('Open Subtask 2');

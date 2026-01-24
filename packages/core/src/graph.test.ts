@@ -843,6 +843,197 @@ describe('GraphService', () => {
         expect(result.canClose).toBe(false);
         expect(result.openSubtasks).toHaveLength(0);
       });
+
+      it('should return canClose: true with completion percentage for completed issue with all AC complete', () => {
+        const issues: Issue[] = [
+          {
+            id: 'task-1',
+            title: 'Task 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            acceptance_criteria: [
+              { text: 'AC1', completed: true },
+              { text: 'AC2', completed: true },
+            ],
+          },
+        ];
+
+        const result = graphService.canCloseIssue('task-1', issues);
+        expect(result.canClose).toBe(true);
+        expect(result.completionPercentage).toBe(100);
+        expect(result.reason).toBeUndefined();
+      });
+
+      it('should return detailed reason when acceptance criteria are incomplete', () => {
+        const issues: Issue[] = [
+          {
+            id: 'task-1',
+            title: 'Task 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            acceptance_criteria: [
+              { text: 'AC1', completed: true },
+              { text: 'AC2', completed: false },
+              { text: 'AC3', completed: false },
+            ],
+          },
+        ];
+
+        const result = graphService.canCloseIssue('task-1', issues);
+        expect(result.canClose).toBe(false);
+        expect(result.reason).toBe('has 2 incomplete acceptance criteria');
+      });
+
+      it('should return detailed reason when subtasks are open', () => {
+        const issues: Issue[] = [
+          {
+            id: 'epic-1',
+            title: 'Epic 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+          {
+            id: 'sub-1',
+            title: 'Subtask 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+          },
+        ];
+
+        const result = graphService.canCloseIssue('epic-1', issues);
+        expect(result.canClose).toBe(false);
+        expect(result.reason).toBe('has 1 open subtask(s)');
+        expect(result.openSubtasks).toHaveLength(1);
+      });
+
+      it('should prevent closing parent even when all AC complete but subtasks are incomplete', () => {
+        const issues: Issue[] = [
+          {
+            id: 'epic-1',
+            title: 'Epic 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            acceptance_criteria: [
+              { text: 'Epic AC1', completed: true },
+            ],
+          },
+          {
+            id: 'sub-1',
+            title: 'Subtask 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+            acceptance_criteria: [
+              { text: 'Sub AC1', completed: false },
+            ],
+          },
+        ];
+
+        const result = graphService.canCloseIssue('epic-1', issues);
+        expect(result.canClose).toBe(false);
+        expect(result.reason).toBe('has 1 open subtask(s)');
+        expect(result.openSubtasks).toHaveLength(1);
+      });
+
+      it('should validate completion percentage for parent with mixed subtask completion', () => {
+        const issues: Issue[] = [
+          {
+            id: 'epic-1',
+            title: 'Epic 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+          {
+            id: 'sub-1',
+            title: 'Subtask 1',
+            status: 'closed',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            closed_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+            completion_percentage: 100,
+          },
+          {
+            id: 'sub-2',
+            title: 'Subtask 2',
+            status: 'closed',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            closed_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+            completion_percentage: 100,
+          },
+        ];
+
+        const result = graphService.canCloseIssue('epic-1', issues);
+        expect(result.canClose).toBe(true);
+        expect(result.completionPercentage).toBe(100);
+      });
+
+      it('should allow closing already-closed issues', () => {
+        const issues: Issue[] = [
+          {
+            id: 'task-1',
+            title: 'Task 1',
+            status: 'closed',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            closed_at: '2023-01-01T00:00:00Z',
+          },
+        ];
+
+        const result = graphService.canCloseIssue('task-1', issues);
+        expect(result.canClose).toBe(true);
+        expect(result.completionPercentage).toBe(100);
+      });
+
+      it('should handle multi-level hierarchy correctly', () => {
+        const issues: Issue[] = [
+          {
+            id: 'epic-1',
+            title: 'Epic 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+          },
+          {
+            id: 'feature-1',
+            title: 'Feature 1',
+            status: 'open',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'epic-1', type: 'parent-child' }],
+          },
+          {
+            id: 'task-1',
+            title: 'Task 1',
+            status: 'closed',
+            created_at: '2023-01-01T00:00:00Z',
+            updated_at: '2023-01-01T00:00:00Z',
+            closed_at: '2023-01-01T00:00:00Z',
+            dependencies: [{ id: 'feature-1', type: 'parent-child' }],
+            completion_percentage: 100,
+          },
+        ];
+
+        // Cannot close epic because feature-1 is open
+        const epicResult = graphService.canCloseIssue('epic-1', issues);
+        expect(epicResult.canClose).toBe(false);
+        expect(epicResult.reason).toBe('has 1 open subtask(s)');
+
+        // Cannot close feature-1 because status is open, even though task-1 is closed
+        const featureResult = graphService.canCloseIssue('feature-1', issues);
+        expect(featureResult.canClose).toBe(true); // All subtasks closed
+        expect(featureResult.completionPercentage).toBe(100);
+      });
     });
   });
 

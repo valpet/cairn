@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
 import { Issue, DependencyType } from './types';
+import { calculateCompletionPercentage } from './utils';
 
 export interface IGraphService {
   buildGraph(issues: Issue[]): Map<string, Issue>;
@@ -11,7 +12,7 @@ export interface IGraphService {
   getSubtaskEpic(subtaskId: string, issues: Issue[]): Issue | null;
   calculateEpicProgress(epicId: string, issues: Issue[]): { completed: number; total: number; percentage: number };
   shouldCloseEpic(epicId: string, issues: Issue[]): boolean;
-  canCloseIssue(issueId: string, issues: Issue[]): { canClose: boolean; openSubtasks?: Issue[] };
+  canCloseIssue(issueId: string, issues: Issue[]): { canClose: boolean; openSubtasks?: Issue[]; reason?: string; completionPercentage?: number };
   getNonParentedIssues(issues: Issue[]): Issue[];
   wouldCreateCycle(fromId: string, toId: string, type: DependencyType, issues: Issue[]): boolean;
 }
@@ -191,34 +192,57 @@ export class GraphService implements IGraphService {
     return subtasks.length > 0 && subtasks.every(subtask => subtask.status === 'closed');
   }
 
-  canCloseIssue(issueId: string, issues: Issue[]): { canClose: boolean; openSubtasks?: Issue[] } {
+  canCloseIssue(issueId: string, issues: Issue[]): { canClose: boolean; openSubtasks?: Issue[]; reason?: string; completionPercentage?: number } {
     // Check if the issue exists
     const issue = issues.find(issue => issue.id === issueId);
     if (!issue) {
-      return { canClose: false, openSubtasks: [] };
+      return { canClose: false, openSubtasks: [], reason: 'Issue not found' };
+    }
+
+    // If already closed, it's valid
+    if (issue.status === 'closed') {
+      return { canClose: true, completionPercentage: 100 };
     }
 
     const subtasks = this.getEpicSubtasks(issueId, issues);
     const openSubtasks = subtasks.filter(subtask => subtask.status !== 'closed');
 
-    // Check if issue would be 100% complete when closed
-    // For closed issues, they're already 100% complete
-    // For open/in_progress issues, check if they would be 100% complete when closed
-    const wouldBeComplete = issue.status === 'closed' || this.wouldBeCompleteIfClosed(issue);
-
-    return {
-      canClose: openSubtasks.length === 0 && wouldBeComplete,
-      openSubtasks: openSubtasks.length > 0 ? openSubtasks : undefined
-    };
-  }
-
-  private wouldBeCompleteIfClosed(issue: Issue): boolean {
-    // If issue has acceptance criteria, check if they're all complete
-    if (issue.acceptance_criteria && issue.acceptance_criteria.length > 0) {
-      return issue.acceptance_criteria.every(ac => ac.completed);
+    // Check for open subtasks first
+    if (openSubtasks.length > 0) {
+      return {
+        canClose: false,
+        openSubtasks,
+        reason: `has ${openSubtasks.length} open subtask(s)`
+      };
     }
-    // If issue has no acceptance criteria, it would be 100% complete when closed
-    return true;
+
+    // Check acceptance criteria
+    const hasIncompleteAC = issue.acceptance_criteria && issue.acceptance_criteria.length > 0 
+      && !issue.acceptance_criteria.every(ac => ac.completed);
+    
+    if (hasIncompleteAC) {
+      const incompleteCount = issue.acceptance_criteria!.filter(ac => !ac.completed).length;
+      return {
+        canClose: false,
+        reason: `has ${incompleteCount} incomplete acceptance criteria`
+      };
+    }
+
+    // Verify completion percentage would be 100%
+    // Calculate what completion would be if this issue were marked as closed
+    const tempIssue = { ...issue, status: 'closed' as const };
+    const tempIssues = issues.map(i => i.id === issueId ? tempIssue : i);
+    const completionPct = calculateCompletionPercentage(tempIssue, tempIssues);
+    
+    if (completionPct < 100) {
+      return {
+        canClose: false,
+        completionPercentage: completionPct,
+        reason: `completion percentage is ${completionPct}% (must be 100%)`
+      };
+    }
+
+    return { canClose: true, completionPercentage: 100 };
   }
 
   getNonParentedIssues(issues: Issue[]): Issue[] {
