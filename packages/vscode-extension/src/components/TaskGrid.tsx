@@ -52,7 +52,6 @@ const TaskGrid: React.FC<TaskGridProps> = ({
   onShowDeleteConfirmation,
   onDeleteTask
 }) => {
-  console.log('TaskGrid rendering, taskTree length:', taskTree.length);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState<number>(200);
 

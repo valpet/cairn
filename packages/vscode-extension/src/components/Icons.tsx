@@ -69,7 +69,7 @@ export const ProgressPie: React.FC<{
           fill="var(--vscode-foreground)"
         />
       )}
-      {/* Background circle outline - always show for consistency */}
+      {/* Background circle outline - always show */}
       <circle
         cx={center}
         cy={center}
@@ -77,7 +77,6 @@ export const ProgressPie: React.FC<{
         fill="transparent"
         stroke="var(--vscode-foreground)"
         strokeWidth={strokeWidth}
-        opacity={percentage === 0 ? 1 : 0.3}
       />
     </svg>
   );

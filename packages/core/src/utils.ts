@@ -256,16 +256,14 @@ export function calculateCompletionPercentage(issue: Issue, allIssues: Issue[], 
   const subtasks = allIssues.filter(i => i.dependencies?.some(d => d.id === issue.id && d.type === 'parent-child'));
   const hasSubtasks = subtasks.length > 0;
 
+  // Calculate own completion
+  const acCompleted = issue.acceptance_criteria?.filter(ac => ac.completed).length || 0;
   const acTotal = issue.acceptance_criteria?.length || 0;
-  const hasAcceptanceCriteria = acTotal > 0;
-
-  let completionValues: number[] = [];
-
-  // Calculate own acceptance criteria completion
-  if (hasAcceptanceCriteria) {
-    const acCompleted = issue.acceptance_criteria!.filter(ac => ac.completed).length;
-    const acCompletion = acTotal > 0 ? (acCompleted / acTotal) * 100 : 0;
-    completionValues.push(acCompletion);
+  let ownCompletion: number;
+  if (acTotal > 0) {
+    ownCompletion = (acCompleted / acTotal) * 100;
+  } else {
+    ownCompletion = issue.status === 'closed' ? 100 : 0;
   }
 
   // Calculate subtask completion average
@@ -275,22 +273,12 @@ export function calculateCompletionPercentage(issue: Issue, allIssues: Issue[], 
       .filter(cp => cp !== null);
     if (subtaskCompletions.length > 0) {
       const avgSubtaskCompletion = subtaskCompletions.reduce((sum, cp) => sum + cp, 0) / subtaskCompletions.length;
-      completionValues.push(avgSubtaskCompletion);
+      const average = (ownCompletion + avgSubtaskCompletion) / 2;
+      visited.delete(issue.id);
+      return Math.round(average);
     }
   }
 
   visited.delete(issue.id);
-
-  // If we have completion values, average them
-  if (completionValues.length > 0) {
-    const average = completionValues.reduce((sum, val) => sum + val, 0) / completionValues.length;
-    return Math.round(average);
-  }
-
-  // Leaf issue with no acceptance criteria: use status
-  if (issue.status === 'closed') {
-    return 100;
-  } else {
-    return 0;
-  }
+  return Math.round(ownCompletion);
 }

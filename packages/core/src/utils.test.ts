@@ -335,7 +335,7 @@ describe('Validation Functions', () => {
       child2.status = 'open';
       child2.completion_percentage = 0; // open leaf
       const allIssues = [parent, child1, child2];
-      expect(calculateCompletionPercentage(parent, allIssues)).toBe(50); // (100 + 0) / 2
+      expect(calculateCompletionPercentage(parent, allIssues)).toBe(25); // (0 + 50) / 2
     });
 
     it('should calculate percentage with mixed AC and subtasks', () => {
@@ -367,6 +367,41 @@ describe('Validation Functions', () => {
       ]);
       const allIssues = [issue];
       expect(calculateCompletionPercentage(issue, allIssues)).toBe(33); // 1/3 ≈ 33.33, rounds to 33
+    });
+
+    it('should handle cycle detection and return 0 for cyclic dependencies', () => {
+      const issueA = mockIssue('A', [], [{ id: 'B', type: 'parent-child' }]);
+      const issueB = mockIssue('B', [], [{ id: 'A', type: 'parent-child' }]);
+      const allIssues = [issueA, issueB];
+      expect(calculateCompletionPercentage(issueA, allIssues)).toBe(0);
+      expect(calculateCompletionPercentage(issueB, allIssues)).toBe(0);
+    });
+
+    it('should handle self-referencing cycle', () => {
+      const issue = mockIssue('1', [], [{ id: '1', type: 'parent-child' }]);
+      const allIssues = [issue];
+      expect(calculateCompletionPercentage(issue, allIssues)).toBe(0);
+    });
+
+    it('should handle complex cycle with multiple issues', () => {
+      const issueA = mockIssue('A', [], [{ id: 'B', type: 'parent-child' }]);
+      const issueB = mockIssue('B', [], [{ id: 'C', type: 'parent-child' }]);
+      const issueC = mockIssue('C', [], [{ id: 'A', type: 'parent-child' }]);
+      const allIssues = [issueA, issueB, issueC];
+      expect(calculateCompletionPercentage(issueA, allIssues)).toBe(0);
+      expect(calculateCompletionPercentage(issueB, allIssues)).toBe(0);
+      expect(calculateCompletionPercentage(issueC, allIssues)).toBe(0);
+    });
+
+    it('should calculate correctly for acyclic graphs even with cycles elsewhere', () => {
+      const issueA = mockIssue('A', [], [{ id: 'B', type: 'parent-child' }]);
+      const issueB = mockIssue('B', [], [{ id: 'C', type: 'parent-child' }]);
+      const issueC = mockIssue('C', [], [{ id: 'A', type: 'parent-child' }]); // cycle A->B->C->A
+      const issueD = mockIssue('D');
+      const issueE = mockIssue('E', [{ text: 'AC1', completed: true }], [{ id: 'D', type: 'parent-child' }]);
+      const allIssues = [issueA, issueB, issueC, issueD, issueE];
+      // D should calculate correctly despite cycle in A-B-C
+      expect(calculateCompletionPercentage(issueD, allIssues)).toBe(50); // (0 + 100) / 2 = 50 (no AC for D, E has 100% AC)
     });
   });
 });
