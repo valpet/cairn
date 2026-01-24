@@ -47,7 +47,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({ issue, copyToClipboard })
           <ProgressPie 
             percentage={issue.completion_percentage} 
             size={16}
-            tooltip={`${issue.completion_percentage}%\n${(issue.acceptance_criteria?.filter(ac => ac.completed).length || 0)} of ${(issue.acceptance_criteria?.length || 0)} acceptance criteria\n${(issue.subtasks?.filter(st => st.completion_percentage === 100).length || 0)} of ${(issue.subtasks?.length || 0)} sub-issues`}
+            tooltip={`${issue.completion_percentage}%\n${(issue.acceptance_criteria?.filter(ac => ac.completed).length || 0)}/${(issue.acceptance_criteria?.length || 0)} acceptance criteria\n${(issue.subtasks?.filter(st => st.completion_percentage === 100).length || 0)}/${(issue.subtasks?.length || 0)} sub-issues`}
           />
         </h1>
       </div>

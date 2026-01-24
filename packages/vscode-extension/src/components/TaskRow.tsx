@@ -291,7 +291,7 @@ const TaskRow: React.FC<TaskRowProps> = ({
             <ProgressPie 
               percentage={task.completion_percentage} 
               size={16}
-              tooltip={`${task.completion_percentage}%\n${(task.acceptance_criteria?.filter(ac => ac.completed).length || 0)} of ${(task.acceptance_criteria?.length || 0)} acceptance criteria\n${subtasks.filter(st => st.status === 'closed').length} of ${subtasks.length} sub-issues`}
+              tooltip={`${task.completion_percentage}%\n${(task.acceptance_criteria?.filter(ac => ac.completed).length || 0)}/${(task.acceptance_criteria?.length || 0)} acceptance criteria\n${subtasks.filter(st => st.status === 'closed').length}/${subtasks.length} sub-issues`}
             />
           ) : (
             <span style={{
