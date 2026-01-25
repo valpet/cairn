@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { Issue } from './types';
-import { ConsoleLogger, LogLevel } from './logger';
-
-// Mock logger for testing
-const mockLogger = new ConsoleLogger(LogLevel.DEBUG);
 
 // Create a test version of the migration function
 function migrateIssues(issues: Issue[]): Issue[] {
@@ -12,7 +8,7 @@ function migrateIssues(issues: Issue[]): Issue[] {
     let issueUpdated = false;
 
     // Migration: Convert 'blocked' status to 'open' (removing blocked as a stored status)
-    if (issue.status === 'blocked') {
+    if ((issue as any).status === 'blocked') {
       issue.status = 'open';
       issue.updated_at = new Date().toISOString();
       hasMigrations = true;
