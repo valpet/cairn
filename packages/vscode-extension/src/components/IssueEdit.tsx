@@ -142,7 +142,6 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
   const handleFieldEdit = (fieldName: string, value: string) => {
     let updatedTitle = currentTitle;
     let updatedDescription = currentDescription;
-    let updatedCommentAuthor = currentCommentAuthor;
     let updatedAcceptanceCriteria = acceptanceCriteria;
 
     if (fieldName === 'title') {
@@ -152,7 +151,6 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
       updatedDescription = value;
       setCurrentDescription(value);
     } else if (fieldName === 'commentAuthor') {
-      updatedCommentAuthor = value || 'user';
       setCurrentCommentAuthor(value || 'user');
     } else if (fieldName.startsWith('acceptance-criteria-')) {
       const index = parseInt(fieldName.split('-')[2]);
