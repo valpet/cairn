@@ -257,8 +257,8 @@ export class StorageService implements IStorageService {
               reverseDep.id === issue.id && (reverseDep.type === 'blocked_by' || reverseDep.type === 'blocks')
             );
             if (hasReverseDep) {
-              // Mutual block: keep only on the lexicographically larger issue ID
-              if (issue.id < targetIssue.id) {
+              // Mutual block: keep only on the lexicographically smaller issue ID
+              if (issue.id > targetIssue.id) {
                 hasMigrations = true;
                 issueUpdated = true;
                 this.logger.info(`Removed mutual blocked_by duplicate: ${issue.id} <- ${dep.id} (keeping on ${targetIssue.id})`);
