@@ -43,8 +43,16 @@ vi.mock('vscode', () => ({
   ExtensionContext: class {
     subscriptions: any[] = [];
   },
-  LanguageModelToolResult: vi.fn((parts) => ({ content: parts })),
-  LanguageModelTextPart: vi.fn((text) => ({ text })),
+  LanguageModelToolResult: class {
+    constructor(parts: any[]) {
+      return { content: parts };
+    }
+  },
+  LanguageModelTextPart: class {
+    constructor(text: string) {
+      return { text };
+    }
+  },
 }));
 
 // Mock file system

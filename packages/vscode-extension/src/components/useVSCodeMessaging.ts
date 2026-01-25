@@ -63,7 +63,6 @@ export const useVSCodeMessaging = (vscode: any): UseVSCodeMessagingReturn => {
     // Listen for messages from extension
     const messageHandler = (event: MessageEvent) => {
       const message = event.data;
-      console.log('Webview received message:', message);
 
       if (message.type === 'loadTicket') {
         const loadMessage = message as LoadTicketMessage;

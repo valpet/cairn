@@ -12,12 +12,8 @@ export const useVSCodeMessaging = () => {
   }
 
   useEffect(() => {
-    console.log('Cairn issues webview script loaded');
-    console.log('VS Code API acquired:', !!vscode.current);
-
     // Notify extension that webview is ready
     vscode.current.postMessage({ type: 'webviewReady' });
-    console.log('Task list webview ready message sent');
   }, []);
 
   const postMessage = (message: any) => {

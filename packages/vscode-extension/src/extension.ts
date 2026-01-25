@@ -668,7 +668,6 @@ export function activate(context: vscode.ExtensionContext) {
     outputChannel!.appendLine('Status bar created');
 
     // Watch config file for changes
-    console.log('Setting up config watcher');
     const configPath = getConfigPath(cairnDir);
     configWatcher = vscode.workspace.createFileSystemWatcher(configPath);
     configWatcher.onDidChange(() => {
@@ -812,11 +811,9 @@ export function activate(context: vscode.ExtensionContext) {
     // Register command to open task list webview
     context.subscriptions.push(
       vscode.commands.registerCommand('cairn.openTaskList', async () => {
-        console.log('=== cairn.openTaskList command called ===');
         outputChannel!.appendLine('=== cairn.openTaskList command called ===');
         outputChannel!.show();
         try {
-          console.log('Creating task list panel...');
           outputChannel!.appendLine('Creating task list panel...');
           const panel = vscode.window.createWebviewPanel(
             'cairnTaskList',
@@ -836,7 +833,6 @@ export function activate(context: vscode.ExtensionContext) {
 
           // Handle messages from webview
           const disposable = panel.webview.onDidReceiveMessage(async (message) => {
-            console.log(`=== WEBVIEW MESSAGE RECEIVED ===`, message);
             outputChannel!.appendLine(`=== WEBVIEW MESSAGE RECEIVED ===`);
             outputChannel!.appendLine(`Message type: ${message.type}`);
             outputChannel!.appendLine(`Full message: ${JSON.stringify(message)}`);

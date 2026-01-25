@@ -448,6 +448,6 @@
     "react-dom": "^19.2.0",
     "typedoc": "^0.28.16",
     "typescript": "^5.0.0",
-    "vitest": "^1.6.1"
+    "vitest": "^4.0.18"
   }
 }

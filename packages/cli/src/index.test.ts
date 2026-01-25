@@ -30,11 +30,13 @@ vi.mock('commander', () => {
     return cmd;
   };
 
-  const Command = vi.fn(() => {
-    const rootCmd = createCommandMock();
-    commanderCommands.set('root', rootCmd);
-    return rootCmd;
-  });
+  const Command = class {
+    constructor() {
+      const rootCmd = createCommandMock();
+      commanderCommands.set('root', rootCmd);
+      return rootCmd;
+    }
+  };
 
   return { Command };
 });
