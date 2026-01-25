@@ -366,10 +366,11 @@ describe('StorageService', () => {
       const loadedParent = issues.find(i => i.id === 'parent-1');
       const loadedChild = issues.find(i => i.id === 'child-1');
 
-      expect(loadedParent?.completion_percentage).toBe(75); // (50% AC + 100% subtask) / 2 = 75
-      // AC completed: 1, AC total: 2 -> 50%
-      // Subtask: 100%
-      // Average: (50 + 100) / 2 = 75
+      expect(loadedParent?.completion_percentage).toBe(67); // (1 AC + 1 subtask) / (2 AC + 1 subtask) = 2/3 ≈ 67
+      // AC completed: 1, AC total: 2
+      // Subtasks completed: 1, subtasks total: 1
+      // Completion: (AC_completed + subtasks_completed) / (AC_total + subtasks_total) * 100
+      //            = (1 + 1) / (2 + 1) * 100 ≈ 66.67% -> 67
 
       expect(loadedChild?.completion_percentage).toBe(100); // closed leaf issue
     });

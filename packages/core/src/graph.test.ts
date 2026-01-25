@@ -1029,7 +1029,7 @@ describe('GraphService', () => {
         expect(epicResult.canClose).toBe(false);
         expect(epicResult.reason).toBe('has 1 open subtask(s)');
 
-        // Cannot close feature-1 because status is open, even though task-1 is closed
+        // Can close feature-1 because all subtasks are closed, even though feature-1 status is open
         const featureResult = graphService.canCloseIssue('feature-1', issues);
         expect(featureResult.canClose).toBe(true); // All subtasks closed
         expect(featureResult.completionPercentage).toBe(100);

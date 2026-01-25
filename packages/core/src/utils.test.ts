@@ -338,7 +338,7 @@ describe('Validation Functions', () => {
       child2.status = 'open';
       child2.completion_percentage = 0; // open leaf
       const allIssues = [parent, child1, child2];
-      expect(calculateCompletionPercentage(parent, allIssues)).toBe(25); // (0 + 50) / 2
+      expect(calculateCompletionPercentage(parent, allIssues)).toBe(50); // (0 AC + 1 subtask) / (0 AC + 2 subtasks) = 1/2
     });
 
     it('should calculate percentage with mixed AC and subtasks', () => {
@@ -353,7 +353,7 @@ describe('Validation Functions', () => {
       child2.status = 'open';
       child2.completion_percentage = 0;
       const allIssues = [parent, child1, child2];
-      expect(calculateCompletionPercentage(parent, allIssues)).toBe(50); // (50 + 50) / 2 = 50
+      expect(calculateCompletionPercentage(parent, allIssues)).toBe(50); // (1 AC + 1 subtask) / (2 AC + 2 subtasks) = 2/4
     });
 
     it('should handle edge case of empty AC array', () => {
@@ -404,7 +404,7 @@ describe('Validation Functions', () => {
       const issueE = mockIssue('E', [{ text: 'AC1', completed: true }], [{ id: 'D', type: 'parent-child' }]);
       const allIssues = [issueA, issueB, issueC, issueD, issueE];
       // D should calculate correctly despite cycle in A-B-C
-      expect(calculateCompletionPercentage(issueD, allIssues)).toBe(50); // (0% own completion for D + 100% for child E) / 2 = 50
+      expect(calculateCompletionPercentage(issueD, allIssues)).toBe(100); // (0 AC + 1 subtask) / (0 AC + 1 subtask) = 1/1
     });
   });
 });
