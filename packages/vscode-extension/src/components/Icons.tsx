@@ -28,7 +28,7 @@ export const ProgressPie: React.FC<{
   const strokeWidth = 1.5;
   const radius = center - strokeWidth / 2; // Account for stroke width
   
-  // Handle 100% as a special case - fill the entire circle
+  // Handle 100% as a special case - fill the entire circle with green
   if (percentage >= 100) {
     const svg = (
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -36,8 +36,8 @@ export const ProgressPie: React.FC<{
           cx={center}
           cy={center}
           r={radius}
-          fill="var(--vscode-foreground)"
-          stroke="var(--vscode-foreground)"
+          fill="#4CAF50"
+          stroke="#4CAF50"
           strokeWidth={strokeWidth}
         />
       </svg>
