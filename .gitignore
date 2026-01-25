@@ -6,3 +6,4 @@ coverage/
 .npmrc
 packages/vscode-extension/cairn-extension-*.vsix
 packages/vscode-extension/media/
+test-completion.js
