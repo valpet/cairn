@@ -78,10 +78,6 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const deleteButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Editable field states
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
-
   // Sync form state when issue loads
   useEffect(() => {
     if (issue) {
