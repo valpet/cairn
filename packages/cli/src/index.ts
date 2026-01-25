@@ -598,9 +598,6 @@ depCmd
         }
       }
 
-      // Get subtasks with no blocking dependencies (starting points)
-      const independentSubtasks = subtaskIds.filter(id => (subtaskBlockingGraph.get(id) || []).length === 0);
-
       // Calculate implementation order for all subtasks
       const epicImplementationOrder = topologicalSort(subtaskIds, subtaskBlockingGraph);
 
