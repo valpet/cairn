@@ -271,16 +271,20 @@ export function calculateCompletionPercentage(issue: Issue, allIssues: Issue[], 
     ownCompletion = 0; // Only open/in_progress issues reach here
   }
 
-  // Calculate subtask completion average
+  // Calculate subtask completion
   if (hasSubtasks) {
     const subtaskCompletions = subtasks
       .map(st => calculateCompletionPercentage(st, allIssues, visited))
       .filter(cp => cp !== null);
-    if (subtaskCompletions.length > 0) {
-      const avgSubtaskCompletion = subtaskCompletions.reduce((sum, cp) => sum + cp, 0) / subtaskCompletions.length;
-      const average = (ownCompletion + avgSubtaskCompletion) / 2;
+    const completedSubtasks = subtaskCompletions.filter(cp => cp === 100).length;
+    const totalUnits = acTotal + subtasks.length;
+    const completedUnits = acCompleted + completedSubtasks;
+    if (totalUnits > 0) {
       visited.delete(issue.id);
-      return Math.round(average);
+      return Math.round((completedUnits / totalUnits) * 100);
+    } else {
+      visited.delete(issue.id);
+      return 0;
     }
   }
 
