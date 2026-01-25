@@ -102,7 +102,14 @@ export class StorageService implements IStorageService {
     }
 
     // Run migration to fix any old formats (status and dependencies)
-    const migratedIssues = this.migrateIssues(issues);
+    const { migratedIssues, hasMigrations } = this.migrateIssues(issues);
+
+    // Persist migrations immediately if any occurred
+    if (hasMigrations) {
+      const content = migratedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
+      await fs.promises.writeFile(this.issuesFilePath, content);
+      this.logger.info('Migrated issues persisted to disk');
+    }
 
     return migratedIssues;
   }
@@ -205,7 +212,7 @@ export class StorageService implements IStorageService {
     return comment;
   }
 
-  private migrateIssues(issues: Issue[]): Issue[] {
+  private migrateIssues(issues: Issue[]): { migratedIssues: Issue[], hasMigrations: boolean } {
     let hasMigrations = false;
     const migratedIssues = issues.map(issue => {
       let issueUpdated = false;
@@ -301,11 +308,10 @@ export class StorageService implements IStorageService {
 
     if (hasMigrations) {
       this.logger.info('Issue migration completed. Some issues were updated to fix old formats.');
-      // Note: We don't auto-save here as this is called during load. The migration will be persisted
-      // when issues are next saved through updateIssues.
+      // Note: The migration will be persisted immediately after this method returns
     }
 
-    return migratedIssues;
+    return { migratedIssues, hasMigrations };
   }
 
   private async withLock<T>(operation: () => Promise<T>): Promise<T> {

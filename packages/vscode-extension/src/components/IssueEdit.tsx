@@ -1,7 +1,7 @@
+/// <reference lib="dom" />
 import React, { useState, useRef, useEffect } from 'react';
 import './IssueEdit.css';
 import EditableField from './EditableField';
-import { UserIcon, AgentIcon } from './Icons';
 import MetadataDropdown from './MetadataDropdown';
 import TaskList from './TaskList';
 import HeaderSection from './HeaderSection';
@@ -13,12 +13,6 @@ import SubtaskSelectionModal from './SubtaskSelectionModal';
 import DependencySelectionModal from './DependencySelectionModal';
 import { useVSCodeMessaging } from './useVSCodeMessaging';
 import {
-  IssueEditIssue,
-  Comment,
-  Subtask,
-  Dependency,
-  AcceptanceCriteria,
-  AvailableItem,
   IssueEditProps
 } from './types';
 import {
@@ -28,12 +22,11 @@ import {
   getPriorityLabel,
   getStatusIcon,
   getStatusLabel,
-  computeSubIssueStatus,
   getComputedStatusClass,
   getStatusDisplayText
 } from './utils';
 
-const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
+const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
   const {
     issue,
     comments,
@@ -48,7 +41,6 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }) => {
     dependencyModalOpen,
     subtaskSearch,
     dependencySearch,
-    setComments,
     setSubtasks,
     setDependencies,
     setAcceptanceCriteria,
