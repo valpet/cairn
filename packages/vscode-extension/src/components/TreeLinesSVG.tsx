@@ -89,7 +89,6 @@ const TreeLinesSVG: React.FC<TreeLinesSVGProps> = ({ taskTree, allTasks, expande
           const visibleChildren = children.filter(childId => taskPositions.has(childId));
 
           if (visibleChildren.length > 0) {
-            const firstChildId = visibleChildren[0];
             const lastChildId = visibleChildren[visibleChildren.length - 1];
             const lastChildPos = taskPositions.get(lastChildId)!;
 
