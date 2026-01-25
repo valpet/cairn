@@ -21,15 +21,15 @@
 * **Zero Conflict IDs:** Hash-based task IDs prevent merge collisions in multi-agent workflows.
 * **Stealth Mode:** Optional gitignoring of `.cairn` folder for private task management.
 
-## � Screenshots
+## 📸 Screenshots
 
-### Issue List View
-![Issue List](assets/Screenshot%202026-01-25%20182820.png)
+### Task List View
+![Task List](./assets/Screenshot_1.png)
 
-### Issue Editor
-![Issue Editor](assets/Screenshot%202026-01-25%20182854.png)
+### Task Editor
+![Task Editor](./assets/Screenshot_2.png)
 
-## �📖 Essential Commands
+## 📖 Essential Commands
 
 | Command                    | Action                           |
 | -------------------------- | -------------------------------- |
