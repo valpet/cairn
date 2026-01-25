@@ -106,6 +106,12 @@ function writeConfig(cairnDir: string, config: CairnConfig): void {
   // File watcher will ignore changes for a short time after internal writes
 }
 
+function truncateTitle(title: string, id: string): string {
+  const maxTitleLength = 50;
+  const truncatedTitle = title.length > maxTitleLength ? title.substring(0, maxTitleLength) + '...' : title;
+  return `${truncatedTitle} (${id})`;
+}
+
 function getAvailableIssueFiles(cairnDir: string): string[] {
   return fs.readdirSync(cairnDir)
     .filter(f => f.endsWith('.jsonl'))
