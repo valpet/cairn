@@ -20,10 +20,29 @@ function migrateIssues(issues: Issue[]): Issue[] {
     }
 
     // Check for any old dependency formats that need migration
-    const migratedDeps = issue.dependencies.filter(dep => {
-      // Remove any invalid dependency types (keep only valid ones)
-      return ['blocks', 'related', 'parent-child', 'discovered-from'].includes(dep.type);
-    });
+    const validDependencyTypes = ['blocked_by', 'related', 'parent-child', 'discovered-from'] as const;
+    const legacyDependencyTypeMap: Record<string, (typeof validDependencyTypes)[number]> = {
+      // Legacy type      // Canonical stored type
+      blocks: 'blocked_by',
+    };
+
+    const migratedDeps = issue.dependencies
+      // Keep only dependencies that are either already valid or can be migrated from a legacy format
+      .filter(
+        dep =>
+          validDependencyTypes.includes(dep.type as any) ||
+          Object.prototype.hasOwnProperty.call(legacyDependencyTypeMap, dep.type)
+      )
+      .map(dep => {
+        const mappedType = legacyDependencyTypeMap[dep.type];
+        if (mappedType) {
+          // Convert legacy dependency type to the canonical stored format
+          hasMigrations = true;
+          issueUpdated = true;
+          return { id: dep.id, type: mappedType };
+        }
+        return dep;
+      });
 
     // Check if any dependencies were filtered out
     if (migratedDeps.length !== issue.dependencies.length) {
@@ -32,18 +51,18 @@ function migrateIssues(issues: Issue[]): Issue[] {
     }
 
     // Check for potential bidirectional dependencies that might create duplicates
-    // If issue A has "blocks" dependency to B, and B also has "blocks" dependency to A,
+    // If issue A has "blocked_by" dependency to B, and B also has "blocked_by" dependency to A,
     // we should remove the redundant one (keep only on the dependent issue)
     const cleanedDeps = migratedDeps.filter((dep) => {
-      if (dep.type === 'blocks') {
-        // Check if the target issue also has a 'blocks' dependency back to this issue
+      if (dep.type === 'blocked_by') {
+        // Check if the target issue also has a 'blocked_by' dependency back to this issue
         const targetIssue = issues.find(i => i.id === dep.id);
         if (targetIssue && targetIssue.dependencies) {
           const hasReverseDep = targetIssue.dependencies.some(reverseDep =>
-            reverseDep.id === issue.id && reverseDep.type === 'blocks'
+            reverseDep.id === issue.id && (reverseDep.type === 'blocked_by' || reverseDep.type === 'blocks')
           );
           if (hasReverseDep) {
-            // Both issues have 'blocks' dependencies to each other
+            // Both issues have 'blocked_by' dependencies to each other
             // Keep only on the issue with the lexicographically smaller ID (deterministic choice)
             if (issue.id > targetIssue.id) {
               hasMigrations = true;
@@ -64,7 +83,7 @@ function migrateIssues(issues: Issue[]): Issue[] {
     if (issueUpdated) {
       return {
         ...issue,
-        dependencies: cleanedDeps.length !== issue.dependencies.length ? cleanedDeps : issue.dependencies,
+        dependencies: cleanedDeps,
         updated_at: new Date().toISOString()
       };
     }
@@ -124,8 +143,8 @@ describe('Issue Migration', () => {
 
     expect(result[0].dependencies).toHaveLength(2);
     expect(result[0].dependencies).toEqual([
-      { id: 'issue-2', type: 'blocks' },
-      { id: 'issue-4', type: 'blocks' }
+      { id: 'issue-2', type: 'blocked_by' },
+      { id: 'issue-4', type: 'blocked_by' }
     ]);
     expect(result[0].updated_at).not.toBe('2023-01-01T00:00:00.000Z'); // Should be updated
   });
@@ -140,8 +159,8 @@ describe('Issue Migration', () => {
 
     // 'a-issue' should keep its dependency (a < b lexicographically)
     expect(result[0].dependencies).toHaveLength(1);
-    expect(result[0].dependencies[0]).toEqual({ id: 'b-issue', type: 'blocks' });
-    expect(result[0].updated_at).toBe('2023-01-01T00:00:00.000Z'); // No change needed
+    expect(result[0].dependencies[0]).toEqual({ id: 'b-issue', type: 'blocked_by' });
+    expect(result[0].updated_at).not.toBe('2023-01-01T00:00:00.000Z'); // Should be updated due to type migration
 
     // 'b-issue' should have its dependency removed (b > a lexicographically)
     expect(result[1].dependencies).toHaveLength(0);
@@ -161,8 +180,8 @@ describe('Issue Migration', () => {
     expect(result[0].dependencies).toHaveLength(2);
     expect(result[0].dependencies).toEqual(
       expect.arrayContaining([
-        { id: 'b', type: 'blocks' },
-        { id: 'c', type: 'blocks' }
+        { id: 'b', type: 'blocked_by' },
+        { id: 'c', type: 'blocked_by' }
       ])
     );
 
@@ -185,11 +204,11 @@ describe('Issue Migration', () => {
 
     const result = migrateIssues(issues);
 
-    // 'a' should keep its dependencies (blocks to b, and related to c)
+    // 'a' should keep its dependencies (blocked_by to b, and related to c)
     expect(result[0].dependencies).toHaveLength(2);
     expect(result[0].dependencies).toEqual(
       expect.arrayContaining([
-        { id: 'b', type: 'blocks' },
+        { id: 'b', type: 'blocked_by' },
         { id: 'c', type: 'related' }
       ])
     );
@@ -208,6 +227,6 @@ describe('Issue Migration', () => {
 
     // Should preserve the dependency since target doesn't exist
     expect(result[0].dependencies).toHaveLength(1);
-    expect(result[0].dependencies[0]).toEqual({ id: 'nonexistent', type: 'blocks' });
+    expect(result[0].dependencies[0]).toEqual({ id: 'nonexistent', type: 'blocked_by' });
   });
 });

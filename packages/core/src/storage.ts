@@ -224,15 +224,29 @@ export class StorageService implements IStorageService {
       }
 
       // Check for any old dependency formats that need migration
+      const validDependencyTypes = ['blocked_by', 'related', 'parent-child', 'discovered-from'] as const;
+      const legacyDependencyTypeMap: Record<string, (typeof validDependencyTypes)[number]> = {
+        // Legacy type      // Canonical stored type
+        blocks: 'blocked_by',
+      };
+
       const migratedDeps = issue.dependencies
-        .filter(dep => ['blocked_by', 'blocks', 'related', 'parent-child', 'discovered-from'].includes(dep.type))
+        // Keep only dependencies that are either already valid or can be migrated from a legacy format
+        .filter(
+          dep =>
+            validDependencyTypes.includes(dep.type as any) ||
+            Object.prototype.hasOwnProperty.call(legacyDependencyTypeMap, dep.type)
+        )
         .map(dep => {
-          // Convert legacy 'blocks' to stored 'blocked_by'
-          if (dep.type === 'blocks') {
+          const mappedType = legacyDependencyTypeMap[dep.type];
+          if (mappedType) {
+            // Convert legacy dependency type to the canonical stored format
             hasMigrations = true;
             issueUpdated = true;
-            this.logger.info(`Converted legacy dependency for issue ${issue.id}: blocks(${dep.id}) -> blocked_by(${dep.id})`);
-            return { id: dep.id, type: 'blocked_by' as const };
+            this.logger.info(
+              `Converted legacy dependency for issue ${issue.id}: ${dep.type}(${dep.id}) -> ${mappedType}(${dep.id})`
+            );
+            return { id: dep.id, type: mappedType };
           }
           return dep;
         });
@@ -277,7 +291,7 @@ export class StorageService implements IStorageService {
       if (issueUpdated) {
         return {
           ...issue,
-          dependencies: cleanedDeps.length !== issue.dependencies.length ? cleanedDeps : issue.dependencies,
+          dependencies: cleanedDeps,
           updated_at: new Date().toISOString()
         };
       }
