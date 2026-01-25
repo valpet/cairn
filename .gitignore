@@ -2,6 +2,8 @@ node_modules/
 dist/
 coverage/
 !coverage/lcov.info
-# .cairn/  # Uncomment for stealth mode
+.cairn/  # Uncomment for stealth mode
 .npmrc
 packages/vscode-extension/cairn-extension-*.vsix
+packages/vscode-extension/media/
+test-completion.js

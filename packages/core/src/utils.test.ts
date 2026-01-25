@@ -12,7 +12,8 @@ import {
   validateIssue,
   sanitizeFilePath,
   generateId,
-  findCairnDir
+  findCairnDir,
+  calculateCompletionPercentage
 } from './utils';
 import { IssueStatus, Priority, IssueType, DependencyType } from './types';
 
@@ -22,11 +23,11 @@ describe('Validation Functions', () => {
       expect(isValidIssueStatus('open')).toBe(true);
       expect(isValidIssueStatus('in_progress')).toBe(true);
       expect(isValidIssueStatus('closed')).toBe(true);
-      expect(isValidIssueStatus('blocked')).toBe(true);
     });
 
     it('should return false for invalid statuses', () => {
       expect(isValidIssueStatus('pending')).toBe(false);
+      expect(isValidIssueStatus('blocked')).toBe(false);
       expect(isValidIssueStatus('')).toBe(false);
       expect(isValidIssueStatus(null)).toBe(false);
       expect(isValidIssueStatus(undefined)).toBe(false);
@@ -287,6 +288,123 @@ describe('Validation Functions', () => {
       const result = findCairnDir('/nonexistent/path');
       expect(result.cairnDir).toContain('.cairn');
       expect(result.repoRoot).toBe('/nonexistent/path');
+    });
+  });
+
+  describe('calculateCompletionPercentage', () => {
+    const mockIssue = (id: string, ac?: any[], deps?: any[]): any => ({
+      id,
+      title: 'Test Issue',
+      status: 'open',
+      created_at: '2023-01-01T00:00:00.000Z',
+      updated_at: '2023-01-01T00:00:00.000Z',
+      acceptance_criteria: ac,
+      dependencies: deps
+    });
+
+    it('should return 0% for open leaf issue with no AC', () => {
+      const issue = mockIssue('1');
+      issue.status = 'open';
+      const allIssues = [issue];
+      expect(calculateCompletionPercentage(issue, allIssues)).toBe(0);
+    });
+
+    it('should return 100% for closed leaf issue with incomplete AC', () => {
+      const issue = mockIssue('1', [
+        { text: 'AC1', completed: false },
+        { text: 'AC2', completed: false }
+      ]);
+      issue.status = 'closed';
+      const allIssues = [issue];
+      expect(calculateCompletionPercentage(issue, allIssues)).toBe(100);
+    });
+
+    it('should calculate percentage based on completed AC', () => {
+      const issue = mockIssue('1', [
+        { text: 'AC1', completed: true },
+        { text: 'AC2', completed: false },
+        { text: 'AC3', completed: true }
+      ]);
+      const allIssues = [issue];
+      expect(calculateCompletionPercentage(issue, allIssues)).toBe(67); // 2/3
+    });
+
+    it('should calculate percentage based on completed subtasks', () => {
+      const parent = mockIssue('1');
+      const child1 = mockIssue('2', [], [{ id: '1', type: 'parent-child' }]);
+      child1.status = 'closed';
+      child1.completion_percentage = 100; // closed leaf
+      const child2 = mockIssue('3', [], [{ id: '1', type: 'parent-child' }]);
+      child2.status = 'open';
+      child2.completion_percentage = 0; // open leaf
+      const allIssues = [parent, child1, child2];
+      expect(calculateCompletionPercentage(parent, allIssues)).toBe(50); // (0 AC + 1 subtask) / (0 AC + 2 subtasks) = 1/2
+    });
+
+    it('should calculate percentage with mixed AC and subtasks', () => {
+      const parent = mockIssue('1', [
+        { text: 'AC1', completed: true },
+        { text: 'AC2', completed: false }
+      ]);
+      const child1 = mockIssue('2', [], [{ id: '1', type: 'parent-child' }]);
+      child1.status = 'closed';
+      child1.completion_percentage = 100;
+      const child2 = mockIssue('3', [], [{ id: '1', type: 'parent-child' }]);
+      child2.status = 'open';
+      child2.completion_percentage = 0;
+      const allIssues = [parent, child1, child2];
+      expect(calculateCompletionPercentage(parent, allIssues)).toBe(50); // (1 AC + 1 subtask) / (2 AC + 2 subtasks) = 2/4
+    });
+
+    it('should handle edge case of empty AC array', () => {
+      const issue = mockIssue('1', []);
+      const allIssues = [issue];
+      expect(calculateCompletionPercentage(issue, allIssues)).toBe(0); // open leaf with empty AC
+    });
+
+    it('should round percentage correctly', () => {
+      const issue = mockIssue('1', [
+        { text: 'AC1', completed: true },
+        { text: 'AC2', completed: false },
+        { text: 'AC3', completed: false }
+      ]);
+      const allIssues = [issue];
+      expect(calculateCompletionPercentage(issue, allIssues)).toBe(33); // 1/3 ≈ 33.33, rounds to 33
+    });
+
+    it('should handle cycle detection and return 0 for cyclic dependencies', () => {
+      const issueA = mockIssue('A', [], [{ id: 'B', type: 'parent-child' }]);
+      const issueB = mockIssue('B', [], [{ id: 'A', type: 'parent-child' }]);
+      const allIssues = [issueA, issueB];
+      expect(calculateCompletionPercentage(issueA, allIssues)).toBe(0);
+      expect(calculateCompletionPercentage(issueB, allIssues)).toBe(0);
+    });
+
+    it('should handle self-referencing cycle', () => {
+      const issue = mockIssue('1', [], [{ id: '1', type: 'parent-child' }]);
+      const allIssues = [issue];
+      expect(calculateCompletionPercentage(issue, allIssues)).toBe(0);
+    });
+
+    it('should handle complex cycle with multiple issues', () => {
+      const issueA = mockIssue('A', [], [{ id: 'B', type: 'parent-child' }]);
+      const issueB = mockIssue('B', [], [{ id: 'C', type: 'parent-child' }]);
+      const issueC = mockIssue('C', [], [{ id: 'A', type: 'parent-child' }]);
+      const allIssues = [issueA, issueB, issueC];
+      expect(calculateCompletionPercentage(issueA, allIssues)).toBe(0);
+      expect(calculateCompletionPercentage(issueB, allIssues)).toBe(0);
+      expect(calculateCompletionPercentage(issueC, allIssues)).toBe(0);
+    });
+
+    it('should calculate correctly for acyclic graphs even with cycles elsewhere', () => {
+      const issueA = mockIssue('A', [], [{ id: 'B', type: 'parent-child' }]);
+      const issueB = mockIssue('B', [], [{ id: 'C', type: 'parent-child' }]);
+      const issueC = mockIssue('C', [], [{ id: 'A', type: 'parent-child' }]); // cycle A->B->C->A
+      const issueD = mockIssue('D');
+      const issueE = mockIssue('E', [{ text: 'AC1', completed: true }], [{ id: 'D', type: 'parent-child' }]);
+      const allIssues = [issueA, issueB, issueC, issueD, issueE];
+      // D should calculate correctly despite cycle in A-B-C
+      expect(calculateCompletionPercentage(issueD, allIssues)).toBe(100); // (0 AC + 1 subtask) / (0 AC + 1 subtask) = 1/1
     });
   });
 });

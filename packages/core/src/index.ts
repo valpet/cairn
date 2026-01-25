@@ -22,5 +22,5 @@ export { IStorageService, StorageService } from './storage';
 export { IGraphService, GraphService } from './graph';
 export { ICompactionService, CompactionService } from './compaction';
 export { TYPES, createContainer } from './container';
-export { findCairnDir, generateId, validateIssue, isValidIssueStatus, isValidPriority, isValidIssueType, isValidDependencyType, sanitizeFilePath } from './utils';
+export { findCairnDir, generateId, validateIssue, isValidIssueStatus, isValidPriority, isValidIssueType, isValidDependencyType, sanitizeFilePath, calculateCompletionPercentage } from './utils';
 export { ILogger, ConsoleLogger, LogLevel } from './logger';

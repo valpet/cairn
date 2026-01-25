@@ -11,7 +11,7 @@ export const TYPES = {
   ILogger: Symbol.for('ILogger'),
 };
 
-export function createContainer(cairnDir: string, repoPath: string): Container {
+export function createContainer(cairnDir: string, repoPath: string, issuesFileName: string = 'issues.jsonl'): Container {
   const container = new Container();
   container.bind<IStorageService>(TYPES.IStorageService).to(StorageService).inSingletonScope();
   container.bind<IGraphService>(TYPES.IGraphService).to(GraphService).inSingletonScope();
@@ -19,7 +19,7 @@ export function createContainer(cairnDir: string, repoPath: string): Container {
   container.bind<ILogger>(TYPES.ILogger).to(ConsoleLogger).inSingletonScope();
 
   // Bind config
-  container.bind('config').toConstantValue({ cairnDir });
+  container.bind('config').toConstantValue({ cairnDir, issuesFileName });
   container.bind('repoPath').toConstantValue(repoPath);
 
   return container;

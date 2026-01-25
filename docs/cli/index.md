@@ -105,6 +105,57 @@ task-1: Implement user login [open] [feature]
 epic-1: User Management System [open] [epic] (1/3 33%)
 ```
 
+### use
+
+Switch between multiple issue files or list available files.
+
+```bash
+cairn use [name]
+```
+
+**Arguments:**
+- `name` (optional): Name of the issue file to switch to
+
+**Description:**
+- Without arguments: Lists all available issue files and shows the current active file
+- With a file name: Switches to the specified issue file (creates it if it doesn't exist)
+- File naming: `default` uses `issues.jsonl`, other names use `{name}.jsonl`
+- Active file selection persists in `.cairn/config.json`
+
+**Examples:**
+```bash
+# Show current file and list all available files
+cairn use
+
+# Output:
+# Current: default (issues.jsonl)
+#
+# Available issue files:
+#   * default (issues.jsonl)
+#     feature-auth (feature-auth.jsonl)
+#     bugfixes (bugfixes.jsonl)
+
+# Switch to a different file
+cairn use feature-auth
+
+# Switch back to default
+cairn use default
+
+# Create and switch to a new file
+cairn use sprint-2
+```
+
+**Use Cases:**
+- **Context Switching**: Separate work streams (features, bugs, experiments)
+- **Team Organization**: Different files for different teams or projects
+- **Temporary Work**: Isolate experimental or temporary tasks
+- **Feature Branches**: Align issue files with git branches
+
+**Notes:**
+- The VS Code extension automatically respects the active file
+- All cairn commands operate on the currently active file
+- File selection persists across terminal sessions
+
 ### dep add
 
 Add a dependency relationship between issues.
@@ -281,6 +332,83 @@ cairn comment task-5 "Found edge case with empty passwords"
 
 # Complete task
 cairn update task-5 -s closed -c "All acceptance criteria met"
+```
+
+### Multiple Issue Files Workflow
+
+```bash
+# Work on main feature development
+cairn use default
+cairn create "Implement new feature" -t feature
+
+# Switch to bug fixes context
+cairn use bugfixes
+cairn create "Fix login issue" -t bug -p high
+
+# Check what files you have
+cairn use
+
+# Work on experimental features without cluttering main file
+cairn use experiments
+cairn create "Try new architecture" -t task
+
+# Switch back to main work
+cairn use default
+```
+
+## Multiple Issue Files
+
+Cairn supports managing multiple issue files, allowing you to separate different work contexts.
+
+### Configuration
+
+The active file is stored in `.cairn/config.json`:
+
+```json
+{
+  "activeFile": "default"
+}
+```
+
+### File Naming Convention
+
+- `default` → `issues.jsonl` (backward compatible)
+- Any other name → `{name}.jsonl`
+
+**Valid file names:**
+- Letters, numbers, hyphens, underscores only
+- Examples: `feature-auth`, `bugfixes`, `sprint-2`, `team-mobile`
+
+### VS Code Integration
+
+The VS Code extension provides seamless file switching:
+
+1. **Status Bar**: Shows current file, click to switch
+2. **Command Palette**: `Cairn: Switch Issue File`
+3. **Task List**: Dropdown selector at the top of the task list
+4. **Smart Notifications**: Alerts when CLI changes the active file
+
+### Use Cases
+
+**Context Separation:**
+```bash
+cairn use features      # Main feature work
+cairn use bugs          # Bug tracking
+cairn use tech-debt     # Technical debt items
+```
+
+**Team Organization:**
+```bash
+cairn use team-backend  # Backend team tasks
+cairn use team-mobile   # Mobile team tasks
+cairn use team-design   # Design team tasks
+```
+
+**Development Phases:**
+```bash
+cairn use planning      # Planning phase
+cairn use development   # Active development
+cairn use testing       # QA and testing
 ```
 
 ## Integration

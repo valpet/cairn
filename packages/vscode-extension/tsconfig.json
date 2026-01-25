@@ -23,7 +23,9 @@
         "../core/dist"
       ]
     },
-    "composite": true
+    "composite": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   },
   "include": [
     "src/**/*"

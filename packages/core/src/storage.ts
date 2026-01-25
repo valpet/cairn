@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { nanoid } from 'nanoid';
 import { Issue, Comment } from './types';
-import { validateIssue } from './utils';
+import { validateIssue, calculateCompletionPercentage } from './utils';
 import { ILogger, ConsoleLogger, LogLevel } from './logger';
 
 export interface IStorageService {
@@ -16,6 +16,7 @@ export interface IStorageService {
 
 export interface StorageConfig {
   cairnDir: string;
+  issuesFileName?: string;
   lockMaxRetries?: number;
   lockRetryDelay?: number;
   lockTimeout?: number;
@@ -35,8 +36,19 @@ export class StorageService implements IStorageService {
     @inject('config') private config: StorageConfig,
     @inject('ILogger') @optional() logger?: ILogger
   ) {
-    this.issuesFilePath = path.join(config.cairnDir, 'issues.jsonl');
-    this.lockFilePath = path.join(config.cairnDir, 'issues.lock');
+    const issuesFileName = config.issuesFileName || 'issues.jsonl';
+    const issuesFilePath = path.join(config.cairnDir, issuesFileName);
+    const issuesFileParsed = path.parse(issuesFilePath);
+    if (issuesFileParsed.ext !== '.jsonl') {
+      throw new Error(`Invalid issues file name "${issuesFileName}". Expected extension ".jsonl".`);
+    }
+    this.issuesFilePath = issuesFilePath;
+    const lockFilePath = path.format({
+      ...issuesFileParsed,
+      base: undefined,
+      ext: '.lock',
+    });
+    this.lockFilePath = lockFilePath;
     this.lockMaxRetries = config.lockMaxRetries ?? 50;
     this.lockRetryDelay = config.lockRetryDelay ?? 100;
     this.lockTimeout = config.lockTimeout ?? 30000;
@@ -46,7 +58,15 @@ export class StorageService implements IStorageService {
   }
 
   async loadIssues(): Promise<Issue[]> {
-    return await this.loadIssuesInternal();
+    const issues = await this.loadIssuesInternal();
+
+    // Calculate completion percentages for all issues with a shared visited set to handle circular dependencies across the batch
+    const visited = new Set<string>();
+    for (const issue of issues) {
+      issue.completion_percentage = calculateCompletionPercentage(issue, issues, visited);
+    }
+
+    return issues;
   }
 
   private async loadIssuesInternal(): Promise<Issue[]> {
@@ -55,15 +75,15 @@ export class StorageService implements IStorageService {
     }
     const content = await fs.promises.readFile(this.issuesFilePath, 'utf-8');
     const lines = content.trim().split('\n').filter(line => line.trim());
-    
+
     const issues: Issue[] = [];
     const errors: string[] = [];
-    
+
     for (let i = 0; i < lines.length; i++) {
       try {
         const issue = JSON.parse(lines[i]);
         const validation = validateIssue(issue);
-        
+
         if (validation.isValid) {
           issues.push(issue);
         } else {
@@ -73,15 +93,25 @@ export class StorageService implements IStorageService {
         errors.push(`Line ${i + 1}: Invalid JSON - ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
       }
     }
-    
+
     // Log validation errors but don't fail the load - allow partial recovery
     if (errors.length > 0) {
       this.logger.error(`Found ${errors.length} validation errors in ${this.issuesFilePath}:`);
       errors.forEach(error => this.logger.error(`  ${error}`));
       this.logger.error('Invalid issues were skipped. Consider repairing the data file.');
     }
-    
-    return issues;
+
+    // Run migration to fix any old formats (status and dependencies)
+    const { migratedIssues, hasMigrations } = this.migrateIssues(issues);
+
+    // Persist migrations immediately if any occurred
+    if (hasMigrations) {
+      const content = migratedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
+      await fs.promises.writeFile(this.issuesFilePath, content);
+      this.logger.info('Migrated issues persisted to disk');
+    }
+
+    return migratedIssues;
   }
 
   async saveIssue(issue: Issue): Promise<void> {
@@ -120,7 +150,7 @@ export class StorageService implements IStorageService {
         const issues = await this.loadIssuesInternal();
         this.logger.debug('Storage updateIssues loaded issues count:', issues.length);
         const updatedIssues = updater(issues);
-        
+
         // Validate all updated issues
         const validationErrors: string[] = [];
         updatedIssues.forEach((issue, index) => {
@@ -129,11 +159,16 @@ export class StorageService implements IStorageService {
             validationErrors.push(`Issue ${index} (${issue.id}): ${validation.errors.join(', ')}`);
           }
         });
-        
+
         if (validationErrors.length > 0) {
           throw new Error(`Invalid issue data in update: ${validationErrors.join('; ')}`);
         }
-        
+
+        // Recalculate completion percentages for all issues BEFORE writing
+        for (const issue of updatedIssues) {
+          issue.completion_percentage = calculateCompletionPercentage(issue, updatedIssues);
+        }
+
         this.logger.debug('Storage updateIssues updated issues count:', updatedIssues.length);
         const content = updatedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
         this.logger.debug('Storage writing to', this.issuesFilePath);
@@ -175,6 +210,108 @@ export class StorageService implements IStorageService {
     });
 
     return comment;
+  }
+
+  private migrateIssues(issues: Issue[]): { migratedIssues: Issue[], hasMigrations: boolean } {
+    let hasMigrations = false;
+    const migratedIssues = issues.map(issue => {
+      let issueUpdated = false;
+
+      // Migration: Convert 'blocked' status to 'open' (removing blocked as a stored status)
+      if ((issue as any).status === 'blocked') {
+        issue.status = 'open';
+        issue.updated_at = new Date().toISOString();
+        hasMigrations = true;
+        issueUpdated = true;
+        this.logger.info(`Migrated status for issue ${issue.id}: 'blocked' -> 'open'`);
+      }
+
+      if (!issue.dependencies || issue.dependencies.length === 0) {
+        return issueUpdated ? { ...issue } : issue;
+      }
+
+      // Check for any old dependency formats that need migration
+      const validDependencyTypes = ['blocked_by', 'related', 'parent-child', 'discovered-from'] as const;
+      const legacyDependencyTypeMap: Record<string, (typeof validDependencyTypes)[number]> = {
+        // Legacy type      // Canonical stored type
+        blocks: 'blocked_by',
+      };
+
+      const migratedDeps = issue.dependencies
+        // Keep only dependencies that are either already valid or can be migrated from a legacy format
+        .filter(
+          dep =>
+            validDependencyTypes.includes(dep.type as any) ||
+            Object.prototype.hasOwnProperty.call(legacyDependencyTypeMap, dep.type)
+        )
+        .map(dep => {
+          const mappedType = legacyDependencyTypeMap[dep.type];
+          if (mappedType) {
+            // Convert legacy dependency type to the canonical stored format
+            hasMigrations = true;
+            issueUpdated = true;
+            this.logger.info(
+              `Converted legacy dependency for issue ${issue.id}: ${dep.type}(${dep.id}) -> ${mappedType}(${dep.id})`
+            );
+            return { id: dep.id, type: mappedType };
+          }
+          return dep;
+        });
+
+      // Check if any dependencies were filtered out
+      if (migratedDeps.length !== issue.dependencies.length) {
+        hasMigrations = true;
+        issueUpdated = true;
+        this.logger.info(`Migrated dependencies for issue ${issue.id}: removed ${issue.dependencies.length - migratedDeps.length} invalid dependencies`);
+      }
+
+      // Check for potential bidirectional dependencies that might create duplicates
+      // If issue A is blocked_by B, and B is blocked_by A (mutual block),
+      // remove the redundant one and keep deterministically on the lexicographically larger issue ID
+      const cleanedDeps = migratedDeps.filter((dep, index) => {
+        if (dep.type === 'blocked_by') {
+          // Check if the target issue also has a 'blocked_by' dependency back to this issue
+          const targetIssue = issues.find(i => i.id === dep.id);
+          if (targetIssue && targetIssue.dependencies) {
+            const hasReverseDep = targetIssue.dependencies.some(reverseDep =>
+              reverseDep.id === issue.id && (reverseDep.type === 'blocked_by' || reverseDep.type === 'blocks')
+            );
+            if (hasReverseDep) {
+              // Mutual block: keep only on the lexicographically smaller issue ID
+              if (issue.id > targetIssue.id) {
+                hasMigrations = true;
+                issueUpdated = true;
+                this.logger.info(`Removed mutual blocked_by duplicate: ${issue.id} <- ${dep.id} (keeping on ${targetIssue.id})`);
+                return false; // Remove this dependency
+              }
+            }
+          }
+        }
+        return true;
+      });
+
+      if (cleanedDeps.length !== migratedDeps.length) {
+        hasMigrations = true;
+        issueUpdated = true;
+      }
+
+      if (issueUpdated) {
+        return {
+          ...issue,
+          dependencies: cleanedDeps,
+          updated_at: new Date().toISOString()
+        };
+      }
+
+      return issue;
+    });
+
+    if (hasMigrations) {
+      this.logger.info('Issue migration completed. Some issues were updated to fix old formats.');
+      // Note: The migration will be persisted immediately after this method returns
+    }
+
+    return { migratedIssues, hasMigrations };
   }
 
   private async withLock<T>(operation: () => Promise<T>): Promise<T> {

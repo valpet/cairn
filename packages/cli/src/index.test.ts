@@ -106,6 +106,7 @@ describe('CLI Commands', () => {
       getEpicSubtasks: vi.fn(),
       calculateEpicProgress: vi.fn(),
       shouldCloseEpic: vi.fn(),
+      canCloseIssue: vi.fn(),
     };
     mockCompaction = {
       compactIssues: vi.fn(),
@@ -129,6 +130,12 @@ describe('CLI Commands', () => {
       // Mock .cairn directory as existing
       if (path.includes('.cairn')) return true;
       return false;
+    });
+    (fs.readFileSync as any).mockImplementation((path: string, encoding?: string) => {
+      if (path.includes('config.json')) {
+        return JSON.stringify({ activeFile: 'default' });
+      }
+      return '';
     });
     (path.join as any).mockImplementation((...args: string[]) => args.join('/'));
     (path.dirname as any).mockReturnValue('/parent');
@@ -305,6 +312,7 @@ describe('CLI Commands', () => {
     it('should update multiple fields', async () => {
       const mockIssues = [{ id: 'issue-456', title: 'Test Issue', status: 'open' }];
       mockStorage.loadIssues.mockReturnValue(mockIssues);
+      mockGraph.canCloseIssue.mockReturnValue({ canClose: true });
 
       await importCLI();
 
@@ -317,6 +325,139 @@ describe('CLI Commands', () => {
         labels: 'bug,urgent'
       });
 
+      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('issue-456', mockIssues);
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+    });
+
+    it('should prevent closing issue with open subtasks', async () => {
+      const mockIssues = [
+        { id: 'parent-123', title: 'Parent Issue', status: 'open' },
+        { id: 'sub-1', title: 'Open Subtask', status: 'open' }
+      ];
+      mockStorage.loadIssues.mockReturnValue(mockIssues);
+      mockGraph.canCloseIssue.mockReturnValue({
+        canClose: false,
+        openSubtasks: [{ id: 'sub-1', title: 'Open Subtask', status: 'open' }],
+        reason: 'has 1 open subtask(s)'
+      });
+
+      await importCLI();
+
+      const updateCmd = commanderCommands.get('update <id>');
+      const updateAction = updateCmd?._action;
+
+      await expect(async () => {
+        await updateAction('parent-123', { status: 'closed' });
+      }).rejects.toThrow('process.exit called');
+
+      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('parent-123', mockIssues);
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        expect.stringContaining('Cannot close issue parent-123 because it has 1 open subtask(s)')
+      );
+      expect(mockProcessExit).toHaveBeenCalledWith(1);
+      expect(mockStorage.updateIssues).not.toHaveBeenCalled();
+    });
+
+    it('should prevent closing issue with incomplete acceptance criteria', async () => {
+      const mockIssues = [
+        {
+          id: 'task-789',
+          title: 'Task with AC',
+          status: 'open',
+          acceptance_criteria: [
+            { text: 'AC 1', completed: true },
+            { text: 'AC 2', completed: false }
+          ]
+        }
+      ];
+      mockStorage.loadIssues.mockReturnValue(mockIssues);
+      mockGraph.canCloseIssue.mockReturnValue({
+        canClose: false,
+        openSubtasks: undefined,
+        reason: 'has 1 incomplete acceptance criteria'
+      });
+
+      await importCLI();
+
+      const updateCmd = commanderCommands.get('update <id>');
+      const updateAction = updateCmd?._action;
+
+      await expect(async () => {
+        await updateAction('task-789', { status: 'closed' });
+      }).rejects.toThrow('process.exit called');
+
+      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('task-789', mockIssues);
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        expect.stringContaining('Cannot close issue task-789 because it has 1 incomplete acceptance criteria')
+      );
+      expect(mockProcessExit).toHaveBeenCalledWith(1);
+      expect(mockStorage.updateIssues).not.toHaveBeenCalled();
+    });
+
+    it('should allow closing issue when all requirements are met', async () => {
+      const mockIssues = [
+        {
+          id: 'task-complete',
+          title: 'Complete Task',
+          status: 'open',
+          acceptance_criteria: [
+            { text: 'AC 1', completed: true },
+            { text: 'AC 2', completed: true }
+          ]
+        }
+      ];
+      mockStorage.loadIssues.mockReturnValue(mockIssues);
+      mockGraph.canCloseIssue.mockReturnValue({ canClose: true });
+
+      await importCLI();
+
+      const updateCmd = commanderCommands.get('update <id>');
+      const updateAction = updateCmd?._action;
+
+      await updateAction('task-complete', { status: 'closed' });
+
+      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('task-complete', mockIssues);
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockConsoleError).not.toHaveBeenCalled();
+      expect(mockProcessExit).not.toHaveBeenCalled();
+    });
+
+    it('should not validate when issue is already closed', async () => {
+      const mockIssues = [
+        {
+          id: 'already-closed',
+          title: 'Closed Task',
+          status: 'closed',
+          closed_at: '2023-01-01T00:00:00Z'
+        }
+      ];
+      mockStorage.loadIssues.mockReturnValue(mockIssues);
+
+      await importCLI();
+
+      const updateCmd = commanderCommands.get('update <id>');
+      const updateAction = updateCmd?._action;
+
+      await updateAction('already-closed', { status: 'closed' });
+
+      expect(mockGraph.canCloseIssue).not.toHaveBeenCalled();
+      expect(mockStorage.updateIssues).toHaveBeenCalled();
+    });
+
+    it('should allow updating other fields without validation when not changing to closed', async () => {
+      const mockIssues = [
+        { id: 'task-xyz', title: 'Some Task', status: 'in_progress' }
+      ];
+      mockStorage.loadIssues.mockReturnValue(mockIssues);
+
+      await importCLI();
+
+      const updateCmd = commanderCommands.get('update <id>');
+      const updateAction = updateCmd?._action;
+
+      await updateAction('task-xyz', { title: 'Updated Title', priority: 'high' });
+
+      expect(mockGraph.canCloseIssue).not.toHaveBeenCalled();
       expect(mockStorage.updateIssues).toHaveBeenCalled();
     });
   });
@@ -324,8 +465,8 @@ describe('CLI Commands', () => {
   describe('list command', () => {
     it('should list all issues', async () => {
       const mockIssues = [
-        { id: '1', title: 'Issue 1', status: 'open', type: 'task' },
-        { id: '2', title: 'Issue 2', status: 'closed', type: 'bug' }
+        { id: '1', title: 'Issue 1', status: 'open', type: 'task', completion_percentage: null },
+        { id: '2', title: 'Issue 2', status: 'closed', type: 'bug', completion_percentage: 75 }
       ];
       mockStorage.loadIssues.mockResolvedValue(mockIssues);
       mockCompaction.compactIssues.mockReturnValue(mockIssues);
@@ -340,13 +481,13 @@ describe('CLI Commands', () => {
       expect(mockStorage.loadIssues).toHaveBeenCalled();
       expect(mockCompaction.compactIssues).toHaveBeenCalledWith(mockIssues);
       expect(mockConsoleLog).toHaveBeenCalledWith('1: Issue 1 [open] [task]');
-      expect(mockConsoleLog).toHaveBeenCalledWith('2: Issue 2 [closed] [bug]');
+      expect(mockConsoleLog).toHaveBeenCalledWith('2: Issue 2 [closed] [bug] [75%]');
     });
 
     it('should filter by status', async () => {
       const mockIssues = [
-        { id: '1', title: 'Issue 1', status: 'open', type: 'task' },
-        { id: '2', title: 'Issue 2', status: 'closed', type: 'bug' }
+        { id: '1', title: 'Issue 1', status: 'open', type: 'task', completion_percentage: null },
+        { id: '2', title: 'Issue 2', status: 'closed', type: 'bug', completion_percentage: 50 }
       ];
       mockStorage.loadIssues.mockResolvedValue(mockIssues);
       mockCompaction.compactIssues.mockReturnValue(mockIssues);
@@ -359,12 +500,12 @@ describe('CLI Commands', () => {
       await listAction({ status: 'open' });
 
       expect(mockConsoleLog).toHaveBeenCalledWith('1: Issue 1 [open] [task]');
-      expect(mockConsoleLog).not.toHaveBeenCalledWith('2: Issue 2 [closed] [bug]');
+      expect(mockConsoleLog).not.toHaveBeenCalledWith('2: Issue 2 [closed] [bug] [50%]');
     });
 
     it('should show ready work', async () => {
       const mockIssues = [
-        { id: '1', title: 'Ready Issue', status: 'open', type: 'task' }
+        { id: '1', title: 'Ready Issue', status: 'open', type: 'task', completion_percentage: 25 }
       ];
       mockStorage.loadIssues.mockResolvedValue(mockIssues);
       mockCompaction.compactIssues.mockReturnValue(mockIssues);
@@ -378,7 +519,7 @@ describe('CLI Commands', () => {
       await listAction({ ready: true });
 
       expect(mockGraph.getReadyWork).toHaveBeenCalledWith(mockIssues);
-      expect(mockConsoleLog).toHaveBeenCalledWith('1: Ready Issue [open] [task]');
+      expect(mockConsoleLog).toHaveBeenCalledWith('1: Ready Issue [open] [task] [25%]');
     });
   });
 

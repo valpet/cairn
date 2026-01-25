@@ -37,6 +37,7 @@ While you're free to work as you see fit, using Cairn will significantly improve
 - **Document your work**: Use `cairn_comment` to record findings, ideas, challenges, solutions, and progress as you work on tasks. This helps maintain a detailed record for collaboration and future reference.
 - **Add comments for collaboration**: Use `cairn_comment` to document important insights or communicate with the developer.
 - **Perform self-reviews**: Before closing tasks, review your work quality and ensure all acceptance criteria are met.
+- **Verify completion before closing**: An issue must reach 100% completion percentage before it can be closed. Check that all acceptance criteria are marked complete and all subtasks are finished.
 
 ### Acceptance Criteria Best Practices
 When working with acceptance criteria:
@@ -46,6 +47,7 @@ When working with acceptance criteria:
 3. **Track completion systematically** - toggle criteria as you complete them during development
 4. **Review before closing** - ensure all acceptance criteria are marked complete before closing a task
 5. **Update criteria as needed** - if requirements change, update the criteria text rather than adding new ones
+6. **Require 100% completion** - Tasks cannot be closed unless they reach 100% completion percentage, which requires all acceptance criteria to be checked off and all subtasks to be complete
 
 ### Changelog Best Practices
 When updating the CHANGELOG.md file:
@@ -61,6 +63,7 @@ When updating the CHANGELOG.md file:
 - `cairn_create`: Create a new task (parameters: title, description?, type?, priority?, status?, parent?)
 - `cairn_update`: Update task status or other fields (parameters: id, status?, title?, description?, type?, priority?, acceptance_criteria?)
 - `cairn_dep_add`: Add dependencies between tasks (parameters: from, to, type)
+- `cairn_dep_analyze`: Analyze all dependency relationships for an issue, showing blocking dependencies, parent/child relationships, dependents, implementation order, and detecting circular dependencies
 - `cairn_comment`: Add comments to tasks (parameters: issue_id, author?, content)
 - `cairn_ac_add`: Add acceptance criteria to a task (parameters: issue_id, text)
 - `cairn_ac_update`: Update acceptance criteria text (parameters: issue_id, index, text)
@@ -78,7 +81,7 @@ If the tools aren't available, you can use these terminal commands:
 - \`cairn ac update <id> <index> "new text"\`: Update acceptance criteria
 - \`cairn ac remove <id> <index>\`: Remove acceptance criteria
 - \`cairn ac toggle <id> <index>\`: Toggle completion status
-- `cairn dep add <from> <to> --type <type>`: Add dependency
+- \`cairn dep analyze <id>\`: Analyze all dependency relationships for an issue, showing blocking dependencies, parent/child relationships, dependents, implementation order, and detecting circular dependencies
 - `cairn comment <id> <message>`: Add comment
 
 ### Memory Management

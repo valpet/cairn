@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
 import { Issue, DependencyType } from './types';
+import { calculateCompletionPercentage } from './utils';
 
 export interface IGraphService {
   buildGraph(issues: Issue[]): Map<string, Issue>;
@@ -11,8 +12,9 @@ export interface IGraphService {
   getSubtaskEpic(subtaskId: string, issues: Issue[]): Issue | null;
   calculateEpicProgress(epicId: string, issues: Issue[]): { completed: number; total: number; percentage: number };
   shouldCloseEpic(epicId: string, issues: Issue[]): boolean;
-  canCloseIssue(issueId: string, issues: Issue[]): { canClose: boolean; openSubtasks?: Issue[] };
+  canCloseIssue(issueId: string, issues: Issue[]): { canClose: boolean; openSubtasks?: Issue[]; reason?: string; completionPercentage?: number };
   getNonParentedIssues(issues: Issue[]): Issue[];
+  wouldCreateCycle(fromId: string, toId: string, type: DependencyType, issues: Issue[]): boolean;
 }
 
 @injectable()
@@ -46,7 +48,7 @@ export class GraphService implements IGraphService {
       // Check if blocked
       if (issue.dependencies) {
         for (const dep of issue.dependencies) {
-          if (dep.type === 'blocks') {
+          if (dep.type === 'blocked_by' || dep.type === 'blocks') {
             const depIssue = graph.get(dep.id);
             if (depIssue && depIssue.status !== 'closed') {
               return false;
@@ -64,7 +66,7 @@ export class GraphService implements IGraphService {
       if (issue.status === 'closed') return false;
       if (issue.dependencies) {
         for (const dep of issue.dependencies) {
-          if (dep.type === 'blocks') {
+          if (dep.type === 'blocked_by' || dep.type === 'blocks') {
             const depIssue = graph.get(dep.id);
             if (depIssue && depIssue.status !== 'closed') {
               return true;
@@ -77,6 +79,11 @@ export class GraphService implements IGraphService {
   }
 
   addDependency(fromId: string, toId: string, type: DependencyType, issues: Issue[]): Issue[] {
+    // Check for circular dependencies before adding
+    if (this.wouldCreateCycle(fromId, toId, type, issues)) {
+      throw new Error(`Adding ${type} dependency from ${fromId} to ${toId} would create a circular dependency`);
+    }
+
     const updated = issues.map(issue => {
       if (issue.id === fromId) {
         const deps = issue.dependencies || [];
@@ -88,6 +95,56 @@ export class GraphService implements IGraphService {
       return issue;
     });
     return updated;
+  }
+
+  /**
+   * Determines whether adding a dependency from one issue to another would introduce
+   * a cycle in the dependency graph.
+   *
+   * This method does not modify the provided issues; it conceptually simulates adding
+   * a dependency of the given {@link DependencyType} from {@code fromId} to {@code toId}
+   * and checks if that relationship would create a cyclic dependency.
+   *
+   * @param fromId The ID of the issue that would gain a new dependency.
+   * @param toId The ID of the issue that would be depended on.
+   * @param type The type of dependency being added.
+   * @param issues The full set of issues used to build the dependency graph.
+   * @returns {@code true} if adding this dependency would create a cycle in the graph,
+   *          {@code false} otherwise (including when the edge is effectively a no-op
+   *          or the IDs do not correspond to existing issues).
+   */
+  wouldCreateCycle(fromId: string, toId: string, type: DependencyType, issues: Issue[]): boolean {
+    // For now, only check parent-child relationships for cycles
+    // Blocks relationships can have cycles in some cases (A blocks B, B blocks A)
+    // but we'll be conservative and prevent cycles for blocks too
+    if (type !== 'parent-child' && type !== 'blocked_by' && type !== 'blocks') {
+      return false; // Other types don't create cycles we're concerned about
+    }
+
+    const visited = new Set<string>();
+    const stack = [toId];
+
+    while (stack.length > 0) {
+      const current = stack.pop()!;
+      if (visited.has(current)) continue;
+      visited.add(current);
+
+      if (current === fromId) {
+        return true; // Found a path from toId to fromId, so adding fromId -> toId would create a cycle
+      }
+
+      // Find issues that current depends on with the same type (treat blocks/blocked_by equivalently)
+      const currentIssue = issues.find(issue => issue.id === current);
+      if (currentIssue?.dependencies) {
+        for (const dep of currentIssue.dependencies) {
+          if (type === 'parent-child' ? dep.type === 'parent-child' : (dep.type === 'blocked_by' || dep.type === 'blocks')) {
+            stack.push(dep.id);
+          }
+        }
+      }
+    }
+
+    return false;
   }
 
   removeDependency(fromId: string, toId: string, issues: Issue[]): Issue[] {
@@ -118,9 +175,14 @@ export class GraphService implements IGraphService {
 
   calculateEpicProgress(epicId: string, issues: Issue[]): { completed: number; total: number; percentage: number } {
     const subtasks = this.getEpicSubtasks(epicId, issues);
-    const completed = subtasks.filter(subtask => subtask.status === 'closed').length;
     const total = subtasks.length;
-    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    if (total === 0) {
+      return { completed: 0, total: 0, percentage: 0 };
+    }
+
+    const completionPercentages = subtasks.map(st => st.completion_percentage ?? 0);
+    const completed = completionPercentages.filter(cp => cp === 100).length;
+    const percentage = Math.round(completionPercentages.reduce((sum, cp) => sum + cp, 0) / total);
 
     return { completed, total, percentage };
   }
@@ -130,20 +192,57 @@ export class GraphService implements IGraphService {
     return subtasks.length > 0 && subtasks.every(subtask => subtask.status === 'closed');
   }
 
-  canCloseIssue(issueId: string, issues: Issue[]): { canClose: boolean; openSubtasks?: Issue[] } {
+  canCloseIssue(issueId: string, issues: Issue[]): { canClose: boolean; openSubtasks?: Issue[]; reason?: string; completionPercentage?: number } {
     // Check if the issue exists
-    const issueExists = issues.some(issue => issue.id === issueId);
-    if (!issueExists) {
-      return { canClose: false, openSubtasks: [] };
+    const issue = issues.find(issue => issue.id === issueId);
+    if (!issue) {
+      return { canClose: false, openSubtasks: [], reason: 'Issue not found' };
+    }
+
+    // If already closed, it's valid
+    if (issue.status === 'closed') {
+      return { canClose: true, completionPercentage: 100 };
     }
 
     const subtasks = this.getEpicSubtasks(issueId, issues);
     const openSubtasks = subtasks.filter(subtask => subtask.status !== 'closed');
+
+    // Check for open subtasks first
+    if (openSubtasks.length > 0) {
+      return {
+        canClose: false,
+        openSubtasks,
+        reason: `has ${openSubtasks.length} open subtask(s)`
+      };
+    }
+
+    // Check acceptance criteria
+    const hasIncompleteAC = issue.acceptance_criteria && issue.acceptance_criteria.length > 0 
+      && !issue.acceptance_criteria.every(ac => ac.completed);
     
-    return {
-      canClose: openSubtasks.length === 0,
-      openSubtasks: openSubtasks.length > 0 ? openSubtasks : undefined
-    };
+    if (hasIncompleteAC) {
+      const incompleteCount = issue.acceptance_criteria!.filter(ac => !ac.completed).length;
+      return {
+        canClose: false,
+        reason: `has ${incompleteCount} incomplete acceptance criteria`
+      };
+    }
+
+    // Verify completion percentage would be 100%
+    // Calculate what completion would be if this issue were marked as closed
+    const tempIssue = { ...issue, status: 'closed' as const };
+    const tempIssues = issues.map(i => i.id === issueId ? tempIssue : i);
+    const completionPct = calculateCompletionPercentage(tempIssue, tempIssues);
+    
+    if (completionPct < 100) {
+      return {
+        canClose: false,
+        completionPercentage: completionPct,
+        reason: `completion percentage is ${completionPct}% (must be 100%)`
+      };
+    }
+
+    return { canClose: true, completionPercentage: 100 };
   }
 
   getNonParentedIssues(issues: Issue[]): Issue[] {

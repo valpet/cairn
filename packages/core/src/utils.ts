@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { nanoid } from 'nanoid';
-import { IssueStatus, Priority, IssueType, Dependency, DependencyType, Comment, AcceptanceCriteria } from './types';
+import { IssueStatus, Priority, IssueType, Dependency, DependencyType, Comment, AcceptanceCriteria, Issue } from './types';
 
 /**
  * Finds the .cairn directory by walking up the directory tree from startDir.
@@ -43,7 +43,7 @@ export function generateId(issues: { id: string }[]): string {
  * Type guard to check if a value is a valid IssueStatus
  */
 export function isValidIssueStatus(status: any): status is IssueStatus {
-  return typeof status === 'string' && ['open', 'in_progress', 'closed', 'blocked'].includes(status);
+  return typeof status === 'string' && ['open', 'in_progress', 'closed'].includes(status);
 }
 
 /**
@@ -64,7 +64,7 @@ export function isValidIssueType(type: any): type is IssueType {
  * Type guard to check if a value is a valid DependencyType
  */
 export function isValidDependencyType(type: any): type is DependencyType {
-  return typeof type === 'string' && ['blocks', 'related', 'parent-child', 'discovered-from'].includes(type);
+  return typeof type === 'string' && ['blocked_by', 'blocks', 'related', 'parent-child', 'discovered-from'].includes(type);
 }
 
 /**
@@ -238,4 +238,56 @@ export function sanitizeFilePath(filePath: string, allowedExtensions: string[] =
   }
 
   return sanitized;
+}
+
+/**
+ * Calculates the completion percentage for an issue based on acceptance criteria and subtasks.
+ * For issues with subtasks: averages the completion of acceptance criteria and subtask completion percentages.
+ * For leaf issues: uses acceptance criteria completion, or status-based completion if no criteria.
+ * Returns percentage as number (0-100).
+ */
+export function calculateCompletionPercentage(issue: Issue, allIssues: Issue[], visited = new Set<string>()): number {
+  // If issue is closed, it's 100% complete regardless of acceptance criteria or subtasks
+  if (issue.status === 'closed') {
+    return 100;
+  }
+
+  if (visited.has(issue.id)) {
+    // Cycle detected, return 0 to break recursion
+    return 0;
+  }
+  visited.add(issue.id);
+
+  const subtasks = allIssues.filter(i => i.dependencies?.some(d => d.id === issue.id && d.type === 'parent-child'));
+  const hasSubtasks = subtasks.length > 0;
+
+  // Calculate own completion
+  const acCompleted = issue.acceptance_criteria?.filter(ac => ac.completed).length || 0;
+  const acTotal = issue.acceptance_criteria?.length || 0;
+  let ownCompletion: number;
+  if (acTotal > 0) {
+    ownCompletion = (acCompleted / acTotal) * 100;
+  } else {
+    ownCompletion = 0; // Only open/in_progress issues reach here
+  }
+
+  // Calculate subtask completion
+  if (hasSubtasks) {
+    const subtaskCompletions = subtasks
+      .map(st => calculateCompletionPercentage(st, allIssues, visited))
+      .filter(cp => cp !== null);
+    const completedSubtasks = subtaskCompletions.filter(cp => cp === 100).length;
+    const totalUnits = acTotal + subtasks.length;
+    const completedUnits = acCompleted + completedSubtasks;
+    if (totalUnits > 0) {
+      visited.delete(issue.id);
+      return Math.round((completedUnits / totalUnits) * 100);
+    } else {
+      visited.delete(issue.id);
+      return 0;
+    }
+  }
+
+  visited.delete(issue.id);
+  return Math.round(ownCompletion);
 }
