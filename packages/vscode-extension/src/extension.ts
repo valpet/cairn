@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createContainer, TYPES, IStorageService, IGraphService, findCairnDir, generateId } from '../../core/dist/index.js';
+import { createContainer, TYPES, IStorageService, IGraphService, Container, AcceptanceCriteria, Issue, Dependency, findCairnDir, generateId } from '../../core/dist/index.js';
 
-let container: any | undefined;
+let container: Container | undefined;
 let storage: IStorageService | undefined;
 let graph: IGraphService | undefined;
 let outputChannel: vscode.OutputChannel | undefined;
@@ -137,7 +137,16 @@ function updateStatusBar(activeFile: string) {
   statusBarItem!.tooltip = `Current issue file: ${getIssueFileName(activeFile)}\nClick to switch files`;
 }
 
-// Tool input interfaces
+// Webview interfaces
+interface WebviewDependency {
+  id: string;
+  title: string;
+  type?: string;
+  status: string;
+  priority?: string;
+  direction: 'blocked_by' | 'blocks';
+  completion_percentage?: number | null;
+}
 interface CreateToolInput {
   title: string;
   description?: string;
@@ -160,7 +169,7 @@ interface UpdateToolInput {
   priority?: string;
   assignee?: string;
   labels?: string[];
-  acceptance_criteria?: any[];
+  acceptance_criteria?: AcceptanceCriteria[];
 }
 
 interface DepAddToolInput {
@@ -888,7 +897,7 @@ export function activate(context: vscode.ExtensionContext) {
                 const tempIssuesPath = path.join(cairnDir!, newFileName);
                 
                 try {
-                  let viewTasks: any[] = [];
+                  let viewTasks: Issue[] = [];
                   if (fs.existsSync(tempIssuesPath)) {
                     const content = fs.readFileSync(tempIssuesPath, 'utf-8');
                     viewTasks = content.trim().split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
@@ -1177,10 +1186,10 @@ export function activate(context: vscode.ExtensionContext) {
               })) : [];
 
               // Get dependencies
-              const dependencies: any[] = [];
+              const dependencies: WebviewDependency[] = [];
               if (ticket) {
                 // Get issues that block this issue (blocked_by stored)
-                const blockerDeps = ticket.dependencies?.filter((d: any) => d.type === 'blocked_by' || d.type === 'blocks') || [];
+                const blockerDeps = ticket.dependencies?.filter((d: Dependency) => d.type === 'blocked_by' || d.type === 'blocks') || [];
                 for (const dep of blockerDeps) {
                   const blocker = issues.find(i => i.id === dep.id);
                   if (blocker) {
@@ -1198,7 +1207,7 @@ export function activate(context: vscode.ExtensionContext) {
                 
                 // Get issues that this issue blocks (blocking) - COMPUTED from other issues' 'blocked_by' dependencies
                 const blockedByIssues = issues.filter(i => 
-                  i.dependencies?.some((d: any) => d.id === ticketId && (d.type === 'blocked_by' || d.type === 'blocks'))
+                  i.dependencies?.some((d: Dependency) => d.id === ticketId && (d.type === 'blocked_by' || d.type === 'blocks'))
                 );
                 for (const blocked of blockedByIssues) {
                   dependencies.push({
@@ -1282,7 +1291,7 @@ export function activate(context: vscode.ExtensionContext) {
                 const availableDependencies = issues
                   .filter(issue => issue.id !== pendingTicketId)
                   .filter(issue => !getGraph().getEpicSubtasks(pendingTicketId, issues).some(s => s.id === issue.id))
-                  .filter(issue => !issue.dependencies?.some((d: any) => d.type === 'parent-child' && (d.from === pendingTicketId || d.to === pendingTicketId)))
+                  .filter(issue => !issue.dependencies?.some((d: Dependency) => d.type === 'parent-child' && (d.from === pendingTicketId || d.to === pendingTicketId)))
                   .map(issue => {
                     // Check if adding this as a dependency would create a circular dependency
                     let wouldCreateCycle = false;
@@ -1407,9 +1416,9 @@ export function activate(context: vscode.ExtensionContext) {
                       // Handle dependencies
                       if (originalIssue) {
                         // Get current blockers (what blocks this issue)
-                        const currentBlockers = originalIssue.dependencies?.filter((d: any) => d.type === 'blocked_by' || d.type === 'blocks').map((d: any) => d.id) || [];
+                        const currentBlockers = originalIssue.dependencies?.filter((d: Dependency) => d.type === 'blocked_by' || d.type === 'blocks').map((d: Dependency) => d.id) || [];
                         // Get new blockers from UI (only 'blocked_by' direction is stored)
-                        const newBlockers = ticketData.dependencies.filter((d: any) => d.direction === 'blocked_by').map((d: any) => d.id);
+                        const newBlockers = ticketData.dependencies.filter((d: WebviewDependency) => d.direction === 'blocked_by').map((d: WebviewDependency) => d.id);
                         
                         // Note: We ignore 'blocks' direction from UI since that's computed
                         // The 'blocks' list in the UI shows issues that this one blocks,

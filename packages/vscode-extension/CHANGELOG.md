@@ -5,6 +5,26 @@ All notable changes to the Cairn VS Code extension will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-01-25
+
+### Added
+- Screenshots section in README showing Task List and Task Editor interfaces
+
+### Changed
+- Updated README with improved documentation and visual examples
+- Removed redundant "Active" indicator behind the issue file selector for cleaner UI
+
+## [1.2.0] - 2026-01-25
+
+### Added
+- Completion percentage calculation for issues based on acceptance criteria and subtasks
+- Automatic migration system for legacy issue formats (blocked status → open, blocks dependency → blocked_by)
+- Cycle detection to prevent circular dependencies in parent-child and blocking relationships
+- Support for multiple issue files with file switching capabilities
+
+### Changed
+- Rewrote VS Code extension UI using React components with comprehensive test coverage
+
 ## [1.1.0] - 2026-01-21
 
 ### Added

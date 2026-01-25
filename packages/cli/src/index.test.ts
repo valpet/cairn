@@ -69,7 +69,8 @@ const mockProcessExit = vi.spyOn(process, 'exit').mockImplementation(() => {
 });
 
 // Import after mocking
-import { createContainer, TYPES, findCairnDir, generateId } from '../../core/dist/index.js';
+import { createContainer, TYPES, findCairnDir, generateId, IStorageService, IGraphService, ICompactionService } from '../../core/dist/index.js';
+import { Container } from 'inversify';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -80,12 +81,23 @@ const importCLI = async () => {
   await import('./index');
 };
 
+// Import after mocking
+import { createContainer, TYPES, findCairnDir, generateId, IStorageService, IGraphService, ICompactionService } from '../../core/dist/index.js';
+import { Container } from 'inversify';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// Define a simple interface for the git service (not implemented in core yet)
+interface IGitService {
+  // Placeholder interface - add methods as needed
+}
+
 describe('CLI Commands', () => {
-  let mockStorage: any;
-  let mockGraph: any;
-  let mockCompaction: any;
-  let mockGit: any;
-  let mockContainer: any;
+  let mockStorage: IStorageService;
+  let mockGraph: IGraphService;
+  let mockCompaction: ICompactionService;
+  let mockGit: IGitService;
+  let mockContainer: Container;
 
   beforeEach(() => {
     // Reset mocks
