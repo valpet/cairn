@@ -13,31 +13,21 @@ export const useTaskState = () => {
   // Listen for messages from extension
   useEffect(() => {
     const messageHandler = (event: MessageEvent) => {
-      console.log('Message received:', event.data);
       const message = event.data;
       if (message.type === 'updateTasks') {
-        console.log('Processing updateTasks');
-        console.log('Current file in message:', message.currentFile);
-        console.log('Available files in message:', message.availableFiles);
         setAllTasks(message.tasks || []);
         if (message.currentFile) {
-          console.log('Setting viewing file to:', message.currentFile);
           setViewingFile(message.currentFile);
           setSystemActiveFile(message.currentFile);
         } else {
           console.warn('No currentFile in message');
         }
         if (message.availableFiles) {
-          console.log('Setting available files to:', message.availableFiles);
           setAvailableFiles(message.availableFiles);
         } else {
           console.warn('No availableFiles in message');
         }
-        console.log('Tasks count:', message.tasks?.length || 0);
       } else if (message.type === 'updateViewTasks') {
-        console.log('Processing updateViewTasks (viewing file only)');
-        console.log('Viewing file:', message.viewingFile);
-        console.log('System active file:', message.systemActiveFile);
         setAllTasks(message.tasks || []);
         if (message.viewingFile) {
           setViewingFile(message.viewingFile);
@@ -49,8 +39,6 @@ export const useTaskState = () => {
           setAvailableFiles(message.availableFiles);
         }
       } else if (message.type === 'updateActiveFile') {
-        console.log('Processing updateActiveFile (indicator only)');
-        console.log('New system active file:', message.currentFile);
         if (message.currentFile) {
           setSystemActiveFile(message.currentFile);
         }

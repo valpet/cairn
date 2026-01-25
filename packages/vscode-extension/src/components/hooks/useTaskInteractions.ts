@@ -48,41 +48,32 @@ export const useTaskInteractions = (postMessage: (message: any) => void) => {
   }, [activeActionDropdown, deleteConfirmPopup]);
 
   const startTask = (id: string) => {
-    console.log('Starting task', id);
     postMessage({ type: 'startTask', id });
   };
 
   const completeTask = (id: string) => {
-    console.log('Completing task', id);
     postMessage({ type: 'completeTask', id });
   };
 
   const editTask = (id: string) => {
-    console.log('Editing task', id);
     try {
       const message = { type: 'editTicket', id };
-      console.log('Attempting to post message:', message);
       postMessage(message);
-      console.log('Message posted successfully');
     } catch (error) {
       console.error('Error posting message:', error);
     }
   };
 
   const createNewTask = () => {
-    console.log('Creating new task');
     try {
       const message = { type: 'createTicket' };
-      console.log('Attempting to post message:', message);
       postMessage(message);
-      console.log('Message posted successfully');
     } catch (error) {
       console.error('Error posting message:', error);
     }
   };
 
   const deleteTask = (id: string) => {
-    console.log('Deleting task', id);
     postMessage({ type: 'deleteTask', id });
     setDeleteConfirmPopup(null);
   };

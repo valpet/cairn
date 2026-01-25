@@ -2,7 +2,7 @@
 
 import 'reflect-metadata';
 import { Command } from 'commander';
-import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService, findCairnDir, generateId } from '../../core/dist/index.js';
+import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService, findCairnDir, generateId, IssueType, IssueStatus, Priority } from '../../core/dist/index.js';
 import { Issue } from '../../core/dist/types.js';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -290,9 +290,9 @@ program
       id,
       title,
       description: options.description,
-      type: options.type as any,
-      status: options.status as any || 'open',
-      priority: options.priority as any,
+      type: options.type as IssueType,
+      status: (options.status as IssueStatus) || 'open',
+      priority: options.priority as Priority,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -864,7 +864,7 @@ epicCmd
       description: options.description,
       type: 'task' as const,
       status: 'open' as const,
-      priority: options.priority as any,
+      priority: options.priority as Priority,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

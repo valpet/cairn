@@ -1,7 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Test interfaces
+interface MockTool {
+  [key: string]: unknown; // Tool properties
+}
+
+interface MockContext {
+  subscriptions: unknown[];
+}
+
 // Mock VS Code API
-const registeredTools: any = {};
+const registeredTools: Record<string, MockTool> = {};
 
 vi.mock('vscode', () => ({
   lm: {
@@ -40,11 +49,19 @@ vi.mock('vscode', () => ({
   workspace: {
     workspaceFolders: [{ uri: { fsPath: '/test/workspace' } }],
   },
-  ExtensionContext: class {
+  ExtensionContext: class implements MockContext {
     subscriptions: any[] = [];
   },
-  LanguageModelToolResult: vi.fn((parts) => ({ content: parts })),
-  LanguageModelTextPart: vi.fn((text) => ({ text })),
+  LanguageModelToolResult: class {
+    constructor(parts: unknown[]) {
+      return { content: parts };
+    }
+  },
+  LanguageModelTextPart: class {
+    constructor(text: string) {
+      return { text };
+    }
+  },
 }));
 
 // Mock file system
@@ -67,41 +84,41 @@ vi.mock('nanoid', () => ({
 
 // Mock @valpet/cairn-core
 vi.mock('../../core/dist/index.js', () => ({
-  createContainer: vi.fn(),
   TYPES: {
     IStorageService: 'IStorageService',
     IGraphService: 'IGraphService',
   },
-  findCairnDir: vi.fn(() => ({ cairnDir: '/test/workspace/.cairn', repoRoot: '/test/workspace' })),
-  generateId: vi.fn(() => 's-test-id-123'),
+  findCairnDir: vi.fn().mockReturnValue({ cairnDir: '/test/workspace/.cairn', repoRoot: '/test/workspace' }),
+  generateId: vi.fn().mockReturnValue('s-test-id-123'),
 }));
 
 // Import after mocking
 import * as vscode from 'vscode';
 import { lm } from 'vscode';
-import { createContainer, TYPES, findCairnDir, generateId } from '../../core/dist/index.js';
+import { createContainer, TYPES, findCairnDir, generateId, IStorageService, IGraphService } from '../../core/dist/index.js';
+import { Container } from 'inversify';
 import { activate, CairnCreateTool, CairnListReadyTool, CairnUpdateTool, CairnDepAddTool, CairnCommentTool, CairnAcAddTool, CairnAcUpdateTool, CairnAcRemoveTool, CairnAcToggleTool, getStorage, getGraph, resetServices } from './extension';
 
 describe('VS Code Extension Tools', () => {
-  let mockStorage: any;
-  let mockGraph: any;
-  let mockContainer: any;
-  let mockContext: any;
+  let mockStorage: IStorageService;
+  let mockGraph: IGraphService;
+  let mockContainer: Container;
+  let mockContext: vscode.ExtensionContext;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
     // Setup mocks
     mockStorage = {
-      loadIssues: vi.fn(),
-      saveIssue: vi.fn(),
-      updateIssues: vi.fn((callback) => {
+      loadIssues: vi.fn().mockResolvedValue([]),
+      saveIssue: vi.fn().mockResolvedValue(undefined),
+      updateIssues: vi.fn().mockImplementation(async (callback) => {
         // Mock updateIssues to call the callback with current issues and return the result
         const currentIssues = [{ id: 'existing-1' }];
         const updatedIssues = callback(currentIssues);
         return Promise.resolve(updatedIssues);
       }),
-      addComment: vi.fn(),
+      addComment: vi.fn().mockResolvedValue({ id: 'comment-123', author: 'agent', content: 'Test comment', created_at: '2026-01-18T00:00:00.000Z' }),
     };
 
     mockGraph = {
@@ -123,9 +140,12 @@ describe('VS Code Extension Tools', () => {
       }),
     };
 
-    mockContext = new (vscode as any).ExtensionContext();
+    mockContext = new vscode.ExtensionContext();
 
-    (createContainer as any).mockReturnValue(mockContainer);
+    // Mock createContainer
+    const mockCreateContainer = vi.fn().mockReturnValue(mockContainer);
+    (createContainer as any) = mockCreateContainer;
+
     (findCairnDir as any).mockReturnValue({ cairnDir: '/test/workspace/.cairn', repoRoot: '/test/workspace' });
     (generateId as any).mockReturnValue('s-test-id-123');
 
@@ -605,10 +625,10 @@ describe('VS Code Extension Tools', () => {
 });
 
 describe('Extension Activation and Service Initialization', () => {
-  let mockStorage: any;
-  let mockGraph: any;
-  let mockContainer: any;
-  let mockContext: any;
+  let mockStorage: IStorageService;
+  let mockGraph: IGraphService;
+  let mockContainer: Container;
+  let mockContext: vscode.ExtensionContext;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -641,9 +661,12 @@ describe('Extension Activation and Service Initialization', () => {
       }),
     };
 
-    mockContext = new (vscode as any).ExtensionContext();
+    mockContext = new vscode.ExtensionContext();
 
-    (createContainer as any).mockReturnValue(mockContainer);
+    // Mock createContainer
+    const mockCreateContainer = vi.fn().mockReturnValue(mockContainer);
+    (createContainer as any) = mockCreateContainer;
+
     (findCairnDir as any).mockReturnValue({ cairnDir: '/test/workspace/.cairn', repoRoot: '/test/workspace' });
     (generateId as any).mockReturnValue('s-test-id-123');
   });

@@ -1,6 +1,6 @@
 {
   "name": "cairn-monorepo",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "type": "module",
   "bin": {
@@ -34,6 +34,6 @@
     "rimraf": "^5.0.0",
     "typescript": "^5.0.0",
     "vitepress": "^1.6.4",
-    "vitest": "^1.0.0"
+    "vitest": "^4.0.18"
   }
 }

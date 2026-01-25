@@ -2,6 +2,8 @@
 
 **Persistent memory for AI agents and developers.** Replace messy markdown plans with a dependency-aware graph that maintains context across long development sessions.
 
+<div align="center"><a href="https://buymeacoffee.com/valpet"><img src="./assets/bmc-button.png" alt="Buy me a coffee" width="150"></a></div>
+
 ## ⚡ Quick Start
 
 1. Install the extension from the VS Code Marketplace
@@ -19,7 +21,15 @@
 * **Zero Conflict IDs:** Hash-based task IDs prevent merge collisions in multi-agent workflows.
 * **Stealth Mode:** Optional gitignoring of `.cairn` folder for private task management.
 
-## 📖 Essential Commands
+## � Screenshots
+
+### Issue List View
+![Issue List](assets/Screenshot%202026-01-25%20182820.png)
+
+### Issue Editor
+![Issue Editor](assets/Screenshot%202026-01-25%20182854.png)
+
+## �📖 Essential Commands
 
 | Command                    | Action                           |
 | -------------------------- | -------------------------------- |
@@ -60,6 +70,7 @@ Install from the VS Code Marketplace or download the `.vsix` file and install ma
 ## 📝 Documentation
 
 This extension is part of the Cairn monorepo. See the main repository for development setup and contribution guidelines.
+
 
 ## License
 

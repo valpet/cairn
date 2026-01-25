@@ -52,16 +52,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({ currentFile, systemActiveFi
         ))}
       </select>
       <span style={{
-        fontSize: '12px',
-        fontWeight: 600,
-        padding: '2px 8px',
-        backgroundColor: 'var(--vscode-badge-background)',
-        color: 'var(--vscode-badge-foreground)',
-        borderRadius: '2px'
-      }}>
-        Active: {systemActiveFile}
-      </span>
-      <span style={{
         fontSize: '11px',
         color: 'var(--vscode-descriptionForeground)',
         fontStyle: 'italic'

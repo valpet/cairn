@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock DOM elements for testing acceptance criteria UI
-function createMockElement(tagName: string, properties: any = {}) {
+function createMockElement(tagName: string, properties: Record<string, unknown> = {}) {
   const element = {
     tagName: tagName.toUpperCase(),
     className: '',
@@ -10,9 +10,9 @@ function createMockElement(tagName: string, properties: any = {}) {
     onclick: null,
     ...properties,
     children: [],
-    appendChild: function (child: any) {
+    appendChild: function (child: unknown) {
       this.children.push(child);
-      child.parentElement = this;
+      (child as any).parentElement = this;
     },
     addEventListener: vi.fn(),
     querySelector: vi.fn(),
@@ -40,12 +40,21 @@ const mockWindow = {
 };
 
 // Setup global mocks
-global.document = mockDocument as any;
-global.window = mockWindow as any;
+(global as any).document = mockDocument;
+(global as any).window = mockWindow;
 
 // Mock the EditableField class
+interface EditableFieldOptions {
+  fieldName: string;
+  placeholder: string;
+  isTextarea: boolean;
+  onSave: (value: string) => void;
+  onCancel: () => void;
+  onDisplayUpdate: (value: string) => void;
+}
+
 class EditableField {
-  constructor(options: any) {
+  constructor(options: EditableFieldOptions) {
     this.fieldName = options.fieldName;
     this.placeholder = options.placeholder;
     this.isTextarea = options.isTextarea;
@@ -57,9 +66,9 @@ class EditableField {
   fieldName: string;
   placeholder: string;
   isTextarea: boolean;
-  onSave: any;
-  onCancel: any;
-  onDisplayUpdate: any;
+  onSave: (value: string) => void;
+  onCancel: () => void;
+  onDisplayUpdate: (value: string) => void;
 
   getElement() {
     return createMockElement('div');
