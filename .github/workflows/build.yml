@@ -5,7 +5,7 @@ on:
     branches: [ main, development ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,3 +23,6 @@ jobs:
 
       - name: Build packages
         run: npm run prepare-publish
+
+      - name: Run tests
+        run: npm test
