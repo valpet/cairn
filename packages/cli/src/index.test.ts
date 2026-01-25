@@ -131,6 +131,12 @@ describe('CLI Commands', () => {
       if (path.includes('.cairn')) return true;
       return false;
     });
+    (fs.readFileSync as any).mockImplementation((path: string, encoding?: string) => {
+      if (path.includes('config.json')) {
+        return JSON.stringify({ activeFile: 'default' });
+      }
+      return '';
+    });
     (path.join as any).mockImplementation((...args: string[]) => args.join('/'));
     (path.dirname as any).mockReturnValue('/parent');
 
