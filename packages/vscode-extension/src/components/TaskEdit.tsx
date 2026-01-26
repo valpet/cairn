@@ -1,9 +1,9 @@
 /// <reference lib="dom" />
 import React, { useState, useRef, useEffect } from 'react';
-import './IssueEdit.css';
+import './TaskEdit.css';
 import EditableField from './EditableField';
 import MetadataDropdown from './MetadataDropdown';
-import TaskList from './TaskList';
+import SubtaskList from './SubtaskList';
 import HeaderSection from './HeaderSection';
 import CollapsibleSection from './CollapsibleSection';
 import AcceptanceCriteriaSection from './AcceptanceCriteriaSection';
@@ -13,7 +13,7 @@ import SubtaskSelectionModal from './SubtaskSelectionModal';
 import DependencySelectionModal from './DependencySelectionModal';
 import { useVSCodeMessaging } from './useVSCodeMessaging';
 import {
-  IssueEditProps
+  TaskEditProps
 } from './types';
 import {
   getTypeIcon,
@@ -26,9 +26,9 @@ import {
   getStatusDisplayText
 } from './utils';
 
-const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
+const TaskEdit: React.FC<TaskEditProps> = ({ vscode }: TaskEditProps) => {
   const {
-    issue,
+    task,
     comments,
     subtasks,
     dependencies,
@@ -78,47 +78,47 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const deleteButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Sync form state when issue loads
+  // Sync form state when task loads
   useEffect(() => {
-    if (issue) {
-      setCurrentTitle(issue.title || '');
-      setCurrentDescription(issue.description || '');
-      setCurrentType(issue.type || 'task');
-      setCurrentPriority(issue.priority || 'medium');
-      setCurrentStatus(issue.status || 'open');
+    if (task) {
+      setCurrentTitle(task.title || '');
+      setCurrentDescription(task.description || '');
+      setCurrentType(task.type || 'task');
+      setCurrentPriority(task.priority || 'medium');
+      setCurrentStatus(task.status || 'open');
     }
-  }, [issue]);
+  }, [task]);
 
-  const saveTicket = (overrides?: Partial<{ type: string; priority: string; status: string }>) => {
-    if (!issue) return;
+  const saveTask = (subtasksOverride?: TaskEditTask['subtasks'], dependenciesOverride?: TaskEditTask['dependencies'], overrides?: Partial<{ type: string; priority: string; status: string }>) => {
+    if (!task) return;
 
-    const ticket = {
-      id: issue.id,
+    const taskData = {
+      id: task.id,
       title: currentTitle,
       description: currentDescription,
       comments,
       type: overrides?.type ?? currentType,
       priority: overrides?.priority ?? currentPriority,
       status: overrides?.status ?? currentStatus,
-      subtasks,
-      dependencies,
+      subtasks: subtasksOverride ?? subtasks,
+      dependencies: dependenciesOverride ?? dependencies,
       acceptance_criteria: acceptanceCriteria,
     };
 
-    vscode.postMessage({ type: 'saveTicket', ticket });
+    vscode.postMessage({ type: 'saveTask', task: taskData });
   };
 
   const selectMetadata = (type: string, value: string) => {
     if (type === 'type') {
       setCurrentType(value);
-      saveTicket({ type: value });
+      saveTask(undefined, undefined, { type: value });
     } else if (type === 'priority') {
       setCurrentPriority(value);
-      saveTicket({ priority: value });
+      saveTask(undefined, undefined, { priority: value });
     } else if (type === 'status') {
       setCurrentStatus(value);
       onStatusChange(value);
-      saveTicket({ status: value });
+      saveTask(undefined, undefined, { status: value });
     }
     setActiveDropdown(null);
   };
@@ -161,8 +161,8 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
     }
 
     // Save with the updated values
-    const ticket = {
-      id: issue!.id,
+    const taskData = {
+      id: task!.id,
       title: updatedTitle,
       description: updatedDescription,
       comments,
@@ -173,7 +173,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
       dependencies,
       acceptance_criteria: updatedAcceptanceCriteria,
     };
-    vscode.postMessage({ type: 'saveTicket', ticket });
+    vscode.postMessage({ type: 'saveTask', task: taskData });
   };
 
   const addAcceptanceCriteria = (text: string) => {
@@ -181,8 +181,8 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
     setAcceptanceCriteria(updatedCriteria);
 
     // Save with the updated acceptance criteria
-    const ticket = {
-      id: issue!.id,
+    const taskData = {
+      id: task!.id,
       title: currentTitle,
       description: currentDescription,
       comments,
@@ -193,7 +193,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
       dependencies,
       acceptance_criteria: updatedCriteria,
     };
-    vscode.postMessage({ type: 'saveTicket', ticket });
+    vscode.postMessage({ type: 'saveTask', task: taskData });
   };
 
   const toggleAcceptanceCriteria = (index: number) => {
@@ -203,8 +203,8 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
     setAcceptanceCriteria(updatedCriteria);
 
     // Save with the updated acceptance criteria
-    const ticket = {
-      id: issue!.id,
+    const taskData = {
+      id: task!.id,
       title: currentTitle,
       description: currentDescription,
       comments,
@@ -215,7 +215,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
       dependencies,
       acceptance_criteria: updatedCriteria,
     };
-    vscode.postMessage({ type: 'saveTicket', ticket });
+    vscode.postMessage({ type: 'saveTask', task: taskData });
   };
 
   const removeAcceptanceCriteria = (index: number) => {
@@ -223,8 +223,8 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
     setAcceptanceCriteria(updatedCriteria);
 
     // Save with the updated acceptance criteria
-    const ticket = {
-      id: issue!.id,
+    const taskData = {
+      id: task!.id,
       title: currentTitle,
       description: currentDescription,
       comments,
@@ -235,7 +235,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
       dependencies,
       acceptance_criteria: updatedCriteria,
     };
-    vscode.postMessage({ type: 'saveTicket', ticket });
+    vscode.postMessage({ type: 'saveTask', task: taskData });
   };
 
   const addComment = () => {
@@ -243,24 +243,26 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
 
     vscode.postMessage({
       type: 'addComment',
-      issueId: issue?.id,
+      issueId: task?.id,
       author: currentCommentAuthor,
       content: newComment.trim()
     });
   };
 
   const removeSubtask = (id: string) => {
-    setSubtasks(prev => prev.filter(s => s.id !== id));
-    saveTicket();
+    const updatedSubtasks = subtasks.filter(s => s.id !== id);
+    setSubtasks(updatedSubtasks);
+    saveTask(updatedSubtasks);
   };
 
   const removeDependency = (id: string) => {
-    setDependencies(prev => prev.filter(d => d.id !== id));
-    saveTicket();
+    const updatedDependencies = dependencies.filter(d => d.id !== id);
+    setDependencies(updatedDependencies);
+    saveTask(undefined, updatedDependencies);
   };
 
   const editTask = (taskId: string) => {
-    vscode.postMessage({ type: 'editTicket', id: taskId });
+    vscode.postMessage({ type: 'editTask', id: taskId });
   };
 
   const copyToClipboard = (text: string) => {
@@ -283,8 +285,8 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
       setSubtasks(updatedSubtasks);
 
       // Save with the updated subtasks
-      const ticket = {
-        id: issue!.id,
+      const taskData = {
+        id: task!.id,
         title: currentTitle,
         description: currentDescription,
         comments,
@@ -295,7 +297,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
         dependencies,
         acceptance_criteria: acceptanceCriteria,
       };
-      vscode.postMessage({ type: 'saveTicket', ticket });
+      vscode.postMessage({ type: 'saveTask', task: taskData });
     }
     setSubtaskModalOpen(false);
     setSelectedSubtaskIds(new Set());
@@ -318,8 +320,8 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
       setDependencies(updatedDependencies);
 
       // Save with the updated dependencies
-      const ticket = {
-        id: issue!.id,
+      const taskData = {
+        id: task!.id,
         title: currentTitle,
         description: currentDescription,
         comments,
@@ -330,25 +332,25 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
         dependencies: updatedDependencies,
         acceptance_criteria: acceptanceCriteria,
       };
-      vscode.postMessage({ type: 'saveTicket', ticket });
+      vscode.postMessage({ type: 'saveTask', task: taskData });
     }
     setDependencyModalOpen(false);
     setSelectedDependencyIds(new Set());
   };
 
   const deleteTask = () => {
-    if (issue) {
-      vscode.postMessage({ type: 'deleteTask', id: issue.id });
+    if (task) {
+      vscode.postMessage({ type: 'deleteTask', id: task.id });
     }
   };
 
-  if (!issue) {
+  if (!task) {
     return <div>Loading...</div>;
   }
 
   return (
     <div>
-      <HeaderSection issue={issue} copyToClipboard={copyToClipboard} />
+      <HeaderSection task={task} copyToClipboard={copyToClipboard} />
 
       {/* Property Row */}
       <div className="property-row">
@@ -427,18 +429,18 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
 
             {/* Subtasks Section */}
             <CollapsibleSection
-              title="Sub-issues"
+              title="Sub-tasks"
               isCollapsed={sectionsCollapsed.subtasks}
               onToggle={() => toggleSection('subtasks')}
               className="subtasks-section"
             >
               <div className="subtask-list">
-                <TaskList
+                <SubtaskList
                   tasks={subtasks}
                   onEdit={editTask}
                   onRemove={removeSubtask}
                   copyToClipboard={copyToClipboard}
-                  emptyMessage="No sub-issues yet. Break this task down into smaller, manageable pieces."
+                  emptyMessage="No sub-tasks yet. Break this task down into smaller, manageable pieces."
                 />
               </div>
               <button
@@ -446,7 +448,7 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
                 className="secondary"
                 onClick={() => vscode.postMessage({ type: 'getAvailableSubtasks' })}
               >
-                Add Sub-issue
+                Add Sub-task
               </button>
             </CollapsibleSection>
 
@@ -460,24 +462,24 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
               <div className="dependency-section">
                 <h4>Blocked by</h4>
                 <div className="dependency-list">
-                  <TaskList
+                  <SubtaskList
                     tasks={dependencies.filter(dep => dep.direction === 'blocked_by')}
                     onEdit={editTask}
                     onRemove={removeDependency}
                     copyToClipboard={copyToClipboard}
-                    emptyMessage="No blocking dependencies. This issue can be worked on independently."
+                    emptyMessage="No blocking dependencies. This task can be worked on independently."
                   />
                 </div>
               </div>
               <div className="dependency-section">
-                <h4>This issue is blocking</h4>
+                <h4>This task is blocking</h4>
                 <div className="dependency-list">
-                  <TaskList
+                  <SubtaskList
                     tasks={dependencies.filter(dep => dep.direction === 'blocks')}
                     onEdit={editTask}
                     onRemove={null}
                     copyToClipboard={copyToClipboard}
-                    emptyMessage="This issue doesn't block any other work."
+                    emptyMessage="This task doesn't block any other work."
                   />
                 </div>
               </div>
@@ -512,11 +514,11 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
         {/* Delete Button */}
         <button
           type="button"
-          className="delete-ticket-btn"
+          className="delete-task-btn"
           ref={deleteButtonRef}
           onClick={() => setDeleteConfirmVisible(true)}
         >
-          Delete Ticket
+          Delete Task
         </button>
 
         {/* Delete Confirmation Popup */}
@@ -577,4 +579,4 @@ const IssueEdit: React.FC<IssueEditProps> = ({ vscode }: IssueEditProps) => {
   );
 };
 
-export default IssueEdit;
+export default TaskEdit;

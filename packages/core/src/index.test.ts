@@ -19,10 +19,10 @@ describe('Core Index Exports', () => {
     const container = CoreExports.createContainer('/tmp/.cairn', '/tmp/repo');
 
     const storageService = container.get(CoreExports.TYPES.IStorageService);
-    expect(typeof storageService.loadIssues).toBe('function');
-    expect(typeof storageService.saveIssue).toBe('function');
-    expect(typeof storageService.updateIssues).toBe('function');
-    expect(typeof storageService.getIssuesFilePath).toBe('function');
+    expect(typeof storageService.loadTasks).toBe('function');
+    expect(typeof storageService.saveTask).toBe('function');
+    expect(typeof storageService.updateTasks).toBe('function');
+    expect(typeof storageService.getTasksFilePath).toBe('function');
 
     const graphService = container.get(CoreExports.TYPES.IGraphService);
     expect(typeof graphService.buildGraph).toBe('function');
@@ -30,7 +30,7 @@ describe('Core Index Exports', () => {
     expect(typeof graphService.addDependency).toBe('function');
 
     const compactionService = container.get(CoreExports.TYPES.ICompactionService);
-    expect(typeof compactionService.compactIssues).toBe('function');
+    expect(typeof compactionService.compactTasks).toBe('function');
   });
 
   it('should export service classes', () => {

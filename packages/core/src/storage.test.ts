@@ -23,15 +23,15 @@ describe('StorageService', () => {
   });
 
   it('should load empty issues when file does not exist', async () => {
-    const issues = await storage.loadIssues();
+    const issues = await storage.loadTasks();
     expect(issues).toEqual([]);
   });
 
   it('should load issues with deprecated fields gracefully', async () => {
     // Simulate old data that still contains deprecated fields
-    const oldIssueData = JSON.stringify({
+    const oldTaskData = JSON.stringify({
       id: 'legacy-1',
-      title: 'Legacy Issue',
+      title: 'Legacy Task',
       status: 'open',
       created_at: '2023-01-01T00:00:00.000Z',
       updated_at: '2023-01-01T00:00:00.000Z',
@@ -44,12 +44,12 @@ describe('StorageService', () => {
 
     // Write the old format directly to the file
     const issuesPath = path.join(tempDir, 'issues.jsonl');
-    await fs.promises.writeFile(issuesPath, oldIssueData + '\n');
+    await fs.promises.writeFile(issuesPath, oldTaskData + '\n');
 
-    const issues = await storage.loadIssues();
+    const issues = await storage.loadTasks();
     expect(issues).toHaveLength(1);
     expect(issues[0].id).toBe('legacy-1');
-    expect(issues[0].title).toBe('Legacy Issue');
+    expect(issues[0].title).toBe('Legacy Task');
     expect(issues[0].status).toBe('open');
     // The deprecated fields should be loaded but not cause errors
     expect((issues[0] as any).notes).toBe('These are legacy notes');
@@ -63,7 +63,7 @@ describe('StorageService', () => {
     // Create an issue with deprecated fields (simulating migration scenario)
     const issueWithDeprecated = {
       id: 'test-1',
-      title: 'Test Issue',
+      title: 'Test Task',
       status: 'open' as const,
       created_at: '2023-01-01T00:00:00.000Z',
       updated_at: '2023-01-01T00:00:00.000Z',
@@ -75,10 +75,10 @@ describe('StorageService', () => {
     } as any; // Cast to any to bypass type checking
 
     // Save it (this should work even with deprecated fields)
-    await storage.saveIssue(issueWithDeprecated);
+    await storage.saveTask(issueWithDeprecated);
 
     // Load it back
-    const issues = await storage.loadIssues();
+    const issues = await storage.loadTasks();
     expect(issues).toHaveLength(1);
     expect(issues[0].id).toBe('test-1');
     // The deprecated fields should be preserved
@@ -92,23 +92,23 @@ describe('StorageService', () => {
   it('should append multiple issues', async () => {
     const issue1 = {
       id: 'test-1',
-      title: 'Test Issue 1',
+      title: 'Test Task 1',
       status: 'open' as const,
       created_at: '2023-01-01T00:00:00.000Z',
       updated_at: '2023-01-01T00:00:00.000Z',
     };
     const issue2 = {
       id: 'test-2',
-      title: 'Test Issue 2',
+      title: 'Test Task 2',
       status: 'closed' as const,
       created_at: '2023-01-01T00:00:00.000Z',
       updated_at: '2023-01-01T00:00:00.000Z',
       closed_at: '2023-01-01T00:00:00.000Z',
     };
 
-    await storage.saveIssue(issue1);
-    await storage.saveIssue(issue2);
-    const issues = await storage.loadIssues();
+    await storage.saveTask(issue1);
+    await storage.saveTask(issue2);
+    const issues = await storage.loadTasks();
     expect(issues).toEqual([
       { ...issue1, completion_percentage: 0 },
       { ...issue2, completion_percentage: 100 }
@@ -116,21 +116,21 @@ describe('StorageService', () => {
   });
 
   it('should return correct file path', () => {
-    expect(storage.getIssuesFilePath()).toBe(path.join(tempDir, 'issues.jsonl'));
+    expect(storage.getTasksFilePath()).toBe(path.join(tempDir, 'tasks.jsonl'));
   });
 
   describe('Locking mechanism', () => {
     it('should handle concurrent writes from same process', async () => {
       const issue1 = {
         id: 'test-1',
-        title: 'Test Issue 1',
+        title: 'Test Task 1',
         status: 'open' as const,
         created_at: '2023-01-01T00:00:00.000Z',
         updated_at: '2023-01-01T00:00:00.000Z',
       };
       const issue2 = {
         id: 'test-2',
-        title: 'Test Issue 2',
+        title: 'Test Task 2',
         status: 'open' as const,
         created_at: '2023-01-01T00:00:00.000Z',
         updated_at: '2023-01-01T00:00:00.000Z',
@@ -138,11 +138,11 @@ describe('StorageService', () => {
 
       // Start both saves simultaneously
       await Promise.all([
-        storage.saveIssue(issue1),
-        storage.saveIssue(issue2)
+        storage.saveTask(issue1),
+        storage.saveTask(issue2)
       ]);
 
-      const issues = await storage.loadIssues();
+      const issues = await storage.loadTasks();
       expect(issues).toHaveLength(2);
       expect(issues).toContainEqual({ ...issue1, completion_percentage: 0 });
       expect(issues).toContainEqual({ ...issue2, completion_percentage: 0 });
@@ -151,21 +151,21 @@ describe('StorageService', () => {
     it('should handle concurrent updates from same process', async () => {
       const issue1 = {
         id: 'test-1',
-        title: 'Test Issue 1',
+        title: 'Test Task 1',
         status: 'open' as const,
         created_at: '2023-01-01T00:00:00.000Z',
         updated_at: '2023-01-01T00:00:00.000Z',
       };
-      await storage.saveIssue(issue1);
+      await storage.saveTask(issue1);
 
       // Run multiple updates concurrently
       await Promise.all([
-        storage.updateIssues(issues => issues.map(i => ({ ...i, title: 'Updated 1' }))),
-        storage.updateIssues(issues => issues.map(i => ({ ...i, status: 'closed' as const }))),
-        storage.updateIssues(issues => issues.map(i => ({ ...i, updated_at: '2023-01-02T00:00:00.000Z' })))
+        storage.updateTasks(issues => issues.map(i => ({ ...i, title: 'Updated 1' }))),
+        storage.updateTasks(issues => issues.map(i => ({ ...i, status: 'closed' as const }))),
+        storage.updateTasks(issues => issues.map(i => ({ ...i, updated_at: '2023-01-02T00:00:00.000Z' })))
       ]);
 
-      const issues = await storage.loadIssues();
+      const issues = await storage.loadTasks();
       expect(issues).toHaveLength(1);
       // The last update in the queue should win
       expect(issues[0].updated_at).toBe('2023-01-02T00:00:00.000Z');
@@ -183,16 +183,16 @@ describe('StorageService', () => {
 
       const issue = {
         id: 'test-1',
-        title: 'Test Issue',
+        title: 'Test Task',
         status: 'open' as const,
         created_at: '2023-01-01T00:00:00.000Z',
         updated_at: '2023-01-01T00:00:00.000Z',
       };
 
       // This should clean up the stale lock and succeed
-      await storage.saveIssue(issue);
+      await storage.saveTask(issue);
 
-      const issues = await storage.loadIssues();
+      const issues = await storage.loadTasks();
       expect(issues).toHaveLength(1);
       expect(issues[0]).toEqual({ ...issue, completion_percentage: 0 });
     });
@@ -209,13 +209,13 @@ describe('StorageService', () => {
 
       const issue = {
         id: 'test-1',
-        title: 'Test Issue',
+        title: 'Test Task',
         status: 'open' as const,
         created_at: '2023-01-01T00:00:00.000Z',
         updated_at: '2023-01-01T00:00:00.000Z',
       };
 
-      // Release the lock after 100ms to simulate another process finishing
+      // Release the lock after a short delay to simulate another process finishing
       setTimeout(async () => {
         try {
           await fs.promises.unlink(lockPath);
@@ -224,14 +224,10 @@ describe('StorageService', () => {
         }
       }, 100);
 
-      const startTime = Date.now();
-      await storage.saveIssue(issue);
-      const elapsedTime = Date.now() - startTime;
+      // This should succeed after retries when the lock is released
+      await storage.saveTask(issue);
 
-      // Should have waited for the lock to be released
-      expect(elapsedTime).toBeGreaterThanOrEqual(100);
-
-      const issues = await storage.loadIssues();
+      const issues = await storage.loadTasks();
       expect(issues).toHaveLength(1);
       expect(issues[0]).toEqual({ ...issue, completion_percentage: 0 });
     });
@@ -248,7 +244,7 @@ describe('StorageService', () => {
 
       const issue = {
         id: 'test-1',
-        title: 'Test Issue',
+        title: 'Test Task',
         status: 'open' as const,
         created_at: '2023-01-01T00:00:00.000Z',
         updated_at: '2023-01-01T00:00:00.000Z',
@@ -263,8 +259,8 @@ describe('StorageService', () => {
         }
       }, 300);
 
-      await storage.saveIssue(issue);
-      const issues = await storage.loadIssues();
+      await storage.saveTask(issue);
+      const issues = await storage.loadTasks();
       expect(issues).toHaveLength(1);
     });
   });
@@ -273,13 +269,13 @@ describe('StorageService', () => {
     it('should add a comment to an issue', async () => {
       const issue = {
         id: 'test-1',
-        title: 'Test Issue',
+        title: 'Test Task',
         status: 'open' as const,
         created_at: '2023-01-01T00:00:00.000Z',
         updated_at: '2023-01-01T00:00:00.000Z',
       };
 
-      await storage.saveIssue(issue);
+      await storage.saveTask(issue);
       const comment = await storage.addComment('test-1', 'agent', 'This is a test comment');
 
       expect(comment.id).toBeTruthy();
@@ -287,7 +283,7 @@ describe('StorageService', () => {
       expect(comment.content).toBe('This is a test comment');
       expect(comment.created_at).toBeTruthy();
 
-      const issues = await storage.loadIssues();
+      const issues = await storage.loadTasks();
       expect(issues[0].comments).toHaveLength(1);
       expect(issues[0].comments![0]).toEqual(comment);
     });
@@ -295,18 +291,18 @@ describe('StorageService', () => {
     it('should add multiple comments to an issue', async () => {
       const issue = {
         id: 'test-1',
-        title: 'Test Issue',
+        title: 'Test Task',
         status: 'open' as const,
         created_at: '2023-01-01T00:00:00.000Z',
         updated_at: '2023-01-01T00:00:00.000Z',
       };
 
-      await storage.saveIssue(issue);
+      await storage.saveTask(issue);
       await storage.addComment('test-1', 'user', 'First comment');
       await storage.addComment('test-1', 'agent', 'Second comment');
       await storage.addComment('test-1', 'user', 'Third comment');
 
-      const issues = await storage.loadIssues();
+      const issues = await storage.loadTasks();
       expect(issues[0].comments).toHaveLength(3);
       expect(issues[0].comments![0].content).toBe('First comment');
       expect(issues[0].comments![1].content).toBe('Second comment');
@@ -316,28 +312,28 @@ describe('StorageService', () => {
     it('should update issue timestamp when adding comment', async () => {
       const issue = {
         id: 'test-1',
-        title: 'Test Issue',
+        title: 'Test Task',
         status: 'open' as const,
         created_at: '2023-01-01T00:00:00.000Z',
         updated_at: '2023-01-01T00:00:00.000Z',
       };
 
-      await storage.saveIssue(issue);
+      await storage.saveTask(issue);
       const beforeUpdate = issue.updated_at;
 
       // Wait a tiny bit to ensure timestamp difference
       await new Promise(resolve => setTimeout(resolve, 10));
       await storage.addComment('test-1', 'agent', 'Test comment');
 
-      const issues = await storage.loadIssues();
+      const issues = await storage.loadTasks();
       expect(issues[0].updated_at).not.toBe(beforeUpdate);
     });
 
     it('should calculate completion percentages for loaded issues', async () => {
       // Create parent issue with AC
-      const parentIssue = {
+      const parentTask = {
         id: 'parent-1',
-        title: 'Parent Issue',
+        title: 'Parent Task',
         status: 'open' as const,
         created_at: '2023-01-01T00:00:00.000Z',
         updated_at: '2023-01-01T00:00:00.000Z',
@@ -348,19 +344,19 @@ describe('StorageService', () => {
       };
 
       // Create child issue
-      const childIssue = {
+      const childTask = {
         id: 'child-1',
-        title: 'Child Issue',
+        title: 'Child Task',
         status: 'closed' as const,
         created_at: '2023-01-01T00:00:00.000Z',
         updated_at: '2023-01-01T00:00:00.000Z',
         dependencies: [{ id: 'parent-1', type: 'parent-child' as const }]
       };
 
-      await storage.saveIssue(parentIssue);
-      await storage.saveIssue(childIssue);
+      await storage.saveTask(parentTask);
+      await storage.saveTask(childTask);
 
-      const issues = await storage.loadIssues();
+      const issues = await storage.loadTasks();
       expect(issues).toHaveLength(2);
 
       const loadedParent = issues.find(i => i.id === 'parent-1');

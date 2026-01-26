@@ -9,11 +9,11 @@ export * from './logger';
 
 // Explicit re-exports to ensure named exports are available for bundlers and TypeScript declaration generation
 export {
-  Issue,
+  Task,
   Comment,
   Dependency,
-  IssueStatus,
-  IssueType,
+  TaskStatus,
+  TaskType,
   Priority,
   DependencyType,
   CairnConfig
@@ -22,5 +22,5 @@ export { IStorageService, StorageService } from './storage';
 export { IGraphService, GraphService } from './graph';
 export { ICompactionService, CompactionService } from './compaction';
 export { TYPES, createContainer } from './container';
-export { findCairnDir, generateId, validateIssue, isValidIssueStatus, isValidPriority, isValidIssueType, isValidDependencyType, sanitizeFilePath, calculateCompletionPercentage } from './utils';
+export { findCairnDir, generateId, validateTask, isValidTaskStatus, isValidPriority, isValidTaskType, isValidDependencyType, sanitizeFilePath, calculateCompletionPercentage } from './utils';
 export { ILogger, ConsoleLogger, LogLevel } from './logger';

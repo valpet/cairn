@@ -1,37 +1,37 @@
 import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import {
-  isValidIssueStatus,
+  isValidTaskStatus,
   isValidPriority,
-  isValidIssueType,
+  isValidTaskType,
   isValidDependencyType,
   isValidISODate,
   isValidComment,
   isValidAcceptanceCriteria,
   isValidDependency,
-  validateIssue,
+  validateTask,
   sanitizeFilePath,
   generateId,
   findCairnDir,
   calculateCompletionPercentage
 } from './utils';
-import { IssueStatus, Priority, IssueType, DependencyType } from './types';
+import { TaskStatus, Priority, TaskType, DependencyType } from './types';
 
 describe('Validation Functions', () => {
-  describe('isValidIssueStatus', () => {
+  describe('isValidTaskStatus', () => {
     it('should return true for valid statuses', () => {
-      expect(isValidIssueStatus('open')).toBe(true);
-      expect(isValidIssueStatus('in_progress')).toBe(true);
-      expect(isValidIssueStatus('closed')).toBe(true);
+      expect(isValidTaskStatus('open')).toBe(true);
+      expect(isValidTaskStatus('in_progress')).toBe(true);
+      expect(isValidTaskStatus('closed')).toBe(true);
     });
 
     it('should return false for invalid statuses', () => {
-      expect(isValidIssueStatus('pending')).toBe(false);
-      expect(isValidIssueStatus('blocked')).toBe(false);
-      expect(isValidIssueStatus('')).toBe(false);
-      expect(isValidIssueStatus(null)).toBe(false);
-      expect(isValidIssueStatus(undefined)).toBe(false);
-      expect(isValidIssueStatus(123)).toBe(false);
+      expect(isValidTaskStatus('pending')).toBe(false);
+      expect(isValidTaskStatus('blocked')).toBe(false);
+      expect(isValidTaskStatus('')).toBe(false);
+      expect(isValidTaskStatus(null)).toBe(false);
+      expect(isValidTaskStatus(undefined)).toBe(false);
+      expect(isValidTaskStatus(123)).toBe(false);
     });
   });
 
@@ -52,23 +52,23 @@ describe('Validation Functions', () => {
     });
   });
 
-  describe('isValidIssueType', () => {
+  describe('isValidTaskType', () => {
     it('should return true for valid types', () => {
-      expect(isValidIssueType('epic')).toBe(true);
-      expect(isValidIssueType('feature')).toBe(true);
-      expect(isValidIssueType('task')).toBe(true);
-      expect(isValidIssueType('bug')).toBe(true);
-      expect(isValidIssueType('chore')).toBe(true);
-      expect(isValidIssueType('docs')).toBe(true);
-      expect(isValidIssueType('refactor')).toBe(true);
+      expect(isValidTaskType('epic')).toBe(true);
+      expect(isValidTaskType('feature')).toBe(true);
+      expect(isValidTaskType('task')).toBe(true);
+      expect(isValidTaskType('bug')).toBe(true);
+      expect(isValidTaskType('chore')).toBe(true);
+      expect(isValidTaskType('docs')).toBe(true);
+      expect(isValidTaskType('refactor')).toBe(true);
     });
 
     it('should return false for invalid types', () => {
-      expect(isValidIssueType('story')).toBe(false);
-      expect(isValidIssueType('')).toBe(false);
-      expect(isValidIssueType(null)).toBe(false);
-      expect(isValidIssueType(undefined)).toBe(false);
-      expect(isValidIssueType(123)).toBe(false);
+      expect(isValidTaskType('story')).toBe(false);
+      expect(isValidTaskType('')).toBe(false);
+      expect(isValidTaskType(null)).toBe(false);
+      expect(isValidTaskType(undefined)).toBe(false);
+      expect(isValidTaskType(123)).toBe(false);
     });
   });
 
@@ -154,26 +154,26 @@ describe('Validation Functions', () => {
     });
   });
 
-  describe('validateIssue', () => {
-    const validIssue = {
+  describe('validateTask', () => {
+    const validTask = {
       id: 's-test123',
-      title: 'Test Issue',
-      status: 'open' as IssueStatus,
+      title: 'Test Task',
+      status: 'open' as TaskStatus,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
     it('should validate a minimal valid issue', () => {
-      const result = validateIssue(validIssue);
+      const result = validateTask(validTask);
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
 
     it('should validate a complete valid issue', () => {
-      const completeIssue = {
-        ...validIssue,
+      const completeTask = {
+        ...validTask,
         description: 'Test description',
-        type: 'task' as IssueType,
+        type: 'task' as TaskType,
         priority: 'medium' as Priority,
         assignee: 'user',
         labels: ['bug', 'urgent'],
@@ -188,28 +188,28 @@ describe('Validation Functions', () => {
         closed_at: new Date().toISOString()
       };
 
-      const result = validateIssue(completeIssue);
+      const result = validateTask(completeTask);
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
 
     it('should return errors for invalid issues', () => {
       // Test null/undefined
-      expect(validateIssue(null).isValid).toBe(false);
-      expect(validateIssue(undefined).isValid).toBe(false);
+      expect(validateTask(null).isValid).toBe(false);
+      expect(validateTask(undefined).isValid).toBe(false);
 
       // Test missing required fields
-      expect(validateIssue({}).isValid).toBe(false);
+      expect(validateTask({}).isValid).toBe(false);
 
       // Test invalid types
-      const invalidIssue = {
+      const invalidTask = {
         id: '',
         title: '',
         status: 'invalid',
         created_at: 'invalid-date',
         updated_at: 'invalid-date'
       };
-      const result = validateIssue(invalidIssue);
+      const result = validateTask(invalidTask);
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
     });
@@ -217,25 +217,25 @@ describe('Validation Functions', () => {
     it('should validate optional fields correctly', () => {
       // Valid with optional fields
       const issueWithOptionals = {
-        ...validIssue,
+        ...validTask,
         description: 'desc',
         type: 'bug',
         priority: 'high'
       };
-      expect(validateIssue(issueWithOptionals).isValid).toBe(true);
+      expect(validateTask(issueWithOptionals).isValid).toBe(true);
 
       // Invalid optional fields
       const issueWithInvalidOptionals = {
-        ...validIssue,
+        ...validTask,
         description: 123,
         type: 'invalid',
         priority: 'invalid'
       };
-      const result = validateIssue(issueWithInvalidOptionals);
+      const result = validateTask(issueWithInvalidOptionals);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Issue description must be a string if provided');
-      expect(result.errors).toContain('Issue type must be one of: epic, feature, task, bug, chore, docs, refactor');
-      expect(result.errors).toContain('Issue priority must be one of: low, medium, high, urgent');
+      expect(result.errors).toContain('Task description must be a string if provided');
+      expect(result.errors).toContain('Task type must be one of: epic, feature, task, bug, chore, docs, refactor');
+      expect(result.errors).toContain('Task priority must be one of: low, medium, high, urgent');
     });
   });
 
@@ -292,9 +292,9 @@ describe('Validation Functions', () => {
   });
 
   describe('calculateCompletionPercentage', () => {
-    const mockIssue = (id: string, ac?: any[], deps?: any[]): any => ({
+    const mockTask = (id: string, ac?: any[], deps?: any[]): any => ({
       id,
-      title: 'Test Issue',
+      title: 'Test Task',
       status: 'open',
       created_at: '2023-01-01T00:00:00.000Z',
       updated_at: '2023-01-01T00:00:00.000Z',
@@ -303,108 +303,108 @@ describe('Validation Functions', () => {
     });
 
     it('should return 0% for open leaf issue with no AC', () => {
-      const issue = mockIssue('1');
+      const issue = mockTask('1');
       issue.status = 'open';
-      const allIssues = [issue];
-      expect(calculateCompletionPercentage(issue, allIssues)).toBe(0);
+      const allTasks = [issue];
+      expect(calculateCompletionPercentage(issue, allTasks)).toBe(0);
     });
 
     it('should return 100% for closed leaf issue with incomplete AC', () => {
-      const issue = mockIssue('1', [
+      const issue = mockTask('1', [
         { text: 'AC1', completed: false },
         { text: 'AC2', completed: false }
       ]);
       issue.status = 'closed';
-      const allIssues = [issue];
-      expect(calculateCompletionPercentage(issue, allIssues)).toBe(100);
+      const allTasks = [issue];
+      expect(calculateCompletionPercentage(issue, allTasks)).toBe(100);
     });
 
     it('should calculate percentage based on completed AC', () => {
-      const issue = mockIssue('1', [
+      const issue = mockTask('1', [
         { text: 'AC1', completed: true },
         { text: 'AC2', completed: false },
         { text: 'AC3', completed: true }
       ]);
-      const allIssues = [issue];
-      expect(calculateCompletionPercentage(issue, allIssues)).toBe(67); // 2/3
+      const allTasks = [issue];
+      expect(calculateCompletionPercentage(issue, allTasks)).toBe(67); // 2/3
     });
 
     it('should calculate percentage based on completed subtasks', () => {
-      const parent = mockIssue('1');
-      const child1 = mockIssue('2', [], [{ id: '1', type: 'parent-child' }]);
+      const parent = mockTask('1');
+      const child1 = mockTask('2', [], [{ id: '1', type: 'parent-child' }]);
       child1.status = 'closed';
       child1.completion_percentage = 100; // closed leaf
-      const child2 = mockIssue('3', [], [{ id: '1', type: 'parent-child' }]);
+      const child2 = mockTask('3', [], [{ id: '1', type: 'parent-child' }]);
       child2.status = 'open';
       child2.completion_percentage = 0; // open leaf
-      const allIssues = [parent, child1, child2];
-      expect(calculateCompletionPercentage(parent, allIssues)).toBe(50); // (0 AC + 1 subtask) / (0 AC + 2 subtasks) = 1/2
+      const allTasks = [parent, child1, child2];
+      expect(calculateCompletionPercentage(parent, allTasks)).toBe(50); // (0 AC + 1 subtask) / (0 AC + 2 subtasks) = 1/2
     });
 
     it('should calculate percentage with mixed AC and subtasks', () => {
-      const parent = mockIssue('1', [
+      const parent = mockTask('1', [
         { text: 'AC1', completed: true },
         { text: 'AC2', completed: false }
       ]);
-      const child1 = mockIssue('2', [], [{ id: '1', type: 'parent-child' }]);
+      const child1 = mockTask('2', [], [{ id: '1', type: 'parent-child' }]);
       child1.status = 'closed';
       child1.completion_percentage = 100;
-      const child2 = mockIssue('3', [], [{ id: '1', type: 'parent-child' }]);
+      const child2 = mockTask('3', [], [{ id: '1', type: 'parent-child' }]);
       child2.status = 'open';
       child2.completion_percentage = 0;
-      const allIssues = [parent, child1, child2];
-      expect(calculateCompletionPercentage(parent, allIssues)).toBe(50); // (1 AC + 1 subtask) / (2 AC + 2 subtasks) = 2/4
+      const allTasks = [parent, child1, child2];
+      expect(calculateCompletionPercentage(parent, allTasks)).toBe(50); // (1 AC + 1 subtask) / (2 AC + 2 subtasks) = 2/4
     });
 
     it('should handle edge case of empty AC array', () => {
-      const issue = mockIssue('1', []);
-      const allIssues = [issue];
-      expect(calculateCompletionPercentage(issue, allIssues)).toBe(0); // open leaf with empty AC
+      const issue = mockTask('1', []);
+      const allTasks = [issue];
+      expect(calculateCompletionPercentage(issue, allTasks)).toBe(0); // open leaf with empty AC
     });
 
     it('should round percentage correctly', () => {
-      const issue = mockIssue('1', [
+      const issue = mockTask('1', [
         { text: 'AC1', completed: true },
         { text: 'AC2', completed: false },
         { text: 'AC3', completed: false }
       ]);
-      const allIssues = [issue];
-      expect(calculateCompletionPercentage(issue, allIssues)).toBe(33); // 1/3 ≈ 33.33, rounds to 33
+      const allTasks = [issue];
+      expect(calculateCompletionPercentage(issue, allTasks)).toBe(33); // 1/3 ≈ 33.33, rounds to 33
     });
 
     it('should handle cycle detection and return 0 for cyclic dependencies', () => {
-      const issueA = mockIssue('A', [], [{ id: 'B', type: 'parent-child' }]);
-      const issueB = mockIssue('B', [], [{ id: 'A', type: 'parent-child' }]);
-      const allIssues = [issueA, issueB];
-      expect(calculateCompletionPercentage(issueA, allIssues)).toBe(0);
-      expect(calculateCompletionPercentage(issueB, allIssues)).toBe(0);
+      const issueA = mockTask('A', [], [{ id: 'B', type: 'parent-child' }]);
+      const issueB = mockTask('B', [], [{ id: 'A', type: 'parent-child' }]);
+      const allTasks = [issueA, issueB];
+      expect(calculateCompletionPercentage(issueA, allTasks)).toBe(0);
+      expect(calculateCompletionPercentage(issueB, allTasks)).toBe(0);
     });
 
     it('should handle self-referencing cycle', () => {
-      const issue = mockIssue('1', [], [{ id: '1', type: 'parent-child' }]);
-      const allIssues = [issue];
-      expect(calculateCompletionPercentage(issue, allIssues)).toBe(0);
+      const issue = mockTask('1', [], [{ id: '1', type: 'parent-child' }]);
+      const allTasks = [issue];
+      expect(calculateCompletionPercentage(issue, allTasks)).toBe(0);
     });
 
     it('should handle complex cycle with multiple issues', () => {
-      const issueA = mockIssue('A', [], [{ id: 'B', type: 'parent-child' }]);
-      const issueB = mockIssue('B', [], [{ id: 'C', type: 'parent-child' }]);
-      const issueC = mockIssue('C', [], [{ id: 'A', type: 'parent-child' }]);
-      const allIssues = [issueA, issueB, issueC];
-      expect(calculateCompletionPercentage(issueA, allIssues)).toBe(0);
-      expect(calculateCompletionPercentage(issueB, allIssues)).toBe(0);
-      expect(calculateCompletionPercentage(issueC, allIssues)).toBe(0);
+      const issueA = mockTask('A', [], [{ id: 'B', type: 'parent-child' }]);
+      const issueB = mockTask('B', [], [{ id: 'C', type: 'parent-child' }]);
+      const issueC = mockTask('C', [], [{ id: 'A', type: 'parent-child' }]);
+      const allTasks = [issueA, issueB, issueC];
+      expect(calculateCompletionPercentage(issueA, allTasks)).toBe(0);
+      expect(calculateCompletionPercentage(issueB, allTasks)).toBe(0);
+      expect(calculateCompletionPercentage(issueC, allTasks)).toBe(0);
     });
 
     it('should calculate correctly for acyclic graphs even with cycles elsewhere', () => {
-      const issueA = mockIssue('A', [], [{ id: 'B', type: 'parent-child' }]);
-      const issueB = mockIssue('B', [], [{ id: 'C', type: 'parent-child' }]);
-      const issueC = mockIssue('C', [], [{ id: 'A', type: 'parent-child' }]); // cycle A->B->C->A
-      const issueD = mockIssue('D');
-      const issueE = mockIssue('E', [{ text: 'AC1', completed: true }], [{ id: 'D', type: 'parent-child' }]);
-      const allIssues = [issueA, issueB, issueC, issueD, issueE];
+      const issueA = mockTask('A', [], [{ id: 'B', type: 'parent-child' }]);
+      const issueB = mockTask('B', [], [{ id: 'C', type: 'parent-child' }]);
+      const issueC = mockTask('C', [], [{ id: 'A', type: 'parent-child' }]); // cycle A->B->C->A
+      const issueD = mockTask('D');
+      const issueE = mockTask('E', [{ text: 'AC1', completed: true }], [{ id: 'D', type: 'parent-child' }]);
+      const allTasks = [issueA, issueB, issueC, issueD, issueE];
       // D should calculate correctly despite cycle in A-B-C
-      expect(calculateCompletionPercentage(issueD, allIssues)).toBe(100); // (0 AC + 1 subtask) / (0 AC + 1 subtask) = 1/1
+      expect(calculateCompletionPercentage(issueD, allTasks)).toBe(100); // (0 AC + 1 subtask) / (0 AC + 1 subtask) = 1/1
     });
   });
 });

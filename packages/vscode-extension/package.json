@@ -1,7 +1,7 @@
 {
   "name": "cairn-extension",
   "displayName": "Cairn: Context Keeper",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "publisher": "valpet",
   "description": "Prevents AI agent 'dementia' in long development sessions. Maintains persistent, structured context through a dependency-aware graph that survives across conversations.",
   "readme": "README.md",
@@ -49,7 +49,7 @@
     "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {
-    "@valpet/cairn-core": "^1.2.4",
+    "@valpet/cairn-core": "^1.2.5",
     "nanoid": "^5.0.0"
   },
   "engines": {
@@ -60,8 +60,8 @@
   ],
   "activationEvents": [
     "onCommand:cairn.openTaskList",
-    "onCommand:cairn.editTicket",
-    "onCommand:cairn.createTicket",
+    "onCommand:cairn.editTask",
+    "onCommand:cairn.createTask",
     "onCommand:cairn.switchFile",
     "onLanguageModelTool:cairn_create",
     "onLanguageModelTool:cairn_list_ready",
@@ -80,16 +80,16 @@
         "title": "Cairn: Open Task List"
       },
       {
-        "command": "cairn.editTicket",
-        "title": "Cairn: Edit Issue"
+        "command": "cairn.editTask",
+        "title": "Cairn: Edit Task"
       },
       {
-        "command": "cairn.createTicket",
-        "title": "Cairn: Create New Issue"
+        "command": "cairn.createTask",
+        "title": "Cairn: Create New Task"
       },
       {
         "command": "cairn.switchFile",
-        "title": "Cairn: Switch Issue File"
+        "title": "Cairn: Switch Task File"
       }
     ],
     "languageModelTools": [
@@ -295,7 +295,7 @@
         "inputSchema": {
           "type": "object",
           "properties": {
-            "issue_id": {
+            "task_id": {
               "type": "string",
               "description": "The ID of the task to add a comment to"
             },
@@ -309,7 +309,7 @@
             }
           },
           "required": [
-            "issue_id",
+            "task_id",
             "author",
             "content"
           ]
@@ -325,7 +325,7 @@
         "inputSchema": {
           "type": "object",
           "properties": {
-            "issue_id": {
+            "task_id": {
               "type": "string",
               "description": "The ID of the task to add acceptance criteria to"
             },
@@ -335,7 +335,7 @@
             }
           },
           "required": [
-            "issue_id",
+            "task_id",
             "text"
           ]
         }
@@ -350,7 +350,7 @@
         "inputSchema": {
           "type": "object",
           "properties": {
-            "issue_id": {
+            "task_id": {
               "type": "string",
               "description": "The ID of the task containing the acceptance criteria"
             },
@@ -364,7 +364,7 @@
             }
           },
           "required": [
-            "issue_id",
+            "task_id",
             "index",
             "text"
           ]
@@ -380,7 +380,7 @@
         "inputSchema": {
           "type": "object",
           "properties": {
-            "issue_id": {
+            "task_id": {
               "type": "string",
               "description": "The ID of the task containing the acceptance criteria"
             },
@@ -405,7 +405,7 @@
         "inputSchema": {
           "type": "object",
           "properties": {
-            "issue_id": {
+            "task_id": {
               "type": "string",
               "description": "The ID of the task containing the acceptance criteria"
             },
@@ -415,7 +415,7 @@
             }
           },
           "required": [
-            "issue_id",
+            "task_id",
             "index"
           ]
         }
@@ -429,7 +429,7 @@
         "when": "workspaceFolderCount != 0"
       },
       {
-        "command": "cairn.createTicket",
+        "command": "cairn.createTask",
         "key": "ctrl+shift+n",
         "mac": "cmd+shift+n",
         "when": "workspaceFolderCount != 0"

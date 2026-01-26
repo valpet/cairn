@@ -1,14 +1,8 @@
 # Cairn
 
-**Persistent memory for AI agents and developers.** AI agents finally get access to professional task management - the kind developers have enjoyed with Jira and GitHub Issues. Replace messy markdown plans with a structured task system that maintains context across long development sessions, allowing developers and agents to work on tasks together.
+**Persistent memory for AI agents and developers.** AI agents finally get access to professional task management - the kind developers have enjoyed with Jira and GitHub Tasks. Replace messy markdown plans with a structured task system that maintains context across long development sessions, allowing developers and agents to work on tasks together.
 
-<div align="center">
-  <a href="https://buymeacoffee.com/valpet">
-    <img src="https://raw.githubusercontent.com/valpet/cairn/main/packages/vscode-extension/assets/bmc-button.png" alt="Buy me a coffee" width="150">
-  </a>
-</div>
-
-[![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/valpet.cairn?label=VS%20Code%20Marketplace&logo=visual-studio-code&style=flat-square)](https://marketplace.visualstudio.com/items?itemName=valpet.cairn)
+[![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/valpet.cairn-extension?label=VS%20Code%20Marketplace&logo=visual-studio-code&style=flat-square)](https://marketplace.visualstudio.com/items?itemName=valpet.cairn-extension)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 
@@ -18,7 +12,7 @@
 2. Install the Cairn CLI: `npm install -g @valpet/cairn-cli` (or use `npx @valpet/cairn-cli init`)
 3. Initialize Cairn in your project: `cairn init`
 4. Open a workspace and run `Cairn: Open Task List` from the command palette
-5. Create your first task with `Cairn: Create New Ticket`
+5. Create your first task with `Cairn: Create New Task`
 
 ## 🛠 Features
 
@@ -44,12 +38,12 @@
 | Command                    | Action                           |
 | -------------------------- | -------------------------------- |
 | `Cairn: Open Task List`    | View all tasks in your workspace |
-| `Cairn: Create New Ticket` | Create a new task                |
-| `Cairn: Edit Ticket`       | Modify existing tasks            |
+| `Cairn: Create New Task` | Create a new task                |
+| `Cairn: Edit Task`       | Modify existing tasks            |
 
 **Keyboard Shortcuts:**
 - `Ctrl+Shift+T` / `Cmd+Shift+T`: Open Task List
-- `Ctrl+Shift+N` / `Cmd+Shift+N`: Create New Ticket
+- `Ctrl+Shift+N` / `Cmd+Shift+N`: Create New Task
 
 ## 🔗 Task Hierarchy & Workflow
 
@@ -70,6 +64,20 @@ Cairn provides native language model tools for GitHub Copilot:
 - `cairn_list_ready`: Get unblocked tasks ready for work
 - `cairn_update`: Update task status
 - `cairn_dep_add`: Add dependencies between tasks
+
+## ⭐ Reviews & Support
+
+If Cairn helps streamline your development workflow, please consider:
+- **Leaving a review** on the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=valpet.cairn-extension) ⭐⭐⭐⭐⭐
+- **Starring the repository** on [GitHub](https://github.com/valpet/cairn) 🌟
+
+> *I make tools. I learn things. I make more tools. It's a cycle I cannot escape. If you like what I build, consider buying me a coffee ☕*
+
+<div align="center">
+  <a href="https://buymeacoffee.com/valpet">
+    <img src="https://raw.githubusercontent.com/valpet/cairn/main/packages/vscode-extension/assets/bmc-button.png" alt="Buy me a coffee" width="150">
+  </a>
+</div>
 
 ## 📦 Installation
 

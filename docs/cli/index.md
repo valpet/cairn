@@ -41,7 +41,7 @@ cairn create <title> [options]
 
 **Options:**
 - `-d, --description <desc>`: Task description
-- `-t, --type <type>`: Issue type (epic, feature, task, bug, chore, docs, refactor)
+- `-t, --type <type>`: Task type (task, epic, feature, bug, chore, docs, refactor)
 - `-p, --priority <priority>`: Priority (low, medium, high, urgent)
 - `-s, --status <status>`: Initial status (open, in_progress, closed, blocked)
 - `-r, --parent <parent>`: Parent issue ID for parent-child dependency
@@ -334,7 +334,7 @@ cairn comment task-5 "Found edge case with empty passwords"
 cairn update task-5 -s closed -c "All acceptance criteria met"
 ```
 
-### Multiple Issue Files Workflow
+### Multiple Task Files Workflow
 
 ```bash
 # Work on main feature development
@@ -356,7 +356,7 @@ cairn create "Try new architecture" -t task
 cairn use default
 ```
 
-## Multiple Issue Files
+## Multiple Task Files
 
 Cairn supports managing multiple issue files, allowing you to separate different work contexts.
 
@@ -384,7 +384,7 @@ The active file is stored in `.cairn/config.json`:
 The VS Code extension provides seamless file switching:
 
 1. **Status Bar**: Shows current file, click to switch
-2. **Command Palette**: `Cairn: Switch Issue File`
+2. **Command Palette**: `Cairn: Switch Task File`
 3. **Task List**: Dropdown selector at the top of the task list
 4. **Smart Notifications**: Alerts when CLI changes the active file
 
@@ -425,6 +425,6 @@ The CLI is designed to work seamlessly with:
 Common error messages and solutions:
 
 - `"No .cairn directory found"`: Run `cairn init` in project root
-- `"Issue <id> not found"`: Check issue ID spelling
+- `"Task <id> not found"`: Check issue ID spelling
 - `"Invalid status/type/priority"`: Use valid enum values
 - `"Failed to acquire file lock"`: Wait for other Cairn processes to finish

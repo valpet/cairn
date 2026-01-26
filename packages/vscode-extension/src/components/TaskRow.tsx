@@ -1,7 +1,7 @@
 import React from 'react';
 import { ProgressPie } from './Icons';
 
-interface Issue {
+interface Task {
   id: string;
   title: string;
   description?: string;
@@ -17,11 +17,11 @@ interface Issue {
     id: string;
     type: string;
   }>;
-  children: Issue[];
+  children: Task[];
 }
 
 // Get composed status display text (shows "Open / In Progress" when subtasks have different status)
-const getStatusDisplayText = (status: string, subtasks: Issue[]) => {
+const getStatusDisplayText = (status: string, subtasks: Task[]) => {
   const statusLabels: Record<string, string> = {
     open: 'Open',
     in_progress: 'In Progress',
@@ -30,7 +30,7 @@ const getStatusDisplayText = (status: string, subtasks: Issue[]) => {
   };
   const statusText = statusLabels[status] || status;
 
-  const computedStatus = computeSubIssueStatus(subtasks);
+  const computedStatus = computeSubTaskStatus(subtasks);
   if (computedStatus && computedStatus !== status) {
     const computedStatusText = statusLabels[computedStatus] || computedStatus;
     return `${statusText} / ${computedStatusText}`;
@@ -40,7 +40,7 @@ const getStatusDisplayText = (status: string, subtasks: Issue[]) => {
 };
 
 // Compute the status based on subtasks
-const computeSubIssueStatus = (subtasks: Issue[]) => {
+const computeSubTaskStatus = (subtasks: Task[]) => {
   if (!subtasks || subtasks.length === 0) return null;
 
   // If any subtask is in progress, show in progress
@@ -61,8 +61,8 @@ const computeSubIssueStatus = (subtasks: Issue[]) => {
 };
 
 // Get all subtasks recursively from children
-const getAllSubtasks = (task: Issue & { children: Issue[] }, allTasks: Issue[]): Issue[] => {
-  const subtasks: Issue[] = [];
+const getAllSubtasks = (task: Task & { children: Task[] }, allTasks: Task[]): Task[] => {
+  const subtasks: Task[] = [];
   const visited = new Set<string>();
   
   function collectSubtasks(taskId: string) {
@@ -85,9 +85,9 @@ const getAllSubtasks = (task: Issue & { children: Issue[] }, allTasks: Issue[]):
 };
 
 interface TaskRowProps {
-  task: Issue & { children: Issue[] };
+  task: Task & { children: Task[] };
   level: number;
-  allTasks: Issue[];
+  allTasks: Task[];
   expandedTasks: Set<string>;
   expandedDescriptions: Set<string>;
   activeActionDropdown: string | null;
@@ -166,7 +166,7 @@ const TaskRow: React.FC<TaskRowProps> = ({
   };
 
   // Check if task is blocked
-  const isBlockedCheck = (task: Issue, allTasks: Issue[]) => {
+  const isBlockedCheck = (task: Task, allTasks: Task[]) => {
     if (!task.dependencies || task.status === 'closed') return false;
     const taskMap = new Map(allTasks.map(t => [t.id, t]));
     return task.dependencies.some(dep => {
@@ -178,7 +178,7 @@ const TaskRow: React.FC<TaskRowProps> = ({
 
   const taskIsBlocked = isBlockedCheck(task, allTasks);
   const subtasks = getAllSubtasks(task, allTasks);
-  const computedStatus = computeSubIssueStatus(subtasks);
+  const computedStatus = computeSubTaskStatus(subtasks);
   const displayStatus = taskIsBlocked ? 'blocked' : (computedStatus || task.status);
   const displayText = taskIsBlocked ? 'Blocked' : getStatusDisplayText(task.status, subtasks);
 
@@ -291,7 +291,7 @@ const TaskRow: React.FC<TaskRowProps> = ({
             <ProgressPie 
               percentage={task.completion_percentage} 
               size={16}
-              tooltip={`${task.completion_percentage}%\n${(task.acceptance_criteria?.filter(ac => ac.completed).length || 0)}/${(task.acceptance_criteria?.length || 0)} acceptance criteria\n${subtasks.filter(st => st.status === 'closed').length}/${subtasks.length} sub-issues`}
+              tooltip={`${task.completion_percentage}%\n${(task.acceptance_criteria?.filter(ac => ac.completed).length || 0)}/${(task.acceptance_criteria?.length || 0)} acceptance criteria\n${subtasks.filter(st => st.status === 'closed').length}/${subtasks.length} subtasks`}
             />
           ) : (
             <span style={{

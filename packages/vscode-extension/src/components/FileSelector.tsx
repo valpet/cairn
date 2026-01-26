@@ -9,7 +9,7 @@ interface FileSelectorProps {
 
 const FileSelector: React.FC<FileSelectorProps> = ({ currentFile, systemActiveFile, availableFiles, onFileChange }) => {
   const getFileName = (name: string): string => {
-    return name === 'default' ? 'issues.jsonl' : `${name}.jsonl`;
+    return name === 'default' ? 'tasks.jsonl' : `${name}.jsonl`;
   };
 
   return (
@@ -27,7 +27,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({ currentFile, systemActiveFi
           fontWeight: 500
         }}
       >
-        Issue File:
+        Task File:
       </label>
       <select
         id="file-selector"

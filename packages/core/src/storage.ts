@@ -2,16 +2,16 @@ import { injectable, inject, optional } from 'inversify';
 import * as fs from 'fs';
 import * as path from 'path';
 import { nanoid } from 'nanoid';
-import { Issue, Comment } from './types';
-import { validateIssue, calculateCompletionPercentage } from './utils';
+import { Task, Comment } from './types';
+import { validateTask, calculateCompletionPercentage } from './utils';
 import { ILogger, ConsoleLogger, LogLevel } from './logger';
 
 export interface IStorageService {
-  loadIssues(): Promise<Issue[]>;
-  saveIssue(issue: Issue): Promise<void>;
-  updateIssues(updater: (issues: Issue[]) => Issue[]): Promise<void>;
-  addComment(issueId: string, author: string, content: string): Promise<Comment>;
-  getIssuesFilePath(): string;
+  loadTasks(): Promise<Task[]>;
+  saveTask(task: Task): Promise<void>;
+  updateTasks(updater: (tasks: Task[]) => Task[]): Promise<void>;
+  addComment(taskId: string, author: string, content: string): Promise<Comment>;
+  getTasksFilePath(): string;
 }
 
 export interface StorageConfig {
@@ -36,15 +36,15 @@ export class StorageService implements IStorageService {
     @inject('config') private config: StorageConfig,
     @inject('ILogger') @optional() logger?: ILogger
   ) {
-    const issuesFileName = config.issuesFileName || 'issues.jsonl';
-    const issuesFilePath = path.join(config.cairnDir, issuesFileName);
-    const issuesFileParsed = path.parse(issuesFilePath);
-    if (issuesFileParsed.ext !== '.jsonl') {
-      throw new Error(`Invalid issues file name "${issuesFileName}". Expected extension ".jsonl".`);
+    const tasksFileName = config.issuesFileName || 'tasks.jsonl';
+    const tasksFilePath = path.join(config.cairnDir, tasksFileName);
+    const tasksFileParsed = path.parse(tasksFilePath);
+    if (tasksFileParsed.ext !== '.jsonl') {
+      throw new Error(`Invalid tasks file name "${tasksFileName}". Expected extension ".jsonl".`);
     }
-    this.issuesFilePath = issuesFilePath;
+    this.issuesFilePath = tasksFilePath;
     const lockFilePath = path.format({
-      ...issuesFileParsed,
+      ...tasksFileParsed,
       base: undefined,
       ext: '.lock',
     });
@@ -57,35 +57,48 @@ export class StorageService implements IStorageService {
     this.logger = logger || new ConsoleLogger(LogLevel.INFO);
   }
 
-  async loadIssues(): Promise<Issue[]> {
-    const issues = await this.loadIssuesInternal();
+  async loadTasks(): Promise<Task[]> {
+    const tasks = await this.loadTasksInternal();
 
-    // Calculate completion percentages for all issues with a shared visited set to handle circular dependencies across the batch
+    // Calculate completion percentages for all tasks with a shared visited set to handle circular dependencies across the batch
     const visited = new Set<string>();
-    for (const issue of issues) {
-      issue.completion_percentage = calculateCompletionPercentage(issue, issues, visited);
+    for (const task of tasks) {
+      task.completion_percentage = calculateCompletionPercentage(task, tasks, visited);
     }
 
-    return issues;
+    return tasks;
   }
 
-  private async loadIssuesInternal(): Promise<Issue[]> {
+  private async loadTasksInternal(): Promise<Task[]> {
+    // Check if tasks.jsonl exists, if not, try to migrate from issues.jsonl
     if (!fs.existsSync(this.issuesFilePath)) {
-      return [];
+      const legacyIssuesFilePath = path.join(path.dirname(this.issuesFilePath), 'issues.jsonl');
+      if (fs.existsSync(legacyIssuesFilePath)) {
+        this.logger.info('Found legacy issues.jsonl file, migrating to tasks.jsonl...');
+        try {
+          await fs.promises.copyFile(legacyIssuesFilePath, this.issuesFilePath);
+          this.logger.info('Successfully migrated issues.jsonl to tasks.jsonl');
+        } catch (error) {
+          this.logger.error('Failed to migrate issues.jsonl to tasks.jsonl:', error);
+          throw error;
+        }
+      } else {
+        return [];
+      }
     }
     const content = await fs.promises.readFile(this.issuesFilePath, 'utf-8');
     const lines = content.trim().split('\n').filter(line => line.trim());
 
-    const issues: Issue[] = [];
+    const tasks: Task[] = [];
     const errors: string[] = [];
 
     for (let i = 0; i < lines.length; i++) {
       try {
-        const issue = JSON.parse(lines[i]);
-        const validation = validateIssue(issue);
+        const task = JSON.parse(lines[i]);
+        const validation = validateTask(task);
 
         if (validation.isValid) {
-          issues.push(issue);
+          tasks.push(task);
         } else {
           errors.push(`Line ${i + 1}: ${validation.errors.join(', ')}`);
         }
@@ -98,96 +111,96 @@ export class StorageService implements IStorageService {
     if (errors.length > 0) {
       this.logger.error(`Found ${errors.length} validation errors in ${this.issuesFilePath}:`);
       errors.forEach(error => this.logger.error(`  ${error}`));
-      this.logger.error('Invalid issues were skipped. Consider repairing the data file.');
+      this.logger.error('Invalid tasks were skipped. Consider repairing the data file.');
     }
 
     // Run migration to fix any old formats (status and dependencies)
-    const { migratedIssues, hasMigrations } = this.migrateIssues(issues);
+    const { migratedTasks, hasMigrations } = this.migrateTasks(tasks);
 
     // Persist migrations immediately if any occurred
     if (hasMigrations) {
-      const content = migratedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
+      const content = migratedTasks.map(i => JSON.stringify(i)).join('\n') + '\n';
       await fs.promises.writeFile(this.issuesFilePath, content);
-      this.logger.info('Migrated issues persisted to disk');
+      this.logger.info('Migrated tasks persisted to disk');
     }
 
-    return migratedIssues;
+    return migratedTasks;
   }
 
-  async saveIssue(issue: Issue): Promise<void> {
-    // Validate the issue before saving
-    const validation = validateIssue(issue);
+  async saveTask(task: Task): Promise<void> {
+    // Validate the task before saving
+    const validation = validateTask(task);
     if (!validation.isValid) {
-      throw new Error(`Invalid issue data: ${validation.errors.join(', ')}`);
+      throw new Error(`Invalid task data: ${validation.errors.join(', ')}`);
     }
 
     // Queue this write operation
     this.writeQueue = this.writeQueue.then(async () => {
       await this.withLock(async () => {
-        // Check if issue already exists
-        const existingIssues = await this.loadIssuesInternal();
-        const existingIssue = existingIssues.find(i => i.id === issue.id);
-        if (existingIssue) {
+        // Check if task already exists
+        const existingTasks = await this.loadTasksInternal();
+        const existingTask = existingTasks.find(i => i.id === task.id);
+        if (existingTask) {
           return;
         }
 
-        const line = JSON.stringify(issue) + '\n';
+        const line = JSON.stringify(task) + '\n';
         await fs.promises.appendFile(this.issuesFilePath, line);
       });
     }).catch(err => {
-      this.logger.error('saveIssue queued operation failed:', err);
+      this.logger.error('saveTask queued operation failed:', err);
       throw err;
     });
     return this.writeQueue;
   }
 
-  async updateIssues(updater: (issues: Issue[]) => Issue[]): Promise<void> {
-    this.logger.debug('=== Storage updateIssues CALLED ===');
+  async updateTasks(updater: (tasks: Task[]) => Task[]): Promise<void> {
+    this.logger.debug('=== Storage updateTasks CALLED ===');
     // Queue this write operation
     this.writeQueue = this.writeQueue.then(async () => {
       await this.withLock(async () => {
-        this.logger.debug('Storage updateIssues: Inside lock');
-        const issues = await this.loadIssuesInternal();
-        this.logger.debug('Storage updateIssues loaded issues count:', issues.length);
-        const updatedIssues = updater(issues);
+        this.logger.debug('Storage updateTasks: Inside lock');
+        const tasks = await this.loadTasksInternal();
+        this.logger.debug('Storage updateTasks loaded tasks count:', tasks.length);
+        const updatedTasks = updater(tasks);
 
-        // Validate all updated issues
+        // Validate all updated tasks
         const validationErrors: string[] = [];
-        updatedIssues.forEach((issue, index) => {
-          const validation = validateIssue(issue);
+        updatedTasks.forEach((task, index) => {
+          const validation = validateTask(task);
           if (!validation.isValid) {
-            validationErrors.push(`Issue ${index} (${issue.id}): ${validation.errors.join(', ')}`);
+            validationErrors.push(`Task ${index} (${task.id}): ${validation.errors.join(', ')}`);
           }
         });
 
         if (validationErrors.length > 0) {
-          throw new Error(`Invalid issue data in update: ${validationErrors.join('; ')}`);
+          throw new Error(`Invalid task data in update: ${validationErrors.join('; ')}`);
         }
 
-        // Recalculate completion percentages for all issues BEFORE writing
-        for (const issue of updatedIssues) {
-          issue.completion_percentage = calculateCompletionPercentage(issue, updatedIssues);
+        // Recalculate completion percentages for all tasks BEFORE writing
+        for (const task of updatedTasks) {
+          task.completion_percentage = calculateCompletionPercentage(task, updatedTasks);
         }
 
-        this.logger.debug('Storage updateIssues updated issues count:', updatedIssues.length);
-        const content = updatedIssues.map(i => JSON.stringify(i)).join('\n') + '\n';
+        this.logger.debug('Storage updateTasks updated tasks count:', updatedTasks.length);
+        const content = updatedTasks.map(i => JSON.stringify(i)).join('\n') + '\n';
         this.logger.debug('Storage writing to', this.issuesFilePath);
         await fs.promises.writeFile(this.issuesFilePath, content);
         this.logger.debug('Storage writeFile done');
       });
     }).catch(err => {
-      this.logger.error('updateIssues queued operation failed:', err);
+      this.logger.error('updateTasks queued operation failed:', err);
       throw err;
     });
     await this.writeQueue;
-    this.logger.debug('=== Storage updateIssues COMPLETE ===');
+    this.logger.debug('=== Storage updateTasks COMPLETE ===');
   }
 
-  getIssuesFilePath(): string {
+  getTasksFilePath(): string {
     return this.issuesFilePath;
   }
 
-  async addComment(issueId: string, author: string, content: string): Promise<Comment> {
+  async addComment(taskId: string, author: string, content: string): Promise<Comment> {
     const comment: Comment = {
       id: nanoid(10),
       author,
@@ -195,39 +208,39 @@ export class StorageService implements IStorageService {
       created_at: new Date().toISOString()
     };
 
-    await this.updateIssues(issues => {
-      return issues.map(issue => {
-        if (issue.id === issueId) {
-          const comments = issue.comments || [];
+    await this.updateTasks(tasks => {
+      return tasks.map(task => {
+        if (task.id === taskId) {
+          const comments = task.comments || [];
           return {
-            ...issue,
+            ...task,
             comments: [...comments, comment],
             updated_at: new Date().toISOString()
           };
         }
-        return issue;
+        return task;
       });
     });
 
     return comment;
   }
 
-  private migrateIssues(issues: Issue[]): { migratedIssues: Issue[], hasMigrations: boolean } {
+  private migrateTasks(tasks: Task[]): { migratedTasks: Task[], hasMigrations: boolean } {
     let hasMigrations = false;
-    const migratedIssues = issues.map(issue => {
-      let issueUpdated = false;
+    const migratedTasks = tasks.map(task => {
+      let taskUpdated = false;
 
       // Migration: Convert 'blocked' status to 'open' (removing blocked as a stored status)
-      if ((issue as any).status === 'blocked') {
-        issue.status = 'open';
-        issue.updated_at = new Date().toISOString();
+      if ((task as any).status === 'blocked') {
+        task.status = 'open';
+        task.updated_at = new Date().toISOString();
         hasMigrations = true;
-        issueUpdated = true;
-        this.logger.info(`Migrated status for issue ${issue.id}: 'blocked' -> 'open'`);
+        taskUpdated = true;
+        this.logger.info(`Migrated status for task ${task.id}: 'blocked' -> 'open'`);
       }
 
-      if (!issue.dependencies || issue.dependencies.length === 0) {
-        return issueUpdated ? { ...issue } : issue;
+      if (!task.dependencies || task.dependencies.length === 0) {
+        return taskUpdated ? { ...task } : task;
       }
 
       // Check for any old dependency formats that need migration
@@ -237,7 +250,7 @@ export class StorageService implements IStorageService {
         blocks: 'blocked_by',
       };
 
-      const migratedDeps = issue.dependencies
+      const migratedDeps = task.dependencies
         // Keep only dependencies that are either already valid or can be migrated from a legacy format
         .filter(
           dep =>
@@ -249,9 +262,9 @@ export class StorageService implements IStorageService {
           if (mappedType) {
             // Convert legacy dependency type to the canonical stored format
             hasMigrations = true;
-            issueUpdated = true;
+            taskUpdated = true;
             this.logger.info(
-              `Converted legacy dependency for issue ${issue.id}: ${dep.type}(${dep.id}) -> ${mappedType}(${dep.id})`
+              `Converted legacy dependency for task ${task.id}: ${dep.type}(${dep.id}) -> ${mappedType}(${dep.id})`
             );
             return { id: dep.id, type: mappedType };
           }
@@ -259,29 +272,29 @@ export class StorageService implements IStorageService {
         });
 
       // Check if any dependencies were filtered out
-      if (migratedDeps.length !== issue.dependencies.length) {
+      if (migratedDeps.length !== task.dependencies.length) {
         hasMigrations = true;
-        issueUpdated = true;
-        this.logger.info(`Migrated dependencies for issue ${issue.id}: removed ${issue.dependencies.length - migratedDeps.length} invalid dependencies`);
+        taskUpdated = true;
+        this.logger.info(`Migrated dependencies for task ${task.id}: removed ${task.dependencies.length - migratedDeps.length} invalid dependencies`);
       }
 
       // Check for potential bidirectional dependencies that might create duplicates
-      // If issue A is blocked_by B, and B is blocked_by A (mutual block),
-      // remove the redundant one and keep deterministically on the lexicographically larger issue ID
+      // If task A is blocked_by B, and B is blocked_by A (mutual block),
+      // remove the redundant one and keep deterministically on the lexicographically larger task ID
       const cleanedDeps = migratedDeps.filter((dep, index) => {
         if (dep.type === 'blocked_by') {
-          // Check if the target issue also has a 'blocked_by' dependency back to this issue
-          const targetIssue = issues.find(i => i.id === dep.id);
-          if (targetIssue && targetIssue.dependencies) {
-            const hasReverseDep = targetIssue.dependencies.some(reverseDep =>
-              reverseDep.id === issue.id && (reverseDep.type === 'blocked_by' || reverseDep.type === 'blocks')
+          // Check if the target task also has a 'blocked_by' dependency back to this task
+          const targetTask = tasks.find(i => i.id === dep.id);
+          if (targetTask && targetTask.dependencies) {
+            const hasReverseDep = targetTask.dependencies.some(reverseDep =>
+              reverseDep.id === task.id && (reverseDep.type === 'blocked_by' || reverseDep.type === 'blocks')
             );
             if (hasReverseDep) {
-              // Mutual block: keep only on the lexicographically smaller issue ID
-              if (issue.id > targetIssue.id) {
+              // Mutual block: keep only on the lexicographically smaller task ID
+              if (task.id > targetTask.id) {
                 hasMigrations = true;
-                issueUpdated = true;
-                this.logger.info(`Removed mutual blocked_by duplicate: ${issue.id} <- ${dep.id} (keeping on ${targetIssue.id})`);
+                taskUpdated = true;
+                this.logger.info(`Removed mutual blocked_by duplicate: ${task.id} <- ${dep.id} (keeping on ${targetTask.id})`);
                 return false; // Remove this dependency
               }
             }
@@ -292,26 +305,26 @@ export class StorageService implements IStorageService {
 
       if (cleanedDeps.length !== migratedDeps.length) {
         hasMigrations = true;
-        issueUpdated = true;
+        taskUpdated = true;
       }
 
-      if (issueUpdated) {
+      if (taskUpdated) {
         return {
-          ...issue,
+          ...task,
           dependencies: cleanedDeps,
           updated_at: new Date().toISOString()
         };
       }
 
-      return issue;
+      return task;
     });
 
     if (hasMigrations) {
-      this.logger.info('Issue migration completed. Some issues were updated to fix old formats.');
+      this.logger.info('Task migration completed. Some tasks were updated to fix old formats.');
       // Note: The migration will be persisted immediately after this method returns
     }
 
-    return { migratedIssues, hasMigrations };
+    return { migratedTasks, hasMigrations };
   }
 
   private async withLock<T>(operation: () => Promise<T>): Promise<T> {

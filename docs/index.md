@@ -100,9 +100,9 @@ Use `Ctrl+Shift+T` to open the task list or Copilot tools for AI-assisted task m
 
 ## Key Concepts
 
-### Issues and Tasks
+### Tasks and Tasks
 
-Everything in Cairn revolves around **Issues** - structured tasks with metadata:
+Everything in Cairn revolves around **Tasks** - structured tasks with metadata:
 
 - **Types**: epic, feature, task, bug, chore, docs, refactor
 - **Statuses**: open, in_progress, closed, blocked
@@ -138,7 +138,7 @@ Cairn automatically identifies **ready work** - tasks that are:
 - Not blocked by dependencies
 - Available to start immediately
 
-### Multiple Issue Files
+### Multiple Task Files
 
 Cairn supports **multiple issue files** for context separation:
 
@@ -291,7 +291,7 @@ Old closed issues are automatically compacted:
 
 ## Troubleshooting
 
-### Common Issues
+### Common Tasks
 
 **"No .cairn directory found"**
 ```bash

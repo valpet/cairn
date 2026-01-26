@@ -1,4 +1,4 @@
-export interface Issue {
+export interface Task {
   id: string;
   title: string;
   description?: string;
@@ -14,15 +14,15 @@ export interface Issue {
     id: string;
     type: string;
   }>;
-  children: Issue[];
+  children: Task[];
 }
 
-export interface IssueListProps {
+export interface TaskListProps {
   // Props will be added as needed
 }
 
-// IssueEdit-specific types
-export interface IssueEditIssue {
+// TaskEdit-specific types
+export interface TaskEditTask {
   id: string;
   title: string;
   description: string;
@@ -78,7 +78,7 @@ export interface AvailableItem {
   priority: string;
 }
 
-export interface IssueEditProps {
+export interface TaskEditProps {
   vscode: any;
 }
 
@@ -88,9 +88,9 @@ export interface VSCodeMessage {
   [key: string]: any;
 }
 
-export interface LoadTicketMessage extends VSCodeMessage {
-  type: 'loadTicket';
-  ticket: IssueEditIssue;
+export interface LoadTaskMessage extends VSCodeMessage {
+  type: 'loadTask';
+  task: TaskEditTask;
 }
 
 export interface AvailableSubtasksMessage extends VSCodeMessage {
