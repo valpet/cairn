@@ -7,9 +7,9 @@ The Cairn CLI provides command-line access to all Cairn task management function
 ## Installation
 
 ```bash
-npm install -g cairn
+npm install -g @valpet/cairn-cli
 # or
-npx cairn
+npx @valpet/cairn-cli
 ```
 
 ## Commands

@@ -42,7 +42,7 @@ Deep IDE integration with webviews and Copilot tools.
 
 ```bash
 # Install CLI globally
-npm install -g cairn
+npm install -g @valpet/cairn-cli
 
 # Initialize in your project
 cd my-project
@@ -222,7 +222,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: npm install -g cairn
+      - run: npm install -g @valpet/cairn-cli
       - run: cairn list --ready > ready-tasks.txt
 ```
 

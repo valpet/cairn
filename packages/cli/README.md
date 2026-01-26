@@ -5,7 +5,7 @@ Command-line interface for Cairn task management system.
 ## Installation
 
 ```bash
-npm install -g cairn
+npm install -g @valpet/cairn-cli
 ```
 
 ## Usage
