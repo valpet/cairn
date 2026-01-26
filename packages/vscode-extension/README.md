@@ -1,8 +1,16 @@
 # Cairn
 
-**Persistent memory for AI agents and developers.** Replace messy markdown plans with a dependency-aware graph that maintains context across long development sessions.
+**Persistent memory for AI agents and developers.** AI agents finally get access to professional task management - the kind developers have enjoyed with Jira and GitHub Issues. Replace messy markdown plans with a structured task system that maintains context across long development sessions, allowing developers and agents to work on tasks together.
 
-<div align="center"><a href="https://buymeacoffee.com/valpet"><img src="./assets/bmc-button.png" alt="Buy me a coffee" width="150"></a></div>
+<div align="center">
+  <a href="https://buymeacoffee.com/valpet">
+    <img src="https://raw.githubusercontent.com/valpet/cairn/main/packages/vscode-extension/assets/bmc-button.png" alt="Buy me a coffee" width="150">
+  </a>
+</div>
+
+[![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/valpet.cairn?label=VS%20Code%20Marketplace&logo=visual-studio-code&style=flat-square)](https://marketplace.visualstudio.com/items?itemName=valpet.cairn)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+
 
 ## ⚡ Quick Start
 
@@ -24,10 +32,12 @@
 ## 📸 Screenshots
 
 ### Task List View
-![Task List](./assets/Screenshot_1.png)
+![Task List](https://raw.githubusercontent.com/valpet/cairn/main/packages/vscode-extension/assets/Screenshot_1.png)
+
 
 ### Task Editor
-![Task Editor](./assets/Screenshot_2.png)
+![Task List](https://raw.githubusercontent.com/valpet/cairn/main/packages/vscode-extension/assets/Screenshot_2.png)
+
 
 ## 📖 Essential Commands
 
