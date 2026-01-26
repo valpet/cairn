@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import TreeLinesSVG from './TreeLinesSVG';
 import TaskRow from './TaskRow';
 
-interface Issue {
+interface Task {
   id: string;
   title: string;
   description?: string;
@@ -14,12 +14,12 @@ interface Issue {
     id: string;
     type: string;
   }>;
-  children: Issue[];
+  children: Task[];
 }
 
 interface TaskGridProps {
   taskTree: any[];
-  allTasks: Issue[];
+  allTasks: Task[];
   expandedTasks: Set<string>;
   expandedDescriptions: Set<string>;
   activeActionDropdown: string | null;
@@ -176,7 +176,7 @@ const TaskGrid: React.FC<TaskGridProps> = ({
                     }}
                     onClick={onCreateNewTask}
                   >
-                    Create New Issue
+                    Create New Task
                   </button>
                 </div>
               </div>

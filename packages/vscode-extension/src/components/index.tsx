@@ -1,9 +1,9 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import IssueList from './IssueList';
+import TaskList from './TaskList';
 
 const App: React.FC = () => {
-  return <IssueList />;
+  return <TaskList />;
 };
 
 const container = document.getElementById('root');

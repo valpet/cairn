@@ -3,12 +3,12 @@ export interface AcceptanceCriteria {
   completed: boolean;
 }
 
-export interface Issue {
+export interface Task {
   id: string;
   title: string;
   description?: string;
-  type?: IssueType;
-  status: IssueStatus;
+  type?: TaskType;
+  status: TaskStatus;
   priority?: Priority;
   assignee?: string;
   labels?: string[];
@@ -29,11 +29,11 @@ export interface Comment {
   created_at: string;
 }
 
-export type IssueStatus = 'open' | 'in_progress' | 'closed';
+export type TaskStatus = 'open' | 'in_progress' | 'closed';
 
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
-export type IssueType = 'epic' | 'feature' | 'task' | 'bug' | 'chore' | 'docs' | 'refactor';
+export type TaskType = 'epic' | 'feature' | 'task' | 'bug' | 'chore' | 'docs' | 'refactor';
 
 export interface Dependency {
   id: string;

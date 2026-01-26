@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createContainer, TYPES, IStorageService, IGraphService, Container, AcceptanceCriteria, Issue, Dependency, findCairnDir, generateId } from '../../core/dist/index.js';
+import { createContainer, TYPES, IStorageService, IGraphService, Container, AcceptanceCriteria, Task, Dependency, findCairnDir, generateId, validateTask } from '../../core/dist/index.js';
 
 let container: Container | undefined;
 let storage: IStorageService | undefined;
@@ -73,29 +73,29 @@ function readConfig(cairnDir: string): CairnConfig {
   }
 }
 
-// NOTE: The logical name "default" is special: it always maps to "issues.jsonl",
-// which is the canonical / historical default issues file for a Cairn workspace.
-// To avoid ambiguity and file collisions, the logical name "issues" is effectively
+// NOTE: The logical name "default" is special: it always maps to "tasks.jsonl",
+// which is the canonical / historical default tasks file for a Cairn workspace.
+// To avoid ambiguity and file collisions, the logical name "tasks" is effectively
 // reserved and must not be used by callers, because it would also map to
-// "issues.jsonl". This ensures we never have both a "default" mapping and a
-// user-named "issues" file attempting to coexist in the same directory.
+// "tasks.jsonl". This ensures we never have both a "default" mapping and a
+// user-named "tasks" file attempting to coexist in the same directory.
 /**
- * Converts a logical issue file name to its actual filename.
+ * Converts a logical task file name to its actual filename.
  *
- * @param name - The logical name of the issue file (e.g., 'default', 'feature-auth')
- * @returns The actual filename (e.g., 'issues.jsonl', 'feature-auth.jsonl')
+ * @param name - The logical name of the task file (e.g., 'default', 'feature-auth')
+ * @returns The actual filename (e.g., 'tasks.jsonl', 'feature-auth.jsonl')
  *
  * @remarks
- * The logical name "default" is special: it always maps to "issues.jsonl",
- * which is the canonical/historical default issues file for a Cairn workspace.
+ * The logical name "default" is special: it always maps to "tasks.jsonl",
+ * which is the canonical/historical default tasks file for a Cairn workspace.
  *
- * To avoid ambiguity and file collisions, the logical name "issues" is effectively
+ * To avoid ambiguity and file collisions, the logical name "tasks" is effectively
  * reserved and must not be used by callers, because it would also map to
- * "issues.jsonl". This ensures we never have both a "default" mapping and a
- * user-named "issues" file attempting to coexist in the same directory.
+ * "tasks.jsonl". This ensures we never have both a "default" mapping and a
+ * user-named "tasks" file attempting to coexist in the same directory.
  */
-function getIssueFileName(name: string): string {
-  return name === 'default' ? 'issues.jsonl' : `${name}.jsonl`;
+function getTaskFileName(name: string): string {
+  return name === 'default' ? 'tasks.jsonl' : `${name}.jsonl`;
 }
 
 function writeConfig(cairnDir: string, config: CairnConfig): void {
@@ -112,11 +112,11 @@ function truncateTitle(title: string, id: string): string {
   return `${truncatedTitle} (${id})`;
 }
 
-function getAvailableIssueFiles(cairnDir: string): string[] {
+function getAvailableTaskFiles(cairnDir: string): string[] {
   return fs.readdirSync(cairnDir)
     .filter(f => f.endsWith('.jsonl'))
     .map(f => f.replace('.jsonl', ''))
-    .map(f => f === 'issues' ? 'default' : f)
+    .map(f => f === 'tasks' ? 'default' : f)
     .sort((a, b) => {
       if (a === 'default') return -1;
       if (b === 'default') return 1;
@@ -124,9 +124,9 @@ function getAvailableIssueFiles(cairnDir: string): string[] {
     });
 }
 
-function reinitializeServices(issuesFileName: string) {
-  outputChannel!.appendLine(`Reinitializing services with file: ${issuesFileName}`);
-  container = createContainer(cairnDir!, repoRoot!, issuesFileName);
+function reinitializeServices(tasksFileName: string) {
+  outputChannel!.appendLine(`Reinitializing services with file: ${tasksFileName}`);
+  container = createContainer(cairnDir!, repoRoot!, tasksFileName);
   storage = container.get(TYPES.IStorageService);
   graph = container.get(TYPES.IGraphService);
   outputChannel!.appendLine('Services reinitialized successfully');
@@ -134,7 +134,7 @@ function reinitializeServices(issuesFileName: string) {
 
 function updateStatusBar(activeFile: string) {
   statusBarItem!.text = `$(file) Cairn: ${activeFile}`;
-  statusBarItem!.tooltip = `Current issue file: ${getIssueFileName(activeFile)}\nClick to switch files`;
+  statusBarItem!.tooltip = `Current task file: ${getTaskFileName(activeFile)}\nClick to switch files`;
 }
 
 // Webview interfaces
@@ -179,29 +179,29 @@ interface DepAddToolInput {
 }
 
 interface CommentToolInput {
-  issue_id: string;
+  task_id: string;
   author?: string;
   content: string;
 }
 
 interface AcAddToolInput {
-  issue_id: string;
+  task_id: string;
   text: string;
 }
 
 interface AcUpdateToolInput {
-  issue_id: string;
+  task_id: string;
   index: number;
   text: string;
 }
 
 interface AcRemoveToolInput {
-  issue_id: string;
+  task_id: string;
   index: number;
 }
 
 interface AcToggleToolInput {
-  issue_id: string;
+  task_id: string;
   index: number;
 }
 
@@ -224,9 +224,9 @@ export class CairnCreateTool implements vscode.LanguageModelTool<CreateToolInput
   ) {
     try {
       const inputs = options.input;
-      const issues = await this.storageService.loadIssues();
-      const id = generateId(issues);
-      const issue = {
+      const tasks = await this.storageService.loadTasks();
+      const id = generateId(tasks);
+      const task = {
         id,
         title: inputs.title,
         description: inputs.description || '',
@@ -236,21 +236,21 @@ export class CairnCreateTool implements vscode.LanguageModelTool<CreateToolInput
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
-      await this.storageService.saveIssue(issue);
+      await this.storageService.saveTask(task);
 
       if (inputs.parent) {
-        await this.storageService.updateIssues(issues => {
-          return this.graphService.addDependency(id, inputs.parent, 'parent-child', issues);
+        await this.storageService.updateTasks(tasks => {
+          return this.graphService.addDependency(id, inputs.parent, 'parent-child', tasks);
         });
       }
 
       return new vscode.LanguageModelToolResult([
-        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Created issue ${id}: ${inputs.title}`, id }))
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Created task ${id}: ${inputs.title}`, id }))
       ]);
     } catch (error) {
       const err = error as Error;
       return new vscode.LanguageModelToolResult([
-        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error creating issue: ${err.message}` }))
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error creating task: ${err.message}` }))
       ]);
     }
   }
@@ -273,13 +273,13 @@ export class CairnListReadyTool implements vscode.LanguageModelTool<ListReadyToo
     _token: vscode.CancellationToken
   ) {
     try {
-      const issues = await this.storageService.loadIssues();
-      const readyIssues = this.graphService.getReadyWork(issues);
-      const result = readyIssues.map(issue => ({
-        id: issue.id,
-        title: issue.title,
-        status: issue.status,
-        priority: issue.priority
+      const tasks = await this.storageService.loadTasks();
+      const readyTasks = this.graphService.getReadyWork(tasks);
+      const result = readyTasks.map(task => ({
+        id: task.id,
+        title: task.title,
+        status: task.status,
+        priority: task.priority
       }));
       return new vscode.LanguageModelToolResult([
         new vscode.LanguageModelTextPart(JSON.stringify({ success: true, readyTasks: result }))
@@ -312,14 +312,14 @@ export class CairnUpdateTool implements vscode.LanguageModelTool<UpdateToolInput
     try {
       const inputs = options.input;
 
-      // Check if trying to close an issue with open subtasks
+      // Check if trying to close a task with open subtasks
       if (inputs.status === 'closed') {
-        const issues = await this.storageService.loadIssues();
-        const validation = this.graphService.canCloseIssue(inputs.id, issues);
+const tasks = await this.storageService.loadTasks();
+        const validation = this.graphService.canCloseTask(inputs.id, tasks);
 
         if (!validation.canClose) {
-          const currentIssue = issues.find(i => i.id === inputs.id);
-          let errorMsg = `Cannot close issue "${currentIssue?.title || inputs.id}" (${inputs.id})`;
+          const currentTask = tasks.find(i => i.id === inputs.id);
+          let errorMsg = `Cannot close task "${currentTask?.title || inputs.id}" (${inputs.id})`;
           
           if (validation.reason) {
             errorMsg += ` because it ${validation.reason}`;
@@ -333,7 +333,7 @@ export class CairnUpdateTool implements vscode.LanguageModelTool<UpdateToolInput
             ).join('\n');
             errorMsg += `:\n${subtaskList}`;
           }
-          errorMsg += '.\n\nPlease complete all requirements before closing this issue.';
+          errorMsg += '.\n\nPlease complete all requirements before closing this task.';
 
           return new vscode.LanguageModelToolResult([
             new vscode.LanguageModelTextPart(JSON.stringify({
@@ -344,10 +344,10 @@ export class CairnUpdateTool implements vscode.LanguageModelTool<UpdateToolInput
         }
       }
 
-      await this.storageService.updateIssues(issues => {
-        return issues.map(issue => {
-          if (issue.id === inputs.id) {
-            const updated = { ...issue, updated_at: new Date().toISOString() };
+      await this.storageService.updateTasks(tasks => {
+        return tasks.map(task => {
+          if (task.id === inputs.id) {
+            const updated = { ...task, updated_at: new Date().toISOString() };
             if (inputs.status) updated.status = inputs.status;
             if (inputs.title) updated.title = inputs.title;
             if (inputs.description) updated.description = inputs.description;
@@ -359,16 +359,16 @@ export class CairnUpdateTool implements vscode.LanguageModelTool<UpdateToolInput
             if (inputs.status === 'closed') updated.closed_at = new Date().toISOString();
             return updated;
           }
-          return issue;
+          return task;
         });
       });
       return new vscode.LanguageModelToolResult([
-        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Updated issue ${inputs.id}` }))
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Updated task ${inputs.id}` }))
       ]);
     } catch (error) {
       const err = error as Error;
       return new vscode.LanguageModelToolResult([
-        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error updating issue: ${err.message}` }))
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: false, message: `Error updating task: ${err.message}` }))
       ]);
     }
   }
@@ -392,8 +392,8 @@ export class CairnDepAddTool implements vscode.LanguageModelTool<DepAddToolInput
   ) {
     try {
       const inputs = options.input;
-      await this.storageService.updateIssues(issues => {
-        return this.graphService.addDependency(inputs.from, inputs.to, inputs.type, issues);
+      await this.storageService.updateTasks(tasks => {
+        return this.graphService.addDependency(inputs.from, inputs.to, inputs.type, tasks);
       });
       return new vscode.LanguageModelToolResult([
         new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Added ${inputs.type} dependency from ${inputs.from} to ${inputs.to}` }))
@@ -415,7 +415,7 @@ export class CairnCommentTool implements vscode.LanguageModelTool<CommentToolInp
     _token: vscode.CancellationToken
   ) {
     return {
-      invocationMessage: `Adding comment to issue ${options.input.issue_id}`,
+      invocationMessage: `Adding comment to task ${options.input.task_id}`,
     };
   }
 
@@ -425,11 +425,11 @@ export class CairnCommentTool implements vscode.LanguageModelTool<CommentToolInp
   ) {
     try {
       const inputs = options.input;
-      const comment = await this.storageService.addComment(inputs.issue_id, inputs.author || 'agent', inputs.content);
+      const comment = await this.storageService.addComment(inputs.task_id, inputs.author || 'agent', inputs.content);
       return new vscode.LanguageModelToolResult([
         new vscode.LanguageModelTextPart(JSON.stringify({
           success: true,
-          message: `Added comment to issue ${inputs.issue_id}`,
+          message: `Added comment to task ${inputs.task_id}`,
           comment: {
             id: comment.id,
             author: comment.author,
@@ -454,7 +454,7 @@ export class CairnAcAddTool implements vscode.LanguageModelTool<AcAddToolInput> 
     _token: vscode.CancellationToken
   ) {
     return {
-      invocationMessage: `Adding acceptance criteria to issue ${options.input.issue_id}`,
+      invocationMessage: `Adding acceptance criteria to task ${options.input.task_id}`,
     };
   }
 
@@ -464,21 +464,21 @@ export class CairnAcAddTool implements vscode.LanguageModelTool<AcAddToolInput> 
   ) {
     try {
       const inputs = options.input;
-      await this.storageService.updateIssues(issues => {
-        return issues.map(issue => {
-          if (issue.id === inputs.issue_id) {
-            const acceptance_criteria = issue.acceptance_criteria || [];
+      await this.storageService.updateTasks(tasks => {
+        return tasks.map(task => {
+          if (task.id === inputs.task_id) {
+            const acceptance_criteria = task.acceptance_criteria || [];
             return {
-              ...issue,
+              ...task,
               acceptance_criteria: [...acceptance_criteria, { text: inputs.text, completed: false }],
               updated_at: new Date().toISOString()
             };
           }
-          return issue;
+          return task;
         });
       });
       return new vscode.LanguageModelToolResult([
-        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Added acceptance criteria to issue ${inputs.issue_id}` }))
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Added acceptance criteria to task ${inputs.task_id}` }))
       ]);
     } catch (error) {
       const err = error as Error;
@@ -497,7 +497,7 @@ export class CairnAcUpdateTool implements vscode.LanguageModelTool<AcUpdateToolI
     _token: vscode.CancellationToken
   ) {
     return {
-      invocationMessage: `Updating acceptance criteria ${options.input.index} for issue ${options.input.issue_id}`,
+      invocationMessage: `Updating acceptance criteria ${options.input.index} for task ${options.input.task_id}`,
     };
   }
 
@@ -507,24 +507,24 @@ export class CairnAcUpdateTool implements vscode.LanguageModelTool<AcUpdateToolI
   ) {
     try {
       const inputs = options.input;
-      await this.storageService.updateIssues(issues => {
-        return issues.map(issue => {
-          if (issue.id === inputs.issue_id) {
-            const acceptance_criteria = issue.acceptance_criteria || [];
+      await this.storageService.updateTasks(tasks => {
+        return tasks.map(task => {
+          if (task.id === inputs.task_id) {
+            const acceptance_criteria = task.acceptance_criteria || [];
             if (inputs.index >= 0 && inputs.index < acceptance_criteria.length) {
               acceptance_criteria[inputs.index] = { ...acceptance_criteria[inputs.index], text: inputs.text };
             }
             return {
-              ...issue,
+              ...task,
               acceptance_criteria,
               updated_at: new Date().toISOString()
             };
           }
-          return issue;
+          return task;
         });
       });
       return new vscode.LanguageModelToolResult([
-        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Updated acceptance criteria ${inputs.index} for issue ${inputs.issue_id}` }))
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Updated acceptance criteria ${inputs.index} for task ${inputs.task_id}` }))
       ]);
     } catch (error) {
       const err = error as Error;
@@ -543,7 +543,7 @@ export class CairnAcRemoveTool implements vscode.LanguageModelTool<AcRemoveToolI
     _token: vscode.CancellationToken
   ) {
     return {
-      invocationMessage: `Removing acceptance criteria ${options.input.index} from issue ${options.input.issue_id}`,
+      invocationMessage: `Removing acceptance criteria ${options.input.index} from task ${options.input.task_id}`,
     };
   }
 
@@ -553,24 +553,24 @@ export class CairnAcRemoveTool implements vscode.LanguageModelTool<AcRemoveToolI
   ) {
     try {
       const inputs = options.input;
-      await this.storageService.updateIssues(issues => {
-        return issues.map(issue => {
-          if (issue.id === inputs.issue_id) {
-            const acceptance_criteria = issue.acceptance_criteria || [];
+      await this.storageService.updateTasks(tasks => {
+        return tasks.map(task => {
+          if (task.id === inputs.task_id) {
+            const acceptance_criteria = task.acceptance_criteria || [];
             if (inputs.index >= 0 && inputs.index < acceptance_criteria.length) {
               acceptance_criteria.splice(inputs.index, 1);
             }
             return {
-              ...issue,
+              ...task,
               acceptance_criteria,
               updated_at: new Date().toISOString()
             };
           }
-          return issue;
+          return task;
         });
       });
       return new vscode.LanguageModelToolResult([
-        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Removed acceptance criteria ${inputs.index} from issue ${inputs.issue_id}` }))
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Removed acceptance criteria ${inputs.index} from task ${inputs.task_id}` }))
       ]);
     } catch (error) {
       const err = error as Error;
@@ -589,7 +589,7 @@ export class CairnAcToggleTool implements vscode.LanguageModelTool<AcToggleToolI
     _token: vscode.CancellationToken
   ) {
     return {
-      invocationMessage: `Toggling acceptance criteria ${options.input.index} completion for issue ${options.input.issue_id}`,
+      invocationMessage: `Toggling acceptance criteria ${options.input.index} completion for task ${options.input.task_id}`,
     };
   }
 
@@ -599,24 +599,24 @@ export class CairnAcToggleTool implements vscode.LanguageModelTool<AcToggleToolI
   ) {
     try {
       const inputs = options.input;
-      await this.storageService.updateIssues(issues => {
-        return issues.map(issue => {
-          if (issue.id === inputs.issue_id) {
-            const acceptance_criteria = issue.acceptance_criteria || [];
+      await this.storageService.updateTasks(tasks => {
+        return tasks.map(task => {
+          if (task.id === inputs.task_id) {
+            const acceptance_criteria = task.acceptance_criteria || [];
             if (inputs.index >= 0 && inputs.index < acceptance_criteria.length) {
               acceptance_criteria[inputs.index] = { ...acceptance_criteria[inputs.index], completed: !acceptance_criteria[inputs.index].completed };
             }
             return {
-              ...issue,
+              ...task,
               acceptance_criteria,
               updated_at: new Date().toISOString()
             };
           }
-          return issue;
+          return task;
         });
       });
       return new vscode.LanguageModelToolResult([
-        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Toggled acceptance criteria ${inputs.index} completion for issue ${inputs.issue_id}` }))
+        new vscode.LanguageModelTextPart(JSON.stringify({ success: true, message: `Toggled acceptance criteria ${inputs.index} completion for task ${inputs.task_id}` }))
       ]);
     } catch (error) {
       const err = error as Error;
@@ -627,7 +627,7 @@ export class CairnAcToggleTool implements vscode.LanguageModelTool<AcToggleToolI
   }
 }
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   outputChannel = vscode.window.createOutputChannel('Cairn');
   context.subscriptions.push(outputChannel);
   outputChannel!.appendLine('Cairn extension activated');
@@ -657,15 +657,29 @@ export function activate(context: vscode.ExtensionContext) {
 
     outputChannel!.appendLine('Creating container...');
     const config = readConfig(cairnDir);
-    const issuesFileName = getIssueFileName(config.activeFile);
+    const tasksFileName = getTaskFileName(config.activeFile);
     lastKnownActiveFile = config.activeFile;
-    container = createContainer(cairnDir, repoRoot, issuesFileName);
-    outputChannel!.appendLine(`Using issue file: ${issuesFileName}`);
+    container = createContainer(cairnDir, repoRoot, tasksFileName);
+    outputChannel!.appendLine(`Using task file: ${tasksFileName}`);
     outputChannel!.appendLine('Getting storage service...');
     storage = container.get(TYPES.IStorageService);
     outputChannel!.appendLine('Getting graph service...');
     graph = container.get(TYPES.IGraphService);
     outputChannel!.appendLine('Services initialized successfully');
+
+    // Check for and migrate legacy issues.jsonl to tasks.jsonl if it exists
+    const legacyIssuesPath = path.join(cairnDir, 'issues.jsonl');
+    const defaultTasksPath = path.join(cairnDir, 'tasks.jsonl');
+    if (fs.existsSync(legacyIssuesPath) && !fs.existsSync(defaultTasksPath)) {
+      outputChannel!.appendLine('Found legacy issues.jsonl file, migrating to tasks.jsonl...');
+      try {
+        await fs.promises.copyFile(legacyIssuesPath, defaultTasksPath);
+        await fs.promises.unlink(legacyIssuesPath);
+        outputChannel!.appendLine('Successfully migrated issues.jsonl to tasks.jsonl');
+      } catch (error) {
+        outputChannel!.appendLine(`Failed to migrate issues.jsonl to tasks.jsonl: ${error}`);
+      }
+    }
 
     // Create status bar item
     outputChannel!.appendLine('Creating status bar item...');
@@ -690,7 +704,7 @@ export function activate(context: vscode.ExtensionContext) {
       const newConfig = readConfig(cairnDir!);
       if (newConfig.activeFile !== lastKnownActiveFile) {
         outputChannel!.appendLine(`External config change detected: ${lastKnownActiveFile} -> ${newConfig.activeFile}`);
-        const newFileName = getIssueFileName(newConfig.activeFile);
+        const newFileName = getTaskFileName(newConfig.activeFile);
 
         vscode.window.showInformationMessage(
           `Cairn context changed to: ${newConfig.activeFile} (${newFileName})`,
@@ -707,7 +721,7 @@ export function activate(context: vscode.ExtensionContext) {
               panel.webview.postMessage({
                 type: 'updateActiveFile',
                 currentFile: newConfig.activeFile,
-                availableFiles: getAvailableIssueFiles(cairnDir!)
+                availableFiles: getAvailableTaskFiles(cairnDir!)
               });
             });
 
@@ -733,30 +747,30 @@ export function activate(context: vscode.ExtensionContext) {
 
     outputChannel!.appendLine('Tools registered successfully');
 
-    // Register command to switch issue files
+    // Register command to switch task files
     context.subscriptions.push(
       vscode.commands.registerCommand('cairn.switchFile', async () => {
         try {
-          const availableFiles = getAvailableIssueFiles(cairnDir!);
+          const availableFiles = getAvailableTaskFiles(cairnDir!);
           const currentConfig = readConfig(cairnDir!);
           
           const items = availableFiles.map(file => ({
             label: file === currentConfig.activeFile ? `$(check) ${file}` : file,
-            description: getIssueFileName(file),
+            description: getTaskFileName(file),
             detail: file === currentConfig.activeFile ? 'Currently active' : undefined,
             file: file
           }));
           
           items.push({
-            label: '$(add) Create New Issue File',
+            label: '$(add) Create New Task File',
             description: 'Create a new .jsonl file',
             detail: undefined,
             file: '__new__'
           });
           
           const selected = await vscode.window.showQuickPick(items, {
-            placeHolder: 'Select an issue file to switch to',
-            title: 'Cairn Issue Files'
+            placeHolder: 'Select a task file to switch to',
+            title: 'Cairn Task Files'
           });
           
           if (!selected) return;
@@ -765,11 +779,11 @@ export function activate(context: vscode.ExtensionContext) {
           
           if (targetFile === '__new__') {
             const newFileName = await vscode.window.showInputBox({
-              prompt: 'Enter name for new issue file (without .jsonl extension)',
+              prompt: 'Enter name for new task file (without .jsonl extension)',
               placeHolder: 'e.g., feature-auth, bugfixes, sprint-2',
               validateInput: (value) => {
                 if (!value) return 'Name cannot be empty';
-                if (value === 'issues') return 'The name "issues" is reserved. Use "default" to access issues.jsonl';
+                if (value === 'tasks') return 'The name "tasks" is reserved. Use "default" to access tasks.jsonl';
                 if (!/^[a-zA-Z0-9_-]+$/.test(value)) return 'Name can only contain letters, numbers, hyphens, and underscores';
                 return null;
               }
@@ -779,10 +793,10 @@ export function activate(context: vscode.ExtensionContext) {
             targetFile = newFileName;
             
             // Create the new file
-            const newFilePath = path.join(cairnDir!, getIssueFileName(newFileName));
+            const newFilePath = path.join(cairnDir!, getTaskFileName(newFileName));
             if (!fs.existsSync(newFilePath)) {
               fs.writeFileSync(newFilePath, '');
-              outputChannel!.appendLine(`Created new issue file: ${getIssueFileName(newFileName)}`);
+              outputChannel!.appendLine(`Created new task file: ${getTaskFileName(newFileName)}`);
             }
           }
           
@@ -796,7 +810,7 @@ export function activate(context: vscode.ExtensionContext) {
           lastKnownActiveFile = targetFile;
           
           // Reinitialize services
-          const newFileName = getIssueFileName(targetFile);
+          const newFileName = getTaskFileName(targetFile);
           reinitializeServices(newFileName);
           updateStatusBar(targetFile);
           
@@ -805,7 +819,7 @@ export function activate(context: vscode.ExtensionContext) {
             panel.webview.postMessage({
               type: 'updateActiveFile',
               currentFile: targetFile,
-              availableFiles: getAvailableIssueFiles(cairnDir!)
+              availableFiles: getAvailableTaskFiles(cairnDir!)
             });
           });
           
@@ -826,7 +840,7 @@ export function activate(context: vscode.ExtensionContext) {
           outputChannel!.appendLine('Creating task list panel...');
           const panel = vscode.window.createWebviewPanel(
             'cairnTaskList',
-            'Cairn Issues',
+            'Cairn Tasks',
             vscode.ViewColumn.One,
             {
               enableScripts: true,
@@ -852,19 +866,19 @@ export function activate(context: vscode.ExtensionContext) {
                 await updateTasks();
               } else if (message.type === 'startTask') {
                 outputChannel!.appendLine(`Starting task: ${message.id}`);
-                await getStorage().updateIssues(issues => {
-                  return issues.map(issue => {
-                    if (issue.id === message.id) {
-                      return { ...issue, status: 'in_progress', updated_at: new Date().toISOString() };
+                await getStorage().updateTasks(tasks => {
+                  return tasks.map(task => {
+                    if (task.id === message.id) {
+                      return { ...task, status: 'in_progress', updated_at: new Date().toISOString() };
                     }
-                    return issue;
+                    return task;
                   });
                 });
                 await updateTasks();
               } else if (message.type === 'completeTask') {
                 outputChannel!.appendLine(`Completing task: ${message.id}`);
-                const issues = await getStorage().loadIssues();
-                const validation = getGraph().canCloseIssue(message.id, issues);
+                const tasks = await getStorage().loadTasks();
+                const validation = getGraph().canCloseTask(message.id, tasks);
 
                 if (!validation.canClose) {
                   let errorMsg = `Cannot close task "${message.id}"`;
@@ -881,30 +895,30 @@ export function activate(context: vscode.ExtensionContext) {
                   return;
                 }
 
-                await getStorage().updateIssues(issues => {
-                  return issues.map(issue => {
-                    if (issue.id === message.id) {
-                      return { ...issue, status: 'closed', updated_at: new Date().toISOString(), closed_at: new Date().toISOString() };
+                await getStorage().updateTasks(tasks => {
+                  return tasks.map(task => {
+                    if (task.id === message.id) {
+                      return { ...task, status: 'closed', updated_at: new Date().toISOString(), closed_at: new Date().toISOString() };
                     }
-                    return issue;
+                    return task;
                   });
                 });
                 await updateTasks();
               } else if (message.type === 'switchViewingFile') {
                 outputChannel!.appendLine(`Switch viewing file message received: ${message.file}`);
                 // Load tasks from the requested file without updating system config
-                const newFileName = getIssueFileName(message.file);
-                const tempIssuesPath = path.join(cairnDir!, newFileName);
+                const newFileName = getTaskFileName(message.file);
+                const tempTasksPath = path.join(cairnDir!, newFileName);
                 
                 try {
-                  let viewTasks: Issue[] = [];
-                  if (fs.existsSync(tempIssuesPath)) {
-                    const content = fs.readFileSync(tempIssuesPath, 'utf-8');
+                  let viewTasks: Task[] = [];
+                  if (fs.existsSync(tempTasksPath)) {
+                    const content = fs.readFileSync(tempTasksPath, 'utf-8');
                     viewTasks = content.trim().split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
                   }
                   
                   const currentConfig = readConfig(cairnDir!);
-                  const availableFiles = getAvailableIssueFiles(cairnDir!);
+                  const availableFiles = getAvailableTaskFiles(cairnDir!);
                   
                   // Send tasks for viewing, but keep system active file unchanged
                   panel.webview.postMessage({
@@ -933,17 +947,17 @@ export function activate(context: vscode.ExtensionContext) {
                 lastKnownActiveFile = message.file;
                 
                 // Reinitialize services
-                const newFileName = getIssueFileName(message.file);
+                const newFileName = getTaskFileName(message.file);
                 reinitializeServices(newFileName);
                 updateStatusBar(message.file);
                 
                 // Update file watcher to watch the new file
                 watcher.close();
-                const newIssuesPath = getStorage().getIssuesFilePath();
-                outputChannel!.appendLine(`Switching watcher to: ${newIssuesPath}`);
-                watcher = fs.watch(newIssuesPath, async (eventType) => {
+                const newTasksPath = getStorage().getTasksFilePath();
+                outputChannel!.appendLine(`Switching watcher to: ${newTasksPath}`);
+                watcher = fs.watch(newTasksPath, async (eventType) => {
                   if (eventType === 'change') {
-                    outputChannel!.appendLine('Issues file changed, updating tasks...');
+                    outputChannel!.appendLine('Tasks file changed, updating tasks...');
                     await updateTasks();
                   }
                 });
@@ -954,7 +968,7 @@ export function activate(context: vscode.ExtensionContext) {
                     otherPanel.webview.postMessage({
                       type: 'updateActiveFile',
                       currentFile: message.file,
-                      availableFiles: getAvailableIssueFiles(cairnDir!)
+                      availableFiles: getAvailableTaskFiles(cairnDir!)
                     });
                   }
                 });
@@ -963,17 +977,17 @@ export function activate(context: vscode.ExtensionContext) {
                 await updateTasks();
                 
                 vscode.window.showInformationMessage(`Switched to ${message.file} (${newFileName})`);
-              } else if (message.type === 'editTicket') {
-                outputChannel!.appendLine(`Edit ticket message received for: ${message.id}`);
+              } else if (message.type === 'editTask') {
+                outputChannel!.appendLine(`Edit task message received for: ${message.id}`);
                 try {
-                  await vscode.commands.executeCommand('cairn.editTicket', message.id);
+                  await vscode.commands.executeCommand('cairn.editTask', message.id);
                 } catch (error) {
                   outputChannel!.appendLine(`ERROR executing edit command: ${error instanceof Error ? error.message : String(error)}`);
                 }
-              } else if (message.type === 'createTicket') {
-                outputChannel!.appendLine('Create ticket message received');
+              } else if (message.type === 'createTask') {
+                outputChannel!.appendLine('Create task message received');
                 try {
-                  await vscode.commands.executeCommand('cairn.createTicket');
+                  await vscode.commands.executeCommand('cairn.createTask');
                 } catch (error) {
                   outputChannel!.appendLine(`ERROR executing create command: ${error instanceof Error ? error.message : String(error)}`);
                 }
@@ -1021,13 +1035,13 @@ export function activate(context: vscode.ExtensionContext) {
               return;
             }
             try {
-              outputChannel!.appendLine('Loading issues...');
-              const issues = await getStorage().loadIssues();
-              outputChannel!.appendLine(`Loaded ${issues.length} issues`);
-              outputChannel!.appendLine(`Issue IDs: ${issues.map(i => i.id).join(', ')}`);
+              outputChannel!.appendLine('Loading tasks...');
+              const tasks = await getStorage().loadTasks();
+              outputChannel!.appendLine(`Loaded ${tasks.length} tasks`);
+              outputChannel!.appendLine(`Task IDs: ${tasks.map(t => t.id).join(', ')}`);
               
-              // IMPORTANT: Map issues to the format expected by the webview
-              const allTasks = issues.map(task => ({
+              // IMPORTANT: Map tasks to the format expected by the webview
+              const allTasks = tasks.map(task => ({
                 id: task.id,
                 title: task.title,
                 status: task.status,
@@ -1037,7 +1051,7 @@ export function activate(context: vscode.ExtensionContext) {
                 completion_percentage: task.completion_percentage,
                 acceptance_criteria: task.acceptance_criteria || [],
                 dependencies: task.dependencies || [],
-                subtasks: getGraph().getEpicSubtasks(task.id, issues).map(s => ({
+                subtasks: getGraph().getEpicSubtasks(task.id, tasks).map(s => ({
                   id: s.id,
                   title: s.title,
                   type: s.type,
@@ -1052,7 +1066,7 @@ export function activate(context: vscode.ExtensionContext) {
               
               // Get file context info
               const currentConfig = readConfig(cairnDir!);
-              const availableFiles = getAvailableIssueFiles(cairnDir!);
+              const availableFiles = getAvailableTaskFiles(cairnDir!);
               
               outputChannel!.appendLine(`Current file from config: ${currentConfig.activeFile}`);
               outputChannel!.appendLine(`Available files: ${availableFiles.join(', ')}`);
@@ -1073,11 +1087,11 @@ export function activate(context: vscode.ExtensionContext) {
           };
 
           // Watch for file changes - use the current active file
-          const currentIssuesPath = getStorage().getIssuesFilePath();
-          outputChannel!.appendLine(`Watching issues file: ${currentIssuesPath}`);
-          watcher = fs.watch(currentIssuesPath, async (eventType) => {
+          const currentTasksPath = getStorage().getTasksFilePath();
+          outputChannel!.appendLine(`Watching tasks file: ${currentTasksPath}`);
+          watcher = fs.watch(currentTasksPath, async (eventType) => {
             if (eventType === 'change') {
-              outputChannel!.appendLine('Issues file changed, updating tasks...');
+              outputChannel!.appendLine('Tasks file changed, updating tasks...');
               await updateTasks();
             }
           });
@@ -1100,18 +1114,18 @@ export function activate(context: vscode.ExtensionContext) {
       })
     );
 
-    // Register command to edit a ticket
+    // Register command to edit a task
     context.subscriptions.push(
-      vscode.commands.registerCommand('cairn.editTicket', async (id: string, options?: { viewColumn?: vscode.ViewColumn }) => {
-        outputChannel!.appendLine(`cairn.editTicket called with id: ${id}`);
+      vscode.commands.registerCommand('cairn.editTask', async (id: string, options?: { viewColumn?: vscode.ViewColumn }) => {
+        outputChannel!.appendLine(`cairn.editTask called with id: ${id}`);
         try {
-          // Load ticket data first to get the title for the panel
-          const issues = await getStorage().loadIssues();
-          const ticket = issues.find(i => i.id === id);
-          const displayTitle = ticket ? truncateTitle(ticket.title, id) : `Edit Ticket #${id}`;
+          // Load task data first to get the title for the panel
+          const tasks = await getStorage().loadTasks();
+          const task = tasks.find(t => t.id === id);
+          const displayTitle = task ? truncateTitle(task.title, id) : `Edit Task #${id}`;
 
           const panel = vscode.window.createWebviewPanel(
-            'cairnEditTicket',
+            'cairnEditTask',
             displayTitle,
             options?.viewColumn || vscode.ViewColumn.Beside,
             {
@@ -1120,7 +1134,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
           );
 
-          const pendingTicketId = id;
+          const pendingTaskId = id;
           let webviewReady = false;
           let saveQueue = Promise.resolve();
 
@@ -1132,7 +1146,7 @@ export function activate(context: vscode.ExtensionContext) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edit Issue</title>
+  <title>Edit Task</title>
   <link rel="stylesheet" href="${cssUri}">
 </head>
 <body>
@@ -1142,29 +1156,29 @@ export function activate(context: vscode.ExtensionContext) {
 </html>`;
           panel.webview.html = htmlContent;
 
-          // Load ticket data
-          const loadTicket = async (ticketId: string) => {
+          // Load task data
+          const loadTask = async (taskId: string) => {
             try {
-              const issues = await getStorage().loadIssues();
-              const ticket = issues.find(i => i.id === ticketId);
+              const tasks = await getStorage().loadTasks();
+              const task = tasks.find(t => t.id === taskId);
 
-              let safeTicket;
-              if (ticket) {
-                safeTicket = {
-                  ...ticket,
-                  title: ticket.title,
-                  description: ticket.description,
-                  type: ticket.type,
-                  priority: ticket.priority,
-                  status: ticket.status,
-                  acceptance_criteria: ticket.acceptance_criteria || [],
-                  completion_percentage: ticket.completion_percentage
+              let safeTask;
+              if (task) {
+                safeTask = {
+                  ...task,
+                  title: task.title,
+                  description: task.description,
+                  type: task.type,
+                  priority: task.priority,
+                  status: task.status,
+                  acceptance_criteria: task.acceptance_criteria || [],
+                  completion_percentage: task.completion_percentage
                 };
               } else {
-                outputChannel!.appendLine(`Ticket not found: ${ticketId} - sending default data`);
-                safeTicket = {
-                  id: ticketId,
-                  title: 'New Ticket',
+                outputChannel!.appendLine(`Task not found: ${taskId} - sending default data`);
+                safeTask = {
+                  id: taskId,
+                  title: 'New Task',
                   description: 'Add description...',
                   type: 'task',
                   priority: 'medium',
@@ -1176,7 +1190,7 @@ export function activate(context: vscode.ExtensionContext) {
               }
 
               // Get subtasks
-              const subtasks = ticket ? getGraph().getEpicSubtasks(ticketId, issues).map(s => ({
+              const subtasks = task ? getGraph().getEpicSubtasks(taskId, tasks).map(s => ({
                 id: s.id,
                 title: s.title,
                 type: s.type,
@@ -1187,11 +1201,11 @@ export function activate(context: vscode.ExtensionContext) {
 
               // Get dependencies
               const dependencies: WebviewDependency[] = [];
-              if (ticket) {
-                // Get issues that block this issue (blocked_by stored)
-                const blockerDeps = ticket.dependencies?.filter((d: Dependency) => d.type === 'blocked_by' || d.type === 'blocks') || [];
+              if (task) {
+                // Get tasks that block this task (blocked_by stored)
+                const blockerDeps = task.dependencies?.filter((d: Dependency) => d.type === 'blocked_by' || d.type === 'blocks') || [];
                 for (const dep of blockerDeps) {
-                  const blocker = issues.find(i => i.id === dep.id);
+                  const blocker = tasks.find(t => t.id === dep.id);
                   if (blocker) {
                     dependencies.push({
                       id: blocker.id,
@@ -1199,40 +1213,40 @@ export function activate(context: vscode.ExtensionContext) {
                       type: blocker.type,
                       status: blocker.status,
                       priority: blocker.priority,
-                      direction: 'blocked_by', // This issue is blocked by these
+                      direction: 'blocked_by', // This task is blocked by these
                       completion_percentage: blocker.completion_percentage
                     });
                   }
                 }
                 
-                // Get issues that this issue blocks (blocking) - COMPUTED from other issues' 'blocked_by' dependencies
-                const blockedByIssues = issues.filter(i => 
-                  i.dependencies?.some((d: Dependency) => d.id === ticketId && (d.type === 'blocked_by' || d.type === 'blocks'))
+                // Get tasks that this task blocks (blocking) - COMPUTED from other tasks' 'blocked_by' dependencies
+                const blockedByTasks = tasks.filter(t => 
+                  t.dependencies?.some((d: Dependency) => d.id === taskId && (d.type === 'blocked_by' || d.type === 'blocks'))
                 );
-                for (const blocked of blockedByIssues) {
+                for (const blocked of blockedByTasks) {
                   dependencies.push({
                     id: blocked.id,
                     title: blocked.title,
                     type: blocked.type,
                     status: blocked.status,
                     priority: blocked.priority,
-                    direction: 'blocks', // This issue blocks these
+                    direction: 'blocks', // This task blocks these
                     completion_percentage: blocked.completion_percentage
                   });
                 }
               }
 
-              outputChannel!.appendLine(`Sending loadTicket message for: ${ticketId}`);
+              outputChannel!.appendLine(`Sending loadTask message for: ${taskId}`);
               panel.webview.postMessage({
-                type: 'loadTicket',
-                ticket: {
-                  ...safeTicket,
+                type: 'loadTask',
+                task: {
+                  ...safeTask,
                   subtasks,
                   dependencies
                 }
               });
             } catch (error) {
-              outputChannel!.appendLine(`Error loading ticket: ${error}`);
+              outputChannel!.appendLine(`Error loading task: ${error}`);
             }
           };
 
@@ -1240,9 +1254,9 @@ export function activate(context: vscode.ExtensionContext) {
           panel.webview.onDidReceiveMessage(async (message) => {
             try {
               if (message.type === 'webviewReady') {
-                outputChannel!.appendLine(`Webview ready, loading ticket: ${pendingTicketId}`);
+                outputChannel!.appendLine(`Webview ready, loading task: ${pendingTaskId}`);
                 webviewReady = true;
-                await loadTicket(pendingTicketId);
+                await loadTask(pendingTaskId);
               } else if (message.type === 'getGitUser') {
                 outputChannel!.appendLine('Getting git user info');
                 const { execSync } = require('child_process');
@@ -1265,20 +1279,20 @@ export function activate(context: vscode.ExtensionContext) {
                 });
               } else if (message.type === 'getAvailableSubtasks') {
                 outputChannel!.appendLine('Getting available subtasks');
-                const issues = await getStorage().loadIssues();
-                const availableSubtasks = getGraph().getNonParentedIssues(issues)
-                  .filter(issue => issue.id !== pendingTicketId)
-                  .filter(issue => {
+                const tasks = await getStorage().loadTasks();
+                const availableSubtasks = getGraph().getNonParentedTasks(tasks)
+                  .filter(task => task.id !== pendingTaskId)
+                  .filter(task => {
                     // Check if adding this as a subtask would create a circular dependency
-                    return !getGraph().wouldCreateCycle(issue.id, pendingTicketId, 'parent-child', issues);
+                    return !getGraph().wouldCreateCycle(task.id, pendingTaskId, 'parent-child', tasks);
                   })
-                  .map(issue => ({
-                    id: issue.id,
-                    title: issue.title,
-                    type: issue.type,
-                    status: issue.status,
-                    priority: issue.priority,
-                    description: issue.description || '',
+                  .map(task => ({
+                    id: task.id,
+                    title: task.title,
+                    type: task.type,
+                    status: task.status,
+                    priority: task.priority,
+                    description: task.description || '',
                     wouldCreateCycle: false // All remaining items are safe
                   }));
                 panel.webview.postMessage({
@@ -1287,28 +1301,28 @@ export function activate(context: vscode.ExtensionContext) {
                 });
               } else if (message.type === 'getAvailableDependencies') {
                 outputChannel!.appendLine('Getting available dependencies');
-                const issues = await getStorage().loadIssues();
-                const availableDependencies = issues
-                  .filter(issue => issue.id !== pendingTicketId)
-                  .filter(issue => !getGraph().getEpicSubtasks(pendingTicketId, issues).some(s => s.id === issue.id))
-                  .filter(issue => !issue.dependencies?.some((d: Dependency) => d.type === 'parent-child' && (d.from === pendingTicketId || d.to === pendingTicketId)))
-                  .map(issue => {
+                const tasks = await getStorage().loadTasks();
+                const availableDependencies = tasks
+                  .filter(task => task.id !== pendingTaskId)
+                  .filter(task => !getGraph().getEpicSubtasks(pendingTaskId, tasks).some(s => s.id === task.id))
+                  .filter(task => !task.dependencies?.some((d: Dependency) => d.type === 'parent-child' && (d.from === pendingTaskId || d.to === pendingTaskId)))
+                  .map(task => {
                     // Check if adding this as a dependency would create a circular dependency
                     let wouldCreateCycle = false;
                     try {
                       // For blocked_by dependencies, we need to check cycles
                       // This is a simplified check - we'll mark items that would create cycles
-                      getGraph().addDependency(pendingTicketId, issue.id, 'blocked_by', issues);
+                      getGraph().addDependency(pendingTaskId, task.id, 'blocked_by', tasks);
                     } catch (error) {
                       wouldCreateCycle = true;
                     }
                     return {
-                      id: issue.id,
-                      title: issue.title,
-                      type: issue.type,
-                      status: issue.status,
-                      priority: issue.priority,
-                      description: issue.description || '',
+                      id: task.id,
+                      title: task.title,
+                      type: task.type,
+                      status: task.status,
+                      priority: task.priority,
+                      description: task.description || '',
                       wouldCreateCycle
                     };
                   });
@@ -1316,42 +1330,42 @@ export function activate(context: vscode.ExtensionContext) {
                   type: 'availableDependencies',
                   dependencies: availableDependencies
                 });
-              } else if (message.type === 'saveTicket') {
+              } else if (message.type === 'saveTask') {
                 saveQueue = saveQueue.then(async () => {
-                  outputChannel!.appendLine(`Received saveTicket message: ${message.ticket.id}`);
-                  const ticketData = message.ticket;
+                  outputChannel!.appendLine(`Received saveTask message: ${message.task.id}`);
+                  const taskData = message.task;
 
-                  if (ticketData.id) {
+                  if (taskData.id) {
                     try {
                       outputChannel!.appendLine('Starting save operation...');
-                      let updatedIssues = await getStorage().loadIssues();
-                      outputChannel!.appendLine(`Loaded issues, count: ${updatedIssues.length}`);
+                      let updatedTasks = await getStorage().loadTasks();
+                      outputChannel!.appendLine(`Loaded tasks, count: ${updatedTasks.length}`);
 
-                      const currentSubtasks = getGraph().getEpicSubtasks(ticketData.id, updatedIssues);
+                      const currentSubtasks = getGraph().getEpicSubtasks(taskData.id, updatedTasks);
                       const currentIds = new Set(currentSubtasks.map(s => s.id));
-                      const newSubtasks = ticketData.subtasks as { id?: string; title: string }[];
+                      const newSubtasks = taskData.subtasks as { id?: string; title: string }[];
                       const newIds = new Set(newSubtasks.filter(s => s.id).map(s => s.id!));
 
                       const now = new Date().toISOString();
 
-                      // Update main ticket
-                      const originalIssue = updatedIssues.find(i => i.id === ticketData.id);
+                      // Update main task
+                      const originalTask = updatedTasks.find(i => i.id === taskData.id);
                       
-                      // Check if trying to CHANGE status to closed (not just saving an already-closed issue)
-                      const isChangingToClosed = ticketData.status === 'closed' && originalIssue?.status !== 'closed';
+                      // Check if trying to CHANGE status to closed (not just saving an already-closed task)
+                      const isChangingToClosed = taskData.status === 'closed' && originalTask?.status !== 'closed';
                       if (isChangingToClosed) {
-                        const validation = getGraph().canCloseIssue(ticketData.id, updatedIssues);
+                        const validation = getGraph().canCloseTask(taskData.id, updatedTasks);
 
                         if (!validation.canClose) {
                           // Send simplified error message to webview to revert UI state
                           panel.webview.postMessage({
                             type: 'saveFailed',
-                            error: 'Cannot close issue as it is not 100% complete.',
+                            error: 'Cannot close task as it is not 100% complete.',
                             errorCode: 'CANNOT_CLOSE_INCOMPLETE'
                           });
 
-                          const currentIssue = updatedIssues.find(i => i.id === ticketData.id);
-                          let errorMsg = `Cannot close issue "${currentIssue?.title || ticketData.id}" (${ticketData.id})`;
+                          const currentTask = updatedTasks.find(i => i.id === taskData.id);
+                          let errorMsg = `Cannot close task "${currentTask?.title || taskData.id}" (${taskData.id})`;
                           
                           if (validation.reason) {
                             errorMsg += ` because it ${validation.reason}`;
@@ -1359,113 +1373,113 @@ export function activate(context: vscode.ExtensionContext) {
                           if (validation.completionPercentage !== undefined) {
                             errorMsg += ` (currently ${validation.completionPercentage}% complete)`;
                           }
-                          errorMsg += '. Please complete all requirements before closing this issue.';
+                          errorMsg += '. Please complete all requirements before closing this task.';
 
                           vscode.window.showErrorMessage(errorMsg);
-                          return; // Don't save the ticket
+                          return; // Don't save the task
                         }
                       }
-                      updatedIssues = updatedIssues.map(issue => {
-                        if (issue.id === ticketData.id) {
+                      updatedTasks = updatedTasks.map(task => {
+                        if (task.id === taskData.id) {
                           const updated = {
-                            ...issue,
-                            title: ticketData.title,
-                            description: ticketData.description,
-                            comments: ticketData.comments,
-                            type: ticketData.type || 'task',
-                            priority: ticketData.priority || 'medium',
-                            status: ticketData.status || 'open',
-                            acceptance_criteria: ticketData.acceptance_criteria,
+                            ...task,
+                            title: taskData.title,
+                            description: taskData.description,
+                            comments: taskData.comments,
+                            type: taskData.type || 'task',
+                            priority: taskData.priority || 'medium',
+                            status: taskData.status || 'open',
+                            acceptance_criteria: taskData.acceptance_criteria,
                             updated_at: now
                           };
 
-                          if (ticketData.status === 'closed' && issue.status !== 'closed') {
+                          if (taskData.status === 'closed' && task.status !== 'closed') {
                             updated.closed_at = now;
-                          } else if (ticketData.status !== 'closed' && issue.status === 'closed') {
+                          } else if (taskData.status !== 'closed' && task.status === 'closed') {
                             updated.closed_at = undefined;
                           }
 
                           return updated;
                         }
-                        return issue;
+                        return task;
                       });
 
                       // Update existing subtask titles
-                      updatedIssues = updatedIssues.map(issue => {
-                        const subtask = newSubtasks.find(s => s.id === issue.id);
+                      updatedTasks = updatedTasks.map(task => {
+                        const subtask = newSubtasks.find(s => s.id === task.id);
                         if (subtask) {
-                          return { ...issue, title: subtask.title, updated_at: now };
+                          return { ...task, title: subtask.title, updated_at: now };
                         }
-                        return issue;
+                        return task;
                       });
 
                       // Remove dependencies for deleted subtasks
                       for (const subId of currentIds) {
                         if (!newIds.has(subId)) {
-                          updatedIssues = getGraph().removeDependency(subId, ticketData.id, updatedIssues);
+                          updatedTasks = getGraph().removeDependency(subId, taskData.id, updatedTasks);
                         }
                       }
 
                       // Add dependencies for newly added existing subtasks
                       for (const subId of newIds) {
                         if (!currentIds.has(subId)) {
-                          updatedIssues = getGraph().addDependency(subId, ticketData.id, 'parent-child', updatedIssues);
+                          updatedTasks = getGraph().addDependency(subId, taskData.id, 'parent-child', updatedTasks);
                         }
                       }
 
                       // Handle dependencies
-                      if (originalIssue) {
-                        // Get current blockers (what blocks this issue)
-                        const currentBlockers = originalIssue.dependencies?.filter((d: Dependency) => d.type === 'blocked_by' || d.type === 'blocks').map((d: Dependency) => d.id) || [];
+                      if (originalTask) {
+                        // Get current blockers (what blocks this task)
+                        const currentBlockers = originalTask.dependencies?.filter((d: Dependency) => d.type === 'blocked_by' || d.type === 'blocks').map((d: Dependency) => d.id) || [];
                         // Get new blockers from UI (only 'blocked_by' direction is stored)
-                        const newBlockers = ticketData.dependencies.filter((d: WebviewDependency) => d.direction === 'blocked_by').map((d: WebviewDependency) => d.id);
+                        const newBlockers = taskData.dependencies.filter((d: WebviewDependency) => d.direction === 'blocked_by').map((d: WebviewDependency) => d.id);
                         
                         // Note: We ignore 'blocks' direction from UI since that's computed
-                        // The 'blocks' list in the UI shows issues that this one blocks,
-                        // but we never modify those relationships from this issue's save
+                        // The 'blocks' list in the UI shows tasks that this one blocks,
+                        // but we never modify those relationships from this task's save
 
                         // Remove blockers that were deleted
                         for (const blockerId of currentBlockers) {
                           if (!newBlockers.includes(blockerId)) {
-                            updatedIssues = getGraph().removeDependency(ticketData.id, blockerId, updatedIssues);
+                            updatedTasks = getGraph().removeDependency(taskData.id, blockerId, updatedTasks);
                           }
                         }
 
                         // Add new blockers
                         for (const blockerId of newBlockers) {
                           if (!currentBlockers.includes(blockerId)) {
-                            updatedIssues = getGraph().addDependency(ticketData.id, blockerId, 'blocked_by', updatedIssues);
+                            updatedTasks = getGraph().addDependency(taskData.id, blockerId, 'blocked_by', updatedTasks);
                           }
                         }
                       }
 
-                      await getStorage().updateIssues(() => updatedIssues);
+                      await getStorage().updateTasks(() => updatedTasks);
                       outputChannel!.appendLine('Save operation complete');
 
-                      const updatedTicket = updatedIssues.find(i => i.id === ticketData.id);
-                      if (updatedTicket) {
-                        panel.title = truncateTitle(updatedTicket.title, ticketData.id);
+                      const updatedTask = updatedTasks.find(i => i.id === taskData.id);
+                      if (updatedTask) {
+                        panel.title = truncateTitle(updatedTask.title, taskData.id);
                       }
 
-                      // Reload ticket data from storage to get recalculated completion percentage
-                      outputChannel!.appendLine('Reloading ticket data after save to get updated completion percentage');
-                      await loadTicket(pendingTicketId);
+                      // Reload task data from storage to get recalculated completion percentage
+                      outputChannel!.appendLine('Reloading task data after save to get updated completion percentage');
+                      await loadTask(pendingTaskId);
                     } catch (saveError) {
                       outputChannel!.appendLine(`Save operation failed: ${saveError}`);
                       const errorMsg = saveError instanceof Error ? saveError.message : String(saveError);
-                      vscode.window.showErrorMessage(`Failed to save ticket ${ticketData.id}: ${errorMsg}`);
+                      vscode.window.showErrorMessage(`Failed to save task ${taskData.id}: ${errorMsg}`);
                       throw saveError;
                     }
                   } else {
-                    outputChannel!.appendLine('No ticket ID provided for save operation');
+                    outputChannel!.appendLine('No task ID provided for save operation');
                   }
                 }).catch(error => {
                   outputChannel!.appendLine(`Queued save operation failed: ${error}`);
                 });
-              } else if (message.type === 'editTicket') {
-                outputChannel!.appendLine(`Edit ticket message received from editor for: ${message.id}`);
+              } else if (message.type === 'editTask') {
+                outputChannel!.appendLine(`Edit task message received from editor for: ${message.id}`);
                 try {
-                  await vscode.commands.executeCommand('cairn.editTicket', message.id, { viewColumn: vscode.ViewColumn.Active });
+                  await vscode.commands.executeCommand('cairn.editTask', message.id, { viewColumn: vscode.ViewColumn.Active });
                 } catch (error) {
                   outputChannel!.appendLine(`Error executing edit command from editor: ${error}`);
                 }
@@ -1480,7 +1494,7 @@ export function activate(context: vscode.ExtensionContext) {
               } else if (message.type === 'addComment') {
                 outputChannel!.appendLine(`Add comment message received: ${JSON.stringify(message)}`);
                 try {
-                  const comment = await getStorage().addComment(message.issueId, message.author, message.content);
+                  const comment = await getStorage().addComment(message.taskId, message.author, message.content);
                   outputChannel!.appendLine(`Comment added successfully: ${JSON.stringify(comment)}`);
                   panel.webview.postMessage({
                     type: 'commentAdded',
@@ -1494,27 +1508,27 @@ export function activate(context: vscode.ExtensionContext) {
             } catch (error) {
               outputChannel!.appendLine(`Error in message handler: ${error}`);
               const errorMessage = error instanceof Error ? error.message : String(error);
-              vscode.window.showErrorMessage(`Failed to save ticket: ${errorMessage}`);
+              vscode.window.showErrorMessage(`Failed to save task: ${errorMessage}`);
             }
           });
         } catch (error) {
-          outputChannel!.appendLine(`Error in cairn.editTicket: ${error}`);
-          vscode.window.showErrorMessage(`Failed to edit ticket: ${error instanceof Error ? error.message : String(error)}`);
+          outputChannel!.appendLine(`Error in cairn.editTask: ${error}`);
+          vscode.window.showErrorMessage(`Failed to edit task: ${error instanceof Error ? error.message : String(error)}`);
         }
       })
     );
 
-    // Register command to create a new ticket
+    // Register command to create a new task
     context.subscriptions.push(
-      vscode.commands.registerCommand('cairn.createTicket', async () => {
-        outputChannel!.appendLine('cairn.createTicket called');
+      vscode.commands.registerCommand('cairn.createTask', async () => {
+        outputChannel!.appendLine('cairn.createTask called');
         try {
-          outputChannel!.appendLine('Creating new ticket...');
-          const issues = await getStorage().loadIssues();
-          const newId = generateId(issues);
-          const newTicket = {
+          outputChannel!.appendLine('Creating new task...');
+          const tasks = await getStorage().loadTasks();
+          const newId = generateId(tasks);
+          const newTask = {
             id: newId,
-            title: 'New Ticket',
+            title: 'New Task',
             description: 'Add description...',
             type: 'task' as const,
             status: 'open' as const,
@@ -1522,16 +1536,16 @@ export function activate(context: vscode.ExtensionContext) {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           };
-          outputChannel!.appendLine(`Saving new ticket: ${newId}`);
-          await getStorage().saveIssue(newTicket);
-          outputChannel!.appendLine('New ticket created successfully');
+          outputChannel!.appendLine(`Saving new task: ${newId}`);
+          await getStorage().saveTask(newTask);
+          outputChannel!.appendLine('New task created successfully');
 
           // Now open it for editing
-          await vscode.commands.executeCommand('cairn.editTicket', newId);
+          await vscode.commands.executeCommand('cairn.editTask', newId);
         } catch (error) {
-          outputChannel!.appendLine(`Error creating ticket: ${error}`);
+          outputChannel!.appendLine(`Error creating task: ${error}`);
           const errorMsg = error instanceof Error ? error.message : String(error);
-          vscode.window.showErrorMessage(`Failed to create ticket: ${errorMsg}`);
+          vscode.window.showErrorMessage(`Failed to create task: ${errorMsg}`);
         }
       })
     );
@@ -1548,20 +1562,20 @@ export function deactivate() { }
 async function deleteTask(taskId: string): Promise<void> {
   outputChannel!.appendLine(`deleteTask called for: ${taskId}`);
   try {
-    const issues = await getStorage().loadIssues();
-    const taskToDelete = issues.find(i => i.id === taskId);
+    const tasks = await getStorage().loadTasks();
+    const taskToDelete = tasks.find(i => i.id === taskId);
     if (!taskToDelete) {
       throw new Error(`Task ${taskId} not found`);
     }
 
-    const subtasks = getGraph().getEpicSubtasks(taskId, issues);
-    let updatedIssues = issues;
+    const subtasks = getGraph().getEpicSubtasks(taskId, tasks);
+    let updatedTasks = tasks;
     for (const subtask of subtasks) {
-      updatedIssues = getGraph().removeDependency(subtask.id, taskId, updatedIssues);
+      updatedTasks = getGraph().removeDependency(subtask.id, taskId, updatedTasks);
     }
 
-    updatedIssues = updatedIssues.filter(i => i.id !== taskId);
-    await getStorage().updateIssues(() => updatedIssues);
+    updatedTasks = updatedTasks.filter(i => i.id !== taskId);
+    await getStorage().updateTasks(() => updatedTasks);
 
     const subtaskCount = subtasks.length;
     if (subtaskCount > 0) {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'; import { GraphService } from './graph';
-import { Issue } from '../types';
+import { Task } from '../types';
 
 describe('GraphService', () => {
   let graphService: GraphService;
@@ -10,7 +10,7 @@ describe('GraphService', () => {
 
   describe('buildGraph', () => {
     it('should build graph with dependents', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'a',
           title: 'A',
@@ -34,7 +34,7 @@ describe('GraphService', () => {
     });
 
     it('should handle issues with deprecated fields', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'a',
           title: 'A',
@@ -63,7 +63,7 @@ describe('GraphService', () => {
 
   describe('getReadyWork', () => {
     it('should return open issues with no blocking dependencies', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'a',
           title: 'A',
@@ -87,7 +87,7 @@ describe('GraphService', () => {
     });
 
     it('should return issues when blocking dependencies are closed', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'a',
           title: 'A',
@@ -112,7 +112,7 @@ describe('GraphService', () => {
     });
 
     it('should not return closed issues', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'a',
           title: 'A',
@@ -130,7 +130,7 @@ describe('GraphService', () => {
 
   describe('addDependency', () => {
     it('should add dependency to issue', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'a',
           title: 'A',
@@ -153,7 +153,7 @@ describe('GraphService', () => {
     });
 
     it('should not add duplicate dependency', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'a',
           title: 'A',
@@ -169,7 +169,7 @@ describe('GraphService', () => {
     });
 
     it('should add parent-child dependency for epic relationships', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'sub-1',
           title: 'Subtask 1',
@@ -192,7 +192,7 @@ describe('GraphService', () => {
     });
 
     it('should allow multiple dependency types on same issue', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'sub-1',
           title: 'Subtask 1',
@@ -221,7 +221,7 @@ describe('GraphService', () => {
 
   describe('cycle detection', () => {
       it('should prevent adding parent-child dependency that would create a cycle', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -245,7 +245,7 @@ describe('GraphService', () => {
       });
 
       it('should prevent adding blocks dependency that would create a cycle', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'task-a',
             title: 'Task A',
@@ -269,7 +269,7 @@ describe('GraphService', () => {
       });
 
       it('should allow adding dependency that does not create a cycle', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'task-a',
             title: 'Task A',
@@ -291,7 +291,7 @@ describe('GraphService', () => {
       });
 
       it('should allow adding related dependency even if it would create a cycle', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'task-a',
             title: 'Task A',
@@ -314,7 +314,7 @@ describe('GraphService', () => {
       });
 
       it('should prevent complex parent-child cycles', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -347,7 +347,7 @@ describe('GraphService', () => {
       });
 
       it('should prevent self-referencing parent-child dependency', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'task-a',
             title: 'Task A',
@@ -363,7 +363,7 @@ describe('GraphService', () => {
       });
 
       it('should prevent self-referencing blocks dependency', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'task-a',
             title: 'Task A',
@@ -381,7 +381,7 @@ describe('GraphService', () => {
 
   describe('removeDependency', () => {
     it('should remove dependency from issue', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'a',
           title: 'A',
@@ -397,7 +397,7 @@ describe('GraphService', () => {
     });
 
     it('should remove parent-child dependency', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'sub-1',
           title: 'Subtask 1',
@@ -417,7 +417,7 @@ describe('GraphService', () => {
     });
 
     it('should not affect other dependencies when removing specific one', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'sub-1',
           title: 'Subtask 1',
@@ -444,7 +444,7 @@ describe('GraphService', () => {
   describe('Epic functionality', () => {
     describe('getEpicSubtasks', () => {
       it('should return subtasks that have parent-child dependency to the epic', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -483,7 +483,7 @@ describe('GraphService', () => {
       });
 
       it('should return empty array when epic has no subtasks', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -500,7 +500,7 @@ describe('GraphService', () => {
 
     describe('getSubtaskEpic', () => {
       it('should return the epic that a subtask belongs to', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -524,7 +524,7 @@ describe('GraphService', () => {
       });
 
       it('should return null when subtask has no parent-child dependency', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'sub-1',
             title: 'Subtask 1',
@@ -539,7 +539,7 @@ describe('GraphService', () => {
       });
 
       it('should return null when subtask does not exist', () => {
-        const issues: Issue[] = [];
+        const issues: Task[] = [];
 
         const epic = graphService.getSubtaskEpic('nonexistent', issues);
         expect(epic).toBeNull();
@@ -548,7 +548,7 @@ describe('GraphService', () => {
 
     describe('calculateEpicProgress', () => {
       it('should calculate progress when some subtasks are completed', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -594,7 +594,7 @@ describe('GraphService', () => {
       });
 
       it('should return 100% when all subtasks are completed', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -621,7 +621,7 @@ describe('GraphService', () => {
       });
 
       it('should return 0% when epic has no subtasks', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -640,7 +640,7 @@ describe('GraphService', () => {
 
     describe('shouldCloseEpic', () => {
       it('should return true when all subtasks are closed', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -673,7 +673,7 @@ describe('GraphService', () => {
       });
 
       it('should return false when some subtasks are still open', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -705,7 +705,7 @@ describe('GraphService', () => {
       });
 
       it('should return false when epic has no subtasks', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -719,9 +719,9 @@ describe('GraphService', () => {
         expect(shouldClose).toBe(false);
       });
     });
-    describe('canCloseIssue', () => {
+    describe('canCloseTask', () => {
       it('should return canClose: true when issue has no subtasks and no acceptance criteria', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'task-1',
             title: 'Task 1',
@@ -732,13 +732,13 @@ describe('GraphService', () => {
           },
         ];
 
-        const result = graphService.canCloseIssue('task-1', issues);
+        const result = graphService.canCloseTask('task-1', issues);
         expect(result.canClose).toBe(true);
         expect(result.openSubtasks).toBeUndefined();
       });
 
       it('should return canClose: false when issue has incomplete acceptance criteria', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'task-1',
             title: 'Task 1',
@@ -752,13 +752,13 @@ describe('GraphService', () => {
           },
         ];
 
-        const result = graphService.canCloseIssue('task-1', issues);
+        const result = graphService.canCloseTask('task-1', issues);
         expect(result.canClose).toBe(false);
         expect(result.openSubtasks).toBeUndefined();
       });
 
       it('should return canClose: true when all subtasks are closed', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -789,13 +789,13 @@ describe('GraphService', () => {
           },
         ];
 
-        const result = graphService.canCloseIssue('epic-1', issues);
+        const result = graphService.canCloseTask('epic-1', issues);
         expect(result.canClose).toBe(true);
         expect(result.openSubtasks).toBeUndefined();
       });
 
       it('should return canClose: false with open subtasks when some subtasks are still open', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -830,22 +830,22 @@ describe('GraphService', () => {
           },
         ];
 
-        const result = graphService.canCloseIssue('epic-1', issues);
+        const result = graphService.canCloseTask('epic-1', issues);
         expect(result.canClose).toBe(false);
         expect(result.openSubtasks).toHaveLength(2);
         expect(result.openSubtasks!.map(s => s.id)).toEqual(['sub-2', 'sub-3']);
       });
 
       it('should return canClose: false with open subtasks when issue does not exist', () => {
-        const issues: Issue[] = [];
+        const issues: Task[] = [];
 
-        const result = graphService.canCloseIssue('nonexistent', issues);
+        const result = graphService.canCloseTask('nonexistent', issues);
         expect(result.canClose).toBe(false);
         expect(result.openSubtasks).toHaveLength(0);
       });
 
       it('should return canClose: true with completion percentage for completed issue with all AC complete', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'task-1',
             title: 'Task 1',
@@ -859,14 +859,14 @@ describe('GraphService', () => {
           },
         ];
 
-        const result = graphService.canCloseIssue('task-1', issues);
+        const result = graphService.canCloseTask('task-1', issues);
         expect(result.canClose).toBe(true);
         expect(result.completionPercentage).toBe(100);
         expect(result.reason).toBeUndefined();
       });
 
       it('should return detailed reason when acceptance criteria are incomplete', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'task-1',
             title: 'Task 1',
@@ -881,13 +881,13 @@ describe('GraphService', () => {
           },
         ];
 
-        const result = graphService.canCloseIssue('task-1', issues);
+        const result = graphService.canCloseTask('task-1', issues);
         expect(result.canClose).toBe(false);
         expect(result.reason).toBe('has 2 incomplete acceptance criteria');
       });
 
       it('should return detailed reason when subtasks are open', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -905,14 +905,14 @@ describe('GraphService', () => {
           },
         ];
 
-        const result = graphService.canCloseIssue('epic-1', issues);
+        const result = graphService.canCloseTask('epic-1', issues);
         expect(result.canClose).toBe(false);
         expect(result.reason).toBe('has 1 open subtask(s)');
         expect(result.openSubtasks).toHaveLength(1);
       });
 
       it('should prevent closing parent even when all AC complete but subtasks are incomplete', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -936,14 +936,14 @@ describe('GraphService', () => {
           },
         ];
 
-        const result = graphService.canCloseIssue('epic-1', issues);
+        const result = graphService.canCloseTask('epic-1', issues);
         expect(result.canClose).toBe(false);
         expect(result.reason).toBe('has 1 open subtask(s)');
         expect(result.openSubtasks).toHaveLength(1);
       });
 
       it('should validate completion percentage for parent with mixed subtask completion', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -973,13 +973,13 @@ describe('GraphService', () => {
           },
         ];
 
-        const result = graphService.canCloseIssue('epic-1', issues);
+        const result = graphService.canCloseTask('epic-1', issues);
         expect(result.canClose).toBe(true);
         expect(result.completionPercentage).toBe(100);
       });
 
       it('should allow closing already-closed issues', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'task-1',
             title: 'Task 1',
@@ -990,13 +990,13 @@ describe('GraphService', () => {
           },
         ];
 
-        const result = graphService.canCloseIssue('task-1', issues);
+        const result = graphService.canCloseTask('task-1', issues);
         expect(result.canClose).toBe(true);
         expect(result.completionPercentage).toBe(100);
       });
 
       it('should handle multi-level hierarchy correctly', () => {
-        const issues: Issue[] = [
+        const issues: Task[] = [
           {
             id: 'epic-1',
             title: 'Epic 1',
@@ -1025,21 +1025,21 @@ describe('GraphService', () => {
         ];
 
         // Cannot close epic because feature-1 is open
-        const epicResult = graphService.canCloseIssue('epic-1', issues);
+        const epicResult = graphService.canCloseTask('epic-1', issues);
         expect(epicResult.canClose).toBe(false);
         expect(epicResult.reason).toBe('has 1 open subtask(s)');
 
         // Can close feature-1 because all subtasks are closed, even though feature-1 status is open
-        const featureResult = graphService.canCloseIssue('feature-1', issues);
+        const featureResult = graphService.canCloseTask('feature-1', issues);
         expect(featureResult.canClose).toBe(true); // All subtasks closed
         expect(featureResult.completionPercentage).toBe(100);
       });
     });
   });
 
-  describe('getNonParentedIssues', () => {
+  describe('getNonParentedTasks', () => {
     it('should return issues that have no parent-child dependencies', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'epic-1',
           title: 'Epic 1',
@@ -1072,13 +1072,13 @@ describe('GraphService', () => {
         },
       ];
 
-      const nonParented = graphService.getNonParentedIssues(issues);
+      const nonParented = graphService.getNonParentedTasks(issues);
       expect(nonParented).toHaveLength(3);
       expect(nonParented.map(i => i.id)).toEqual(['epic-1', 'task-1', 'task-2']);
     });
 
     it('should return all issues when none have parent-child dependencies', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'task-1',
           title: 'Task 1',
@@ -1095,13 +1095,13 @@ describe('GraphService', () => {
         },
       ];
 
-      const nonParented = graphService.getNonParentedIssues(issues);
+      const nonParented = graphService.getNonParentedTasks(issues);
       expect(nonParented).toHaveLength(2);
       expect(nonParented.map(i => i.id)).toEqual(['task-1', 'task-2']);
     });
 
     it('should return empty array when all issues are parented', () => {
-      const issues: Issue[] = [
+      const issues: Task[] = [
         {
           id: 'sub-1',
           title: 'Subtask 1',
@@ -1120,7 +1120,7 @@ describe('GraphService', () => {
         },
       ];
 
-      const nonParented = graphService.getNonParentedIssues(issues);
+      const nonParented = graphService.getNonParentedTasks(issues);
       expect(nonParented).toHaveLength(0);
     });
   });

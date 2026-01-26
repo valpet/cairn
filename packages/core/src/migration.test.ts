@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { Issue } from './types';
+import { Task } from './types';
 
 // Create a test version of the migration function
-function migrateIssues(issues: Issue[]): Issue[] {
+function migrateTasks(issues: Task[]): Task[] {
   let hasMigrations = false;
-  const migratedIssues = issues.map(issue => {
+  const migratedTasks = issues.map(issue => {
     let issueUpdated = false;
 
     // Migration: Convert 'blocked' status to 'open' (removing blocked as a stored status)
@@ -56,15 +56,15 @@ function migrateIssues(issues: Issue[]): Issue[] {
     const cleanedDeps = migratedDeps.filter((dep) => {
       if (dep.type === 'blocked_by') {
         // Check if the target issue also has a 'blocked_by' dependency back to this issue
-        const targetIssue = issues.find(i => i.id === dep.id);
-        if (targetIssue && targetIssue.dependencies) {
-          const hasReverseDep = targetIssue.dependencies.some(reverseDep =>
+        const targetTask = issues.find(i => i.id === dep.id);
+        if (targetTask && targetTask.dependencies) {
+          const hasReverseDep = targetTask.dependencies.some(reverseDep =>
             reverseDep.id === issue.id && (reverseDep.type === 'blocked_by' || reverseDep.type === 'blocks')
           );
           if (hasReverseDep) {
             // Both issues have 'blocked_by' dependencies to each other
             // Keep only on the issue with the lexicographically smaller ID (deterministic choice)
-            if (issue.id > targetIssue.id) {
+            if (issue.id > targetTask.id) {
               hasMigrations = true;
               issueUpdated = true;
               return false; // Remove this dependency (keep on the smaller ID issue)
@@ -91,13 +91,13 @@ function migrateIssues(issues: Issue[]): Issue[] {
     return issue;
   });
 
-  return migratedIssues;
+  return migratedTasks;
 }
 
-describe('Issue Migration', () => {
-  const createMockIssue = (id: string, deps: any[] = [], status: string = 'open'): Issue => ({
+describe('Task Migration', () => {
+  const createMockTask = (id: string, deps: any[] = [], status: string = 'open'): Task => ({
     id,
-    title: `Issue ${id}`,
+    title: `Task ${id}`,
     status: status as any,
     created_at: '2023-01-01T00:00:00.000Z',
     updated_at: '2023-01-01T00:00:00.000Z',
@@ -106,22 +106,22 @@ describe('Issue Migration', () => {
 
   it('should not modify issues without dependencies and valid status', () => {
     const issues = [
-      createMockIssue('issue-1'),
-      createMockIssue('issue-2')
+      createMockTask('issue-1'),
+      createMockTask('issue-2')
     ];
 
-    const result = migrateIssues(issues);
+    const result = migrateTasks(issues);
 
     expect(result).toEqual(issues);
   });
 
   it('should migrate blocked status to open', () => {
     const issues = [
-      createMockIssue('issue-1', [], 'blocked'),
-      createMockIssue('issue-2', [], 'open')
+      createMockTask('issue-1', [], 'blocked'),
+      createMockTask('issue-2', [], 'open')
     ];
 
-    const result = migrateIssues(issues);
+    const result = migrateTasks(issues);
 
     expect(result[0].status).toBe('open');
     expect(result[0].updated_at).not.toBe('2023-01-01T00:00:00.000Z'); // Should be updated
@@ -131,15 +131,15 @@ describe('Issue Migration', () => {
 
   it('should remove invalid dependency types', () => {
     const issues = [
-      createMockIssue('issue-1', [
+      createMockTask('issue-1', [
         { id: 'issue-2', type: 'blocks' },
         { id: 'issue-3', type: 'invalid-type' },
         { id: 'issue-4', type: 'blocks' }
       ]),
-      createMockIssue('issue-2')
+      createMockTask('issue-2')
     ];
 
-    const result = migrateIssues(issues);
+    const result = migrateTasks(issues);
 
     expect(result[0].dependencies).toHaveLength(2);
     expect(result[0].dependencies).toEqual([
@@ -151,11 +151,11 @@ describe('Issue Migration', () => {
 
   it('should remove bidirectional blocks dependencies (keep on lexicographically smaller ID)', () => {
     const issues = [
-      createMockIssue('a-issue', [{ id: 'b-issue', type: 'blocks' }]),
-      createMockIssue('b-issue', [{ id: 'a-issue', type: 'blocks' }])
+      createMockTask('a-issue', [{ id: 'b-issue', type: 'blocks' }]),
+      createMockTask('b-issue', [{ id: 'a-issue', type: 'blocks' }])
     ];
 
-    const result = migrateIssues(issues);
+    const result = migrateTasks(issues);
 
     // 'a-issue' should keep its dependency (a < b lexicographically)
     expect(result[0].dependencies).toHaveLength(1);
@@ -169,12 +169,12 @@ describe('Issue Migration', () => {
 
   it('should handle complex bidirectional scenarios', () => {
     const issues = [
-      createMockIssue('a', [{ id: 'b', type: 'blocks' }, { id: 'c', type: 'blocks' }]),
-      createMockIssue('b', [{ id: 'a', type: 'blocks' }]),
-      createMockIssue('c', [{ id: 'a', type: 'blocks' }])
+      createMockTask('a', [{ id: 'b', type: 'blocks' }, { id: 'c', type: 'blocks' }]),
+      createMockTask('b', [{ id: 'a', type: 'blocks' }]),
+      createMockTask('c', [{ id: 'a', type: 'blocks' }])
     ];
 
-    const result = migrateIssues(issues);
+    const result = migrateTasks(issues);
 
     // 'a' should keep both dependencies (a < b and a < c)
     expect(result[0].dependencies).toHaveLength(2);
@@ -192,17 +192,17 @@ describe('Issue Migration', () => {
 
   it('should preserve non-blocks dependencies in bidirectional scenarios', () => {
     const issues = [
-      createMockIssue('a', [
+      createMockTask('a', [
         { id: 'b', type: 'blocks' },
         { id: 'c', type: 'related' }
       ]),
-      createMockIssue('b', [
+      createMockTask('b', [
         { id: 'a', type: 'blocks' },
         { id: 'd', type: 'parent-child' }
       ])
     ];
 
-    const result = migrateIssues(issues);
+    const result = migrateTasks(issues);
 
     // 'a' should keep its dependencies (blocked_by to b, and related to c)
     expect(result[0].dependencies).toHaveLength(2);
@@ -220,10 +220,10 @@ describe('Issue Migration', () => {
 
   it('should handle issues with missing target dependencies gracefully', () => {
     const issues = [
-      createMockIssue('issue-1', [{ id: 'nonexistent', type: 'blocks' }])
+      createMockTask('issue-1', [{ id: 'nonexistent', type: 'blocks' }])
     ];
 
-    const result = migrateIssues(issues);
+    const result = migrateTasks(issues);
 
     // Should preserve the dependency since target doesn't exist
     expect(result[0].dependencies).toHaveLength(1);

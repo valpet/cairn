@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { Issue } from '../types';
+import { Task } from '../types';
 
-export const useTaskHierarchy = (filteredTasks: Issue[]) => {
+export const useTaskHierarchy = (filteredTasks: Task[]) => {
   const taskTree = useMemo(() => {
-    const taskMap = new Map<string, Issue & { children: Issue[] }>();
-    const roots: (Issue & { children: Issue[] })[] = [];
+    const taskMap = new Map<string, Task & { children: Task[] }>();
+    const roots: (Task & { children: Task[] })[] = [];
     const hasParent = new Set<string>();
 
     filteredTasks.forEach(task => {

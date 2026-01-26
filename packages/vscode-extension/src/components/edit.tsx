@@ -1,12 +1,12 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import IssueEdit from './IssueEdit';
+import TaskEdit from './TaskEdit';
 
 declare const acquireVsCodeApi: () => any;
 
 const App: React.FC = () => {
   const vscode = acquireVsCodeApi();
-  return <IssueEdit vscode={vscode} />;
+  return <TaskEdit vscode={vscode} />;
 };
 
 const container = document.getElementById('root');

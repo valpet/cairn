@@ -58,7 +58,7 @@ Opens the ticket editing interface for an existing task.
 **Command ID:** `cairn.editTicket`
 
 **Arguments:**
-- `id` (string): Issue ID to edit
+- `id` (string): Task ID to edit
 - `viewColumn` (optional): VS Code view column for the webview
 
 **Description:**
@@ -281,7 +281,7 @@ interface ExtensionMessage {
 
 **updateTasks**
 - Direction: Extension → Webview
-- Payload: `{ tasks: Issue[], currentFile: string, availableFiles: string[] }`
+- Payload: `{ tasks: Task[], currentFile: string, availableFiles: string[] }`
 - Description: Updates the displayed task list and file context information
 
 **switchFile**
@@ -321,12 +321,12 @@ The ticket editing interface provides full CRUD operations.
 
 **loadTicket**
 - Direction: Extension → Webview
-- Payload: `{ ticket: Issue, subtasks: Issue[], dependencies: DependencyInfo[] }`
+- Payload: `{ ticket: Task, subtasks: Task[], dependencies: DependencyInfo[] }`
 - Description: Loads ticket data into the editor
 
 **saveTicket**
 - Direction: Webview → Extension
-- Payload: `{ ticket: Issue }`
+- Payload: `{ ticket: Task }`
 - Description: Saves changes to the ticket
 
 **getGitUser**
@@ -336,12 +336,12 @@ The ticket editing interface provides full CRUD operations.
 
 **getAvailableSubtasks**
 - Direction: Webview → Extension
-- Response: `{ subtasks: Issue[] }`
+- Response: `{ subtasks: Task[] }`
 - Description: Gets issues that can be added as subtasks
 
 **getAvailableDependencies**
 - Direction: Webview → Extension
-- Response: `{ dependencies: Issue[] }`
+- Response: `{ dependencies: Task[] }`
 - Description: Gets issues that can be added as dependencies
 
 **editTicket**
@@ -372,7 +372,7 @@ The extension respects VS Code settings:
 - **Font Settings**: Uses VS Code font family and size
 - **Color Scheme**: Matches VS Code color tokens
 
-## Multiple Issue Files
+## Multiple Task Files
 
 The extension supports working with multiple issue files for context separation.
 
@@ -381,7 +381,7 @@ The extension supports working with multiple issue files for context separation.
 **Three Ways to Switch Files:**
 
 1. **Status Bar**: Click the status bar item showing `Cairn: {filename}` to open the file selector
-2. **Command Palette**: Run `Cairn: Switch Issue File` command
+2. **Command Palette**: Run `Cairn: Switch Task File` command
 3. **Task List**: Use the dropdown selector at the top of the task list webview
 
 ### Smart Synchronization
@@ -398,7 +398,7 @@ This prevents disruption when working while allowing easy synchronization across
 ### Creating New Files
 
 From the file selector quick pick:
-1. Select `$(add) Create New Issue File`
+1. Select `$(add) Create New Task File`
 2. Enter a name (letters, numbers, hyphens, underscores only)
 3. File is created and automatically activated
 
@@ -451,8 +451,8 @@ src/extension.ts          # Main extension entry point
 └── Service Integration   # Core library usage
 
 src/components/           # React components for webviews
-├── IssueList.tsx         # Main task list component
-├── IssueEdit.tsx         # Ticket editor component
+├── TaskList.tsx         # Main task list component
+├── TaskEdit.tsx         # Ticket editor component
 ├── TaskGrid.tsx          # Task display grid
 ├── AcceptanceCriteriaSection.tsx  # AC management
 ├── CommentsSection.tsx   # Comment system
@@ -469,8 +469,8 @@ The extension uses React for building interactive webview interfaces. Key compon
 
 ### Core Components
 
-- **IssueList**: Main task list with filtering, sorting, and hierarchy display
-- **IssueEdit**: Full-featured ticket editor with metadata, dependencies, and comments
+- **TaskList**: Main task list with filtering, sorting, and hierarchy display
+- **TaskEdit**: Full-featured ticket editor with metadata, dependencies, and comments
 - **TaskGrid**: Efficient grid layout for task display with virtual scrolling
 - **FileSelector**: Dropdown for switching between issue files
 - **StatusFilter**: Filter tasks by status (open, in_progress, closed, etc.)
@@ -517,7 +517,7 @@ npm run package-all
 
 ## Troubleshooting
 
-### Common Issues
+### Common Tasks
 
 **Extension not activating:**
 - Ensure `.cairn` directory exists

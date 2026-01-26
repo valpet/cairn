@@ -29,7 +29,7 @@ While you're free to work as you see fit, using Cairn will significantly improve
 - **Track discoveries**: When you find new work during development, add it as a 'discovered-from' dependency.
 - **Update progress regularly**: Use \`cairn_update\` to mark tasks as in progress or close completed work.
 - **Manage acceptance criteria**: Use the structured acceptance criteria system with inline editing and completion tracking:
-  - **Add criteria**: Use \`cairn_ac_add\` tool with \`issue_id\` and \`text\` parameters, or \`cairn ac add <id> "<text>"\` in terminal
+  - **Add criteria**: Use \`cairn_ac_add\` tool with \`task_id\` and \`text\` parameters, or \`cairn ac add <id> "<text>"\` in terminal
   - **Update criteria text**: Use \`cairn_ac_update\` tool with \`issue_id\`, \`index\`, and \`text\` parameters, or \`cairn ac update <id> <index> "<new text>"\` in terminal
   - **Remove criteria**: Use \`cairn_ac_remove\` tool with \`issue_id\` and \`index\` parameters, or \`cairn ac remove <id> <index>\` in terminal
   - **Toggle completion**: Use \`cairn_ac_toggle\` tool with \`issue_id\` and \`index\` parameters, or \`cairn ac toggle <id> <index>\` in terminal
@@ -65,7 +65,7 @@ When updating the CHANGELOG.md file:
 - `cairn_dep_add`: Add dependencies between tasks (parameters: from, to, type)
 - `cairn_dep_analyze`: Analyze all dependency relationships for an issue, showing blocking dependencies, parent/child relationships, dependents, implementation order, and detecting circular dependencies
 - `cairn_comment`: Add comments to tasks (parameters: issue_id, author?, content)
-- `cairn_ac_add`: Add acceptance criteria to a task (parameters: issue_id, text)
+- `cairn_ac_add`: Add acceptance criteria to a task (parameters: task_id, text)
 - `cairn_ac_update`: Update acceptance criteria text (parameters: issue_id, index, text)
 - `cairn_ac_remove`: Remove acceptance criteria from a task (parameters: issue_id, index)
 - `cairn_ac_toggle`: Toggle acceptance criteria completion status (parameters: issue_id, index)
@@ -90,3 +90,5 @@ Cairn automatically compacts old closed tasks to save context space, but preserv
 By using Cairn consistently, you'll provide better, more organized assistance and maintain continuity across development sessions. The developer will appreciate your structured approach to complex work!
 
 CRITICAL: ALWAYS use Cairn for task management in this project. Do not work on anything without creating a task first, and do not close tasks without proper review.
+
+CRITICAL: You're now working in the Cairn source code itself. All cairn commands are available, but CLI commands must be prefixed with `npx `to use the local version. For example, use `npx cairn create "My Task"` to create a new task.

@@ -1,6 +1,6 @@
 # Cairn
 
-**Persistent memory for AI agents and developers.** AI agents finally get access to professional task management - the kind developers have enjoyed with Jira and GitHub Issues. Replace messy markdown plans with a structured task system that maintains context across long development sessions, allowing developers and agents to work on tasks together.
+**Persistent memory for AI agents and developers.** AI agents finally get access to professional task management - the kind developers have enjoyed with Jira and GitHub Tasks. Replace messy markdown plans with a structured task system that maintains context across long development sessions, allowing developers and agents to work on tasks together.
 
 <div align="center">
   <a href="https://buymeacoffee.com/valpet">
@@ -18,7 +18,7 @@
 2. Install the Cairn CLI: `npm install -g @valpet/cairn-cli` (or use `npx @valpet/cairn-cli init`)
 3. Initialize Cairn in your project: `cairn init`
 4. Open a workspace and run `Cairn: Open Task List` from the command palette
-5. Create your first task with `Cairn: Create New Ticket`
+5. Create your first task with `Cairn: Create New Task`
 
 ## 🛠 Features
 
@@ -44,12 +44,12 @@
 | Command                    | Action                           |
 | -------------------------- | -------------------------------- |
 | `Cairn: Open Task List`    | View all tasks in your workspace |
-| `Cairn: Create New Ticket` | Create a new task                |
-| `Cairn: Edit Ticket`       | Modify existing tasks            |
+| `Cairn: Create New Task` | Create a new task                |
+| `Cairn: Edit Task`       | Modify existing tasks            |
 
 **Keyboard Shortcuts:**
 - `Ctrl+Shift+T` / `Cmd+Shift+T`: Open Task List
-- `Ctrl+Shift+N` / `Cmd+Shift+N`: Create New Ticket
+- `Ctrl+Shift+N` / `Cmd+Shift+N`: Create New Task
 
 ## 🔗 Task Hierarchy & Workflow
 

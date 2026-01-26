@@ -57,7 +57,7 @@ export const useTaskInteractions = (postMessage: (message: any) => void) => {
 
   const editTask = (id: string) => {
     try {
-      const message = { type: 'editTicket', id };
+      const message = { type: 'editTask', id };
       postMessage(message);
     } catch (error) {
       console.error('Error posting message:', error);
@@ -66,7 +66,7 @@ export const useTaskInteractions = (postMessage: (message: any) => void) => {
 
   const createNewTask = () => {
     try {
-      const message = { type: 'createTicket' };
+      const message = { type: 'createTask' };
       postMessage(message);
     } catch (error) {
       console.error('Error posting message:', error);

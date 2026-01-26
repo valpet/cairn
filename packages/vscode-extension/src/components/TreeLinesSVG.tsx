@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-interface Issue {
+interface Task {
   id: string;
   title: string;
   description?: string;
@@ -12,13 +12,13 @@ interface Issue {
     id: string;
     type: string;
   }>;
-  children: Issue[];
+  children: Task[];
 }
 
 // TreeLinesSVG component for rendering relationship lines
 interface TreeLinesSVGProps {
   taskTree: any[];
-  allTasks: Issue[];
+  allTasks: Task[];
   expandedTasks: Set<string>;
   expandedDescriptions: Set<string>;
   containerRef: React.RefObject<HTMLDivElement | null>;

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Issue } from '../types';
+import { Task } from '../types';
 
 export const useTaskState = () => {
-  const [allTasks, setAllTasks] = useState<Issue[]>([]);
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [viewingFile, setViewingFile] = useState<string>('default'); // What this panel is viewing
   const [systemActiveFile, setSystemActiveFile] = useState<string>('default'); // System-wide active file
   const [availableFiles, setAvailableFiles] = useState<string[]>(['default']);

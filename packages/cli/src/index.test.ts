@@ -106,11 +106,11 @@ describe('CLI Commands', () => {
 
     // Setup container mocks
     mockStorage = {
-      loadIssues: vi.fn(),
-      saveIssue: vi.fn(),
-      updateIssues: vi.fn().mockImplementation(async (updater) => {
-        const issues = await mockStorage.loadIssues();
-        const updatedIssues = updater(issues);
+      loadTasks: vi.fn(),
+      saveTask: vi.fn(),
+      updateTasks: vi.fn().mockImplementation(async (updater) => {
+        const issues = await mockStorage.loadTasks();
+        const updatedTasks = updater(issues);
         // In real implementation, this would save the issues
       }),
     };
@@ -120,10 +120,10 @@ describe('CLI Commands', () => {
       getEpicSubtasks: vi.fn(),
       calculateEpicProgress: vi.fn(),
       shouldCloseEpic: vi.fn(),
-      canCloseIssue: vi.fn(),
+      canCloseTask: vi.fn(),
     };
     mockCompaction = {
-      compactIssues: vi.fn(),
+      compactTasks: vi.fn(),
     };
 
     mockContainer = {
@@ -173,7 +173,7 @@ describe('CLI Commands', () => {
 
   describe('create command', () => {
     it('should create a new issue with minimal options', async () => {
-      mockStorage.loadIssues.mockResolvedValue([]);
+      mockStorage.loadTasks.mockResolvedValue([]);
 
       await importCLI();
 
@@ -182,12 +182,12 @@ describe('CLI Commands', () => {
       const createAction = createCmd?._action;
 
       // Call the create action
-      await createAction('Test Issue', {});
+      await createAction('Test Task', {});
 
-      expect(mockStorage.loadIssues).toHaveBeenCalled();
-      expect(mockStorage.saveIssue).toHaveBeenCalledWith({
+      expect(mockStorage.loadTasks).toHaveBeenCalled();
+      expect(mockStorage.saveTask).toHaveBeenCalledWith({
         id: 's-test-id-123',
-        title: 'Test Issue',
+        title: 'Test Task',
         description: undefined,
         type: undefined,
         status: 'open',
@@ -198,22 +198,22 @@ describe('CLI Commands', () => {
     });
 
     it('should create a new issue with all options', async () => {
-      mockStorage.loadIssues.mockResolvedValue([]);
+      mockStorage.loadTasks.mockResolvedValue([]);
 
       await importCLI();
 
       const createCmd = commanderCommands.get('create <title>');
       const createAction = createCmd?._action;
 
-      await createAction('Feature Issue', {
+      await createAction('Feature Task', {
         description: 'A test description',
         type: 'feature',
         priority: 'high'
       });
 
-      expect(mockStorage.saveIssue).toHaveBeenCalledWith({
+      expect(mockStorage.saveTask).toHaveBeenCalledWith({
         id: 's-test-id-123',
-        title: 'Feature Issue',
+        title: 'Feature Task',
         description: 'A test description',
         type: 'feature',
         status: 'open',
@@ -224,7 +224,7 @@ describe('CLI Commands', () => {
     });
 
     it('should create a new issue with status parameter', async () => {
-      mockStorage.loadIssues.mockResolvedValue([]);
+      mockStorage.loadTasks.mockResolvedValue([]);
 
       await importCLI();
 
@@ -235,7 +235,7 @@ describe('CLI Commands', () => {
         status: 'in_progress'
       });
 
-      expect(mockStorage.saveIssue).toHaveBeenCalledWith({
+      expect(mockStorage.saveTask).toHaveBeenCalledWith({
         id: 's-test-id-123',
         title: 'In Progress Task',
         description: undefined,
@@ -248,8 +248,8 @@ describe('CLI Commands', () => {
     });
 
     it('should create a new issue with parent parameter and add dependency', async () => {
-      const mockIssues = [{ id: 'parent-123', title: 'Parent Epic' }];
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
+      const mockTasks = [{ id: 'parent-123', title: 'Parent Epic' }];
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
 
       await importCLI();
 
@@ -260,7 +260,7 @@ describe('CLI Commands', () => {
         parent: 'parent-123'
       });
 
-      expect(mockStorage.saveIssue).toHaveBeenCalledWith({
+      expect(mockStorage.saveTask).toHaveBeenCalledWith({
         id: 's-test-id-123',
         title: 'Child Task',
         description: undefined,
@@ -271,13 +271,13 @@ describe('CLI Commands', () => {
         updated_at: expect.any(String),
       });
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(mockGraph.addDependency).toHaveBeenCalledWith('s-test-id-123', 'parent-123', 'parent-child', mockIssues);
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
+      expect(mockGraph.addDependency).toHaveBeenCalledWith('s-test-id-123', 'parent-123', 'parent-child', mockTasks);
     });
 
     it('should create a new issue with all new parameters combined', async () => {
-      const mockIssues = [{ id: 'epic-456', title: 'Test Epic' }];
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
+      const mockTasks = [{ id: 'epic-456', title: 'Test Epic' }];
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
 
       await importCLI();
 
@@ -292,7 +292,7 @@ describe('CLI Commands', () => {
         parent: 'epic-456'
       });
 
-      expect(mockStorage.saveIssue).toHaveBeenCalledWith({
+      expect(mockStorage.saveTask).toHaveBeenCalledWith({
         id: 's-test-id-123',
         title: 'Complete Feature Task',
         description: 'Full featured task',
@@ -303,15 +303,15 @@ describe('CLI Commands', () => {
         updated_at: expect.any(String),
       });
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(mockGraph.addDependency).toHaveBeenCalledWith('s-test-id-123', 'epic-456', 'parent-child', mockIssues);
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
+      expect(mockGraph.addDependency).toHaveBeenCalledWith('s-test-id-123', 'epic-456', 'parent-child', mockTasks);
     });
   });
 
   describe('update command', () => {
     it('should update issue status', async () => {
-      const mockIssues = [{ id: 'issue-123', title: 'Test Issue', status: 'open' }];
-      mockStorage.loadIssues.mockReturnValue(mockIssues);
+      const mockTasks = [{ id: 'issue-123', title: 'Test Task', status: 'open' }];
+      mockStorage.loadTasks.mockReturnValue(mockTasks);
 
       await importCLI();
 
@@ -320,13 +320,13 @@ describe('CLI Commands', () => {
 
       await updateAction('issue-123', { status: 'in_progress' });
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
     });
 
     it('should update multiple fields', async () => {
-      const mockIssues = [{ id: 'issue-456', title: 'Test Issue', status: 'open' }];
-      mockStorage.loadIssues.mockReturnValue(mockIssues);
-      mockGraph.canCloseIssue.mockReturnValue({ canClose: true });
+      const mockTasks = [{ id: 'issue-456', title: 'Test Task', status: 'open' }];
+      mockStorage.loadTasks.mockReturnValue(mockTasks);
+      mockGraph.canCloseTask.mockReturnValue({ canClose: true });
 
       await importCLI();
 
@@ -339,17 +339,17 @@ describe('CLI Commands', () => {
         labels: 'bug,urgent'
       });
 
-      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('issue-456', mockIssues);
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockGraph.canCloseTask).toHaveBeenCalledWith('issue-456', mockTasks);
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
     });
 
     it('should prevent closing issue with open subtasks', async () => {
-      const mockIssues = [
-        { id: 'parent-123', title: 'Parent Issue', status: 'open' },
+      const mockTasks = [
+        { id: 'parent-123', title: 'Parent Task', status: 'open' },
         { id: 'sub-1', title: 'Open Subtask', status: 'open' }
       ];
-      mockStorage.loadIssues.mockReturnValue(mockIssues);
-      mockGraph.canCloseIssue.mockReturnValue({
+      mockStorage.loadTasks.mockReturnValue(mockTasks);
+      mockGraph.canCloseTask.mockReturnValue({
         canClose: false,
         openSubtasks: [{ id: 'sub-1', title: 'Open Subtask', status: 'open' }],
         reason: 'has 1 open subtask(s)'
@@ -364,16 +364,16 @@ describe('CLI Commands', () => {
         await updateAction('parent-123', { status: 'closed' });
       }).rejects.toThrow('process.exit called');
 
-      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('parent-123', mockIssues);
+      expect(mockGraph.canCloseTask).toHaveBeenCalledWith('parent-123', mockTasks);
       expect(mockConsoleError).toHaveBeenCalledWith(
-        expect.stringContaining('Cannot close issue parent-123 because it has 1 open subtask(s)')
+        expect.stringContaining('Cannot close task parent-123 because it has 1 open subtask(s)')
       );
       expect(mockProcessExit).toHaveBeenCalledWith(1);
-      expect(mockStorage.updateIssues).not.toHaveBeenCalled();
+      expect(mockStorage.updateTasks).not.toHaveBeenCalled();
     });
 
     it('should prevent closing issue with incomplete acceptance criteria', async () => {
-      const mockIssues = [
+      const mockTasks = [
         {
           id: 'task-789',
           title: 'Task with AC',
@@ -384,8 +384,8 @@ describe('CLI Commands', () => {
           ]
         }
       ];
-      mockStorage.loadIssues.mockReturnValue(mockIssues);
-      mockGraph.canCloseIssue.mockReturnValue({
+      mockStorage.loadTasks.mockReturnValue(mockTasks);
+      mockGraph.canCloseTask.mockReturnValue({
         canClose: false,
         openSubtasks: undefined,
         reason: 'has 1 incomplete acceptance criteria'
@@ -400,16 +400,16 @@ describe('CLI Commands', () => {
         await updateAction('task-789', { status: 'closed' });
       }).rejects.toThrow('process.exit called');
 
-      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('task-789', mockIssues);
+      expect(mockGraph.canCloseTask).toHaveBeenCalledWith('task-789', mockTasks);
       expect(mockConsoleError).toHaveBeenCalledWith(
-        expect.stringContaining('Cannot close issue task-789 because it has 1 incomplete acceptance criteria')
+        expect.stringContaining('Cannot close task task-789 because it has 1 incomplete acceptance criteria')
       );
       expect(mockProcessExit).toHaveBeenCalledWith(1);
-      expect(mockStorage.updateIssues).not.toHaveBeenCalled();
+      expect(mockStorage.updateTasks).not.toHaveBeenCalled();
     });
 
     it('should allow closing issue when all requirements are met', async () => {
-      const mockIssues = [
+      const mockTasks = [
         {
           id: 'task-complete',
           title: 'Complete Task',
@@ -420,8 +420,8 @@ describe('CLI Commands', () => {
           ]
         }
       ];
-      mockStorage.loadIssues.mockReturnValue(mockIssues);
-      mockGraph.canCloseIssue.mockReturnValue({ canClose: true });
+      mockStorage.loadTasks.mockReturnValue(mockTasks);
+      mockGraph.canCloseTask.mockReturnValue({ canClose: true });
 
       await importCLI();
 
@@ -430,14 +430,14 @@ describe('CLI Commands', () => {
 
       await updateAction('task-complete', { status: 'closed' });
 
-      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('task-complete', mockIssues);
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockGraph.canCloseTask).toHaveBeenCalledWith('task-complete', mockTasks);
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
       expect(mockConsoleError).not.toHaveBeenCalled();
       expect(mockProcessExit).not.toHaveBeenCalled();
     });
 
     it('should not validate when issue is already closed', async () => {
-      const mockIssues = [
+      const mockTasks = [
         {
           id: 'already-closed',
           title: 'Closed Task',
@@ -445,7 +445,7 @@ describe('CLI Commands', () => {
           closed_at: '2023-01-01T00:00:00Z'
         }
       ];
-      mockStorage.loadIssues.mockReturnValue(mockIssues);
+      mockStorage.loadTasks.mockReturnValue(mockTasks);
 
       await importCLI();
 
@@ -454,15 +454,15 @@ describe('CLI Commands', () => {
 
       await updateAction('already-closed', { status: 'closed' });
 
-      expect(mockGraph.canCloseIssue).not.toHaveBeenCalled();
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockGraph.canCloseTask).not.toHaveBeenCalled();
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
     });
 
     it('should allow updating other fields without validation when not changing to closed', async () => {
-      const mockIssues = [
+      const mockTasks = [
         { id: 'task-xyz', title: 'Some Task', status: 'in_progress' }
       ];
-      mockStorage.loadIssues.mockReturnValue(mockIssues);
+      mockStorage.loadTasks.mockReturnValue(mockTasks);
 
       await importCLI();
 
@@ -471,19 +471,19 @@ describe('CLI Commands', () => {
 
       await updateAction('task-xyz', { title: 'Updated Title', priority: 'high' });
 
-      expect(mockGraph.canCloseIssue).not.toHaveBeenCalled();
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockGraph.canCloseTask).not.toHaveBeenCalled();
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
     });
   });
 
   describe('list command', () => {
     it('should list all issues', async () => {
-      const mockIssues = [
-        { id: '1', title: 'Issue 1', status: 'open', type: 'task', completion_percentage: null },
-        { id: '2', title: 'Issue 2', status: 'closed', type: 'bug', completion_percentage: 75 }
+      const mockTasks = [
+        { id: '1', title: 'Task 1', status: 'open', type: 'task', completion_percentage: null },
+        { id: '2', title: 'Task 2', status: 'closed', type: 'bug', completion_percentage: 75 }
       ];
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
-      mockCompaction.compactIssues.mockReturnValue(mockIssues);
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
+      mockCompaction.compactTasks.mockReturnValue(mockTasks);
 
       await importCLI();
 
@@ -492,19 +492,19 @@ describe('CLI Commands', () => {
 
       await listAction({});
 
-      expect(mockStorage.loadIssues).toHaveBeenCalled();
-      expect(mockCompaction.compactIssues).toHaveBeenCalledWith(mockIssues);
-      expect(mockConsoleLog).toHaveBeenCalledWith('1: Issue 1 [open] [task]');
-      expect(mockConsoleLog).toHaveBeenCalledWith('2: Issue 2 [closed] [bug] [75%]');
+      expect(mockStorage.loadTasks).toHaveBeenCalled();
+      expect(mockCompaction.compactTasks).toHaveBeenCalledWith(mockTasks);
+      expect(mockConsoleLog).toHaveBeenCalledWith('1: Task 1 [open] [task]');
+      expect(mockConsoleLog).toHaveBeenCalledWith('2: Task 2 [closed] [bug] [75%]');
     });
 
     it('should filter by status', async () => {
-      const mockIssues = [
-        { id: '1', title: 'Issue 1', status: 'open', type: 'task', completion_percentage: null },
-        { id: '2', title: 'Issue 2', status: 'closed', type: 'bug', completion_percentage: 50 }
+      const mockTasks = [
+        { id: '1', title: 'Task 1', status: 'open', type: 'task', completion_percentage: null },
+        { id: '2', title: 'Task 2', status: 'closed', type: 'bug', completion_percentage: 50 }
       ];
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
-      mockCompaction.compactIssues.mockReturnValue(mockIssues);
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
+      mockCompaction.compactTasks.mockReturnValue(mockTasks);
 
       await importCLI();
 
@@ -513,17 +513,17 @@ describe('CLI Commands', () => {
 
       await listAction({ status: 'open' });
 
-      expect(mockConsoleLog).toHaveBeenCalledWith('1: Issue 1 [open] [task]');
-      expect(mockConsoleLog).not.toHaveBeenCalledWith('2: Issue 2 [closed] [bug] [50%]');
+      expect(mockConsoleLog).toHaveBeenCalledWith('1: Task 1 [open] [task]');
+      expect(mockConsoleLog).not.toHaveBeenCalledWith('2: Task 2 [closed] [bug] [50%]');
     });
 
     it('should show ready work', async () => {
-      const mockIssues = [
-        { id: '1', title: 'Ready Issue', status: 'open', type: 'task', completion_percentage: 25 }
+      const mockTasks = [
+        { id: '1', title: 'Ready Task', status: 'open', type: 'task', completion_percentage: 25 }
       ];
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
-      mockCompaction.compactIssues.mockReturnValue(mockIssues);
-      mockGraph.getReadyWork.mockReturnValue([mockIssues[0]]);
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
+      mockCompaction.compactTasks.mockReturnValue(mockTasks);
+      mockGraph.getReadyWork.mockReturnValue([mockTasks[0]]);
 
       await importCLI();
 
@@ -532,14 +532,14 @@ describe('CLI Commands', () => {
 
       await listAction({ ready: true });
 
-      expect(mockGraph.getReadyWork).toHaveBeenCalledWith(mockIssues);
-      expect(mockConsoleLog).toHaveBeenCalledWith('1: Ready Issue [open] [task] [25%]');
+      expect(mockGraph.getReadyWork).toHaveBeenCalledWith(mockTasks);
+      expect(mockConsoleLog).toHaveBeenCalledWith('1: Ready Task [open] [task] [25%]');
     });
   });
 
   describe('dep add command', () => {
     it('should add dependency', async () => {
-      mockStorage.loadIssues.mockResolvedValue([]);
+      mockStorage.loadTasks.mockResolvedValue([]);
 
       await importCLI();
 
@@ -548,20 +548,20 @@ describe('CLI Commands', () => {
 
       await addAction('task-1', 'task-2', { type: 'blocks' });
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
       expect(mockGraph.addDependency).toHaveBeenCalledWith('task-1', 'task-2', 'blocks', expect.any(Array));
     });
   });
 
   describe('epic commands', () => {
     it('should list epic subtasks', async () => {
-      const mockIssues = [
+      const mockTasks = [
         { id: 'epic-1', title: 'Epic', type: 'epic' },
         { id: 'sub-1', title: 'Subtask 1', status: 'open' },
         { id: 'sub-2', title: 'Subtask 2', status: 'closed' }
       ];
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
-      mockGraph.getEpicSubtasks.mockReturnValue([mockIssues[1], mockIssues[2]]);
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
+      mockGraph.getEpicSubtasks.mockReturnValue([mockTasks[1], mockTasks[2]]);
 
       await importCLI();
 
@@ -570,16 +570,16 @@ describe('CLI Commands', () => {
 
       await subtasksAction('epic-1');
 
-      expect(mockStorage.loadIssues).toHaveBeenCalled();
-      expect(mockGraph.getEpicSubtasks).toHaveBeenCalledWith('epic-1', mockIssues);
+      expect(mockStorage.loadTasks).toHaveBeenCalled();
+      expect(mockGraph.getEpicSubtasks).toHaveBeenCalledWith('epic-1', mockTasks);
       expect(mockConsoleLog).toHaveBeenCalledWith('Subtasks for epic epic-1:');
       expect(mockConsoleLog).toHaveBeenCalledWith('  sub-1: Subtask 1 [open]');
       expect(mockConsoleLog).toHaveBeenCalledWith('  sub-2: Subtask 2 [closed]');
     });
 
     it('should show epic progress', async () => {
-      const mockIssues = [{ id: 'epic-1', title: 'Test Epic', type: 'epic', status: 'open' }];
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
+      const mockTasks = [{ id: 'epic-1', title: 'Test Epic', type: 'epic', status: 'open' }];
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
       mockGraph.calculateEpicProgress.mockReturnValue({ completed: 2, total: 5, percentage: 40 });
       mockGraph.shouldCloseEpic.mockReturnValue(false);
 
@@ -590,14 +590,14 @@ describe('CLI Commands', () => {
 
       await progressAction('epic-1');
 
-      expect(mockGraph.calculateEpicProgress).toHaveBeenCalledWith('epic-1', mockIssues);
+      expect(mockGraph.calculateEpicProgress).toHaveBeenCalledWith('epic-1', mockTasks);
       expect(mockConsoleLog).toHaveBeenCalledWith('Epic: Test Epic');
       expect(mockConsoleLog).toHaveBeenCalledWith('Progress: 2/5 subtasks completed (40%)');
     });
 
     it('should create epic subtask', async () => {
-      const mockIssues = [{ id: 'epic-1', title: 'Test Epic', type: 'epic' }];
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
+      const mockTasks = [{ id: 'epic-1', title: 'Test Epic', type: 'epic' }];
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
 
       await importCLI();
 
@@ -606,7 +606,7 @@ describe('CLI Commands', () => {
 
       await addSubtaskAction('epic-1', 'New Subtask', { description: 'Test desc', priority: 'medium' });
 
-      expect(mockStorage.saveIssue).toHaveBeenCalledWith({
+      expect(mockStorage.saveTask).toHaveBeenCalledWith({
         id: 's-test-id-123',
         title: 'New Subtask',
         description: 'Test desc',
@@ -616,15 +616,15 @@ describe('CLI Commands', () => {
         created_at: expect.any(String),
         updated_at: expect.any(String),
       });
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(mockGraph.addDependency).toHaveBeenCalledWith('s-test-id-123', 'epic-1', 'parent-child', mockIssues);
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
+      expect(mockGraph.addDependency).toHaveBeenCalledWith('s-test-id-123', 'epic-1', 'parent-child', mockTasks);
     });
   });
 
   describe('review command', () => {
     it('should perform self-review on a task', async () => {
-      const mockIssues = [{ id: 'task-123', title: 'Test Task' }];
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
+      const mockTasks = [{ id: 'task-123', title: 'Test Task' }];
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
 
       await importCLI();
 
@@ -633,8 +633,8 @@ describe('CLI Commands', () => {
 
       await reviewAction('task-123');
 
-      expect(mockStorage.loadIssues).toHaveBeenCalled();
-      expect(mockConsoleLog).toHaveBeenCalledWith('Reviewing issue task-123: Test Task');
+      expect(mockStorage.loadTasks).toHaveBeenCalled();
+      expect(mockConsoleLog).toHaveBeenCalledWith('Reviewing task task-123: Test Task');
       expect(mockConsoleLog).toHaveBeenCalledWith('Checklist:');
       expect(mockConsoleLog).toHaveBeenCalledWith('- Code quality: Check for best practices, readability, performance');
     });
