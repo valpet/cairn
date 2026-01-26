@@ -24,17 +24,17 @@ The core library is built around several key components:
 
 ### Types
 
-#### Issue
+#### Task
 
 The central data structure representing a task or issue.
 
 ```typescript
-interface Issue {
+interface Task {
   id: string;
   title: string;
   description?: string;
-  type?: IssueType;
-  status: IssueStatus;
+  type?: TaskType;
+  status: TaskStatus;
   priority?: Priority;
   assignee?: string;
   labels?: string[];
@@ -46,6 +46,8 @@ interface Issue {
   design?: string;
   notes?: string; // deprecated: use comments instead
   comments?: Comment[];
+  acceptance_criteria?: AcceptanceCriteria[];
+  completion_percentage?: number; // computed
 }
 ```
 
@@ -53,23 +55,25 @@ interface Issue {
 - `id`: Unique identifier (generated using nanoid)
 - `title`: Task title
 - `description`: Optional detailed description
-- `type`: Issue type (epic, feature, task, bug, chore, docs, refactor)
+- `type`: Task type (epic, feature, task, bug, chore, docs, refactor)
 - `status`: Current status (open, in_progress, closed, blocked)
 - `priority`: Priority level (low, medium, high, urgent)
 - `assignee`: Assigned user
 - `labels`: Array of label strings
 - `dependencies`: Array of dependency relationships
-- `dependents`: Computed array of dependent issue IDs
+- `dependents`: Computed array of dependent task IDs
 - `created_at`: ISO timestamp of creation
 - `updated_at`: ISO timestamp of last update
 - `closed_at`: ISO timestamp when closed (if applicable)
 - `design`: Design notes or specifications
 - `notes`: Legacy notes field (deprecated, use comments)
 - `comments`: Array of comment objects
+- `acceptance_criteria`: Array of acceptance criteria
+- `completion_percentage`: Computed completion percentage
 
 #### Comment
 
-Represents a comment on an issue.
+Represents a comment on a task.
 
 ```typescript
 interface Comment {
@@ -82,7 +86,7 @@ interface Comment {
 
 #### Dependency
 
-Represents a relationship between issues.
+Represents a relationship between tasks.
 
 ```typescript
 interface Dependency {
@@ -92,10 +96,10 @@ interface Dependency {
 ```
 
 **Types:**
-- `blocks`: This issue blocks the referenced issue
+- `blocks`: This task blocks the referenced task
 - `related`: General relationship
 - `parent-child`: Epic-subtask relationship
-- `discovered-from`: Issue discovered while working on another
+- `discovered-from`: Task discovered while working on another
 
 #### CairnConfig
 
@@ -116,85 +120,85 @@ Interface for data persistence operations.
 
 ```typescript
 interface IStorageService {
-  loadIssues(): Promise<Issue[]>;
-  saveIssue(issue: Issue): Promise<void>;
-  updateIssues(updater: (issues: Issue[]) => Issue[]): Promise<void>;
-  addComment(issueId: string, author: string, content: string): Promise<Comment>;
-  getIssuesFilePath(): string;
+  loadTasks(): Promise<Task[]>;
+  saveTask(task: Task): Promise<void>;
+  updateTasks(updater: (tasks: Task[]) => Task[]): Promise<void>;
+  addComment(taskId: string, author: string, content: string): Promise<Comment>;
+  getTasksFilePath(): string;
 }
 ```
 
 #### Methods
 
-##### loadIssues()
+##### loadTasks()
 
-Loads all issues from storage.
+Loads all tasks from storage.
 
 ```typescript
-loadIssues(): Promise<Issue[]>
+loadTasks(): Promise<Task[]>
 ```
 
-**Returns:** Promise resolving to array of all issues
+**Returns:** Promise resolving to array of all tasks
 
-##### saveIssue(issue)
+##### saveTask(task)
 
-Saves a new issue to storage.
-
-```typescript
-saveIssue(issue: Issue): Promise<void>
-```
-
-**Parameters:**
-- `issue`: The issue to save
-
-**Throws:** Error if issue with same ID already exists
-
-##### updateIssues(updater)
-
-Atomically updates issues using a function.
+Saves a new task to storage.
 
 ```typescript
-updateIssues(updater: (issues: Issue[]) => Issue[]): Promise<void>
+saveTask(task: Task): Promise<void>
 ```
 
 **Parameters:**
-- `updater`: Function that takes current issues and returns updated issues
+- `task`: The task to save
+
+**Throws:** Error if task with same ID already exists
+
+##### updateTasks(updater)
+
+Atomically updates tasks using a function.
+
+```typescript
+updateTasks(updater: (tasks: Task[]) => Task[]): Promise<void>
+```
+
+**Parameters:**
+- `updater`: Function that takes current tasks and returns updated tasks
 
 **Example:**
 ```typescript
-await storage.updateIssues(issues =>
-  issues.map(issue =>
-    issue.id === 'task-1'
-      ? { ...issue, status: 'closed', closed_at: new Date().toISOString() }
-      : issue
+await storage.updateTasks(tasks =>
+  tasks.map(task =>
+    task.id === 'task-1'
+      ? { ...task, status: 'closed', closed_at: new Date().toISOString() }
+      : task
   )
 );
 ```
 
-##### addComment(issueId, author, content)
+##### addComment(taskId, author, content)
 
-Adds a comment to an issue.
+Adds a comment to a task.
 
 ```typescript
-addComment(issueId: string, author: string, content: string): Promise<Comment>
+addComment(taskId: string, author: string, content: string): Promise<Comment>
 ```
 
 **Parameters:**
-- `issueId`: ID of the issue to comment on
+- `taskId`: ID of the task to comment on
 - `author`: Comment author
 - `content`: Comment text
 
 **Returns:** The created comment object
 
-##### getIssuesFilePath()
+##### getTasksFilePath()
 
-Gets the path to the issues storage file.
+Gets the path to the tasks storage file.
 
 ```typescript
-getIssuesFilePath(): string
+getTasksFilePath(): string
 ```
 
-**Returns:** Absolute path to the issues.jsonl file
+**Returns:** Absolute path to the tasks.jsonl file
 
 ### Graph Service
 
@@ -204,159 +208,159 @@ Interface for dependency graph operations.
 
 ```typescript
 interface IGraphService {
-  buildGraph(issues: Issue[]): Map<string, Issue>;
-  getReadyWork(issues: Issue[]): Issue[];
-  getBlockedIssues(issues: Issue[]): Issue[];
-  addDependency(fromId: string, toId: string, type: DependencyType, issues: Issue[]): Issue[];
-  removeDependency(fromId: string, toId: string, issues: Issue[]): Issue[];
-  getEpicSubtasks(epicId: string, issues: Issue[]): Issue[];
-  getSubtaskEpic(subtaskId: string, issues: Issue[]): Issue | null;
-  calculateEpicProgress(epicId: string, issues: Issue[]): { completed: number; total: number; percentage: number };
-  shouldCloseEpic(epicId: string, issues: Issue[]): boolean;
-  getNonParentedIssues(issues: Issue[]): Issue[];
+  buildGraph(tasks: Task[]): Map<string, Task>;
+  getReadyWork(tasks: Task[]): Task[];
+  getBlockedTasks(tasks: Task[]): Task[];
+  addDependency(fromId: string, toId: string, type: DependencyType, tasks: Task[]): Task[];
+  removeDependency(fromId: string, toId: string, tasks: Task[]): Task[];
+  getEpicSubtasks(epicId: string, tasks: Task[]): Task[];
+  getSubtaskEpic(subtaskId: string, tasks: Task[]): Task | null;
+  calculateEpicProgress(epicId: string, tasks: Task[]): { completed: number; total: number; percentage: number };
+  shouldCloseEpic(epicId: string, tasks: Task[]): boolean;
+  getNonParentedTasks(tasks: Task[]): Task[];
 }
 ```
 
 #### Methods
 
-##### buildGraph(issues)
+##### buildGraph(tasks)
 
-Builds a dependency graph from issues.
+Builds a dependency graph from tasks.
 
 ```typescript
-buildGraph(issues: Issue[]): Map<string, Issue>
+buildGraph(tasks: Task[]): Map<string, Task>
 ```
 
 **Parameters:**
-- `issues`: Array of issues
+- `tasks`: Array of tasks
 
-**Returns:** Map of issue ID to issue with computed dependents
+**Returns:** Map of task ID to task with computed dependents
 
-##### getReadyWork(issues)
+##### getReadyWork(tasks)
 
-Gets issues that are ready to work on (open and not blocked).
+Gets tasks that are ready to work on (open and not blocked).
 
 ```typescript
-getReadyWork(issues: Issue[]): Issue[]
+getReadyWork(tasks: Task[]): Task[]
 ```
 
 **Parameters:**
-- `issues`: Array of issues
+- `tasks`: Array of tasks
 
-**Returns:** Array of unblocked open issues
+**Returns:** Array of unblocked open tasks
 
-##### getBlockedIssues(issues)
+##### getBlockedTasks(tasks)
 
-Gets issues that are currently blocked.
+Gets tasks that are currently blocked.
 
 ```typescript
-getBlockedIssues(issues: Issue[]): Issue[]
+getBlockedTasks(tasks: Task[]): Task[]
 ```
 
 **Parameters:**
-- `issues`: Array of issues
+- `tasks`: Array of tasks
 
-**Returns:** Array of blocked issues
+**Returns:** Array of blocked tasks
 
-##### addDependency(fromId, toId, type, issues)
+##### addDependency(fromId, toId, type, tasks)
 
-Adds a dependency relationship between issues.
+Adds a dependency relationship between tasks.
 
 ```typescript
-addDependency(fromId: string, toId: string, type: DependencyType, issues: Issue[]): Issue[]
+addDependency(fromId: string, toId: string, type: DependencyType, tasks: Task[]): Task[]
 ```
 
 **Parameters:**
-- `fromId`: ID of the dependent issue
-- `toId`: ID of the issue it depends on
+- `fromId`: ID of the dependent task
+- `toId`: ID of the task it depends on
 - `type`: Type of dependency
-- `issues`: Current issues array
+- `tasks`: Current tasks array
 
-**Returns:** Updated issues array
+**Returns:** Updated tasks array
 
-##### removeDependency(fromId, toId, issues)
+##### removeDependency(fromId, toId, tasks)
 
 Removes a dependency relationship.
 
 ```typescript
-removeDependency(fromId: string, toId: string, issues: Issue[]): Issue[]
+removeDependency(fromId: string, toId: string, tasks: Task[]): Task[]
 ```
 
 **Parameters:**
-- `fromId`: ID of the dependent issue
-- `toId`: ID of the issue it depends on
-- `issues`: Current issues array
+- `fromId`: ID of the dependent task
+- `toId`: ID of the task it depends on
+- `tasks`: Current tasks array
 
-**Returns:** Updated issues array
+**Returns:** Updated tasks array
 
-##### getEpicSubtasks(epicId, issues)
+##### getEpicSubtasks(epicId, tasks)
 
 Gets all subtasks of an epic.
 
 ```typescript
-getEpicSubtasks(epicId: string, issues: Issue[]): Issue[]
+getEpicSubtasks(epicId: string, tasks: Task[]): Task[]
 ```
 
 **Parameters:**
 - `epicId`: ID of the epic
-- `issues`: Array of issues
+- `tasks`: Array of tasks
 
-**Returns:** Array of subtask issues
+**Returns:** Array of subtask tasks
 
-##### getSubtaskEpic(subtaskId, issues)
+##### getSubtaskEpic(subtaskId, tasks)
 
 Gets the epic that a subtask belongs to.
 
 ```typescript
-getSubtaskEpic(subtaskId: string, issues: Issue[]): Issue | null
+getSubtaskEpic(subtaskId: string, tasks: Task[]): Task | null
 ```
 
 **Parameters:**
 - `subtaskId`: ID of the subtask
-- `issues`: Array of issues
+- `tasks`: Array of tasks
 
-**Returns:** Epic issue or null if not found
+**Returns:** Epic task or null if not found
 
-##### calculateEpicProgress(epicId, issues)
+##### calculateEpicProgress(epicId, tasks)
 
 Calculates progress percentage for an epic.
 
 ```typescript
-calculateEpicProgress(epicId: string, issues: Issue[]): { completed: number; total: number; percentage: number }
+calculateEpicProgress(epicId: string, tasks: Task[]): { completed: number; total: number; percentage: number }
 ```
 
 **Parameters:**
 - `epicId`: ID of the epic
-- `issues`: Array of issues
+- `tasks`: Array of tasks
 
 **Returns:** Object with completed count, total count, and percentage
 
-##### shouldCloseEpic(epicId, issues)
+##### shouldCloseEpic(epicId, tasks)
 
 Determines if an epic should be closed (all subtasks completed).
 
 ```typescript
-shouldCloseEpic(epicId: string, issues: Issue[]): boolean
+shouldCloseEpic(epicId: string, tasks: Task[]): boolean
 ```
 
 **Parameters:**
 - `epicId`: ID of the epic
-- `issues`: Array of issues
+- `tasks`: Array of tasks
 
 **Returns:** True if all subtasks are closed
 
-##### getNonParentedIssues(issues)
+##### getNonParentedTasks(tasks)
 
-Gets issues that are not subtasks (no parent-child dependencies).
+Gets tasks that are not subtasks (no parent-child dependencies).
 
 ```typescript
-getNonParentedIssues(issues: Issue[]): Issue[]
+getNonParentedTasks(tasks: Task[]): Task[]
 ```
 
 **Parameters:**
-- `issues`: Array of issues
+- `tasks`: Array of tasks
 
-**Returns:** Array of issues without parent relationships
+**Returns:** Array of tasks without parent relationships
 
 ### Compaction Service
 
@@ -366,27 +370,27 @@ Interface for data compaction operations.
 
 ```typescript
 interface ICompactionService {
-  compactIssues(issues: Issue[]): Issue[];
+  compactTasks(issues: Task[]): Task[];
 }
 ```
 
 #### Methods
 
-##### compactIssues(issues)
+##### compactTasks(tasks)
 
-Compacts old closed issues to save space.
+Compacts old closed tasks to save space.
 
 ```typescript
-compactIssues(issues: Issue[]): Issue[]
+compactTasks(tasks: Task[]): Task[]
 ```
 
 **Parameters:**
-- `issues`: Array of issues
+- `tasks`: Array of tasks
 
-**Returns:** Array with old issues truncated
+**Returns:** Array with old tasks truncated
 
 **Behavior:**
-- Issues closed more than 30 days ago have their description/notes truncated
+- Tasks closed more than 30 days ago have their description/notes truncated
 - Design field is removed
 - Other fields are preserved
 
@@ -437,10 +441,10 @@ const task = {
   updated_at: new Date().toISOString()
 };
 
-await storage.saveIssue(task);
+await storage.saveTask(task);
 
 // Get ready work
-const readyTasks = graph.getReadyWork(await storage.loadIssues());
+const readyTasks = graph.getReadyWork(await storage.loadTasks());
 console.log('Ready to work on:', readyTasks.map(t => t.title));
 ```
 
@@ -457,7 +461,7 @@ const epic = {
   updated_at: new Date().toISOString()
 };
 
-await storage.saveIssue(epic);
+await storage.saveTask(epic);
 
 // Create subtasks
 const subtask1 = {
@@ -470,15 +474,15 @@ const subtask1 = {
   dependencies: [{ id: 'epic-1', type: 'parent-child' }]
 };
 
-await storage.saveIssue(subtask1);
+await storage.saveTask(subtask1);
 
 // Add dependency
-await storage.updateIssues(issues =>
-  graph.addDependency('task-2', 'epic-1', 'parent-child', issues)
+await storage.updateTasks(tasks =>
+  graph.addDependency('task-2', 'epic-1', 'parent-child', tasks)
 );
 
 // Check epic progress
-const progress = graph.calculateEpicProgress('epic-1', await storage.loadIssues());
+const progress = graph.calculateEpicProgress('epic-1', await storage.loadTasks());
 console.log(`Epic progress: ${progress.completed}/${progress.total} (${progress.percentage}%)`);
 ```
 
@@ -486,16 +490,16 @@ console.log(`Epic progress: ${progress.completed}/${progress.total} (${progress.
 
 ```typescript
 // Task A blocks Task B
-await storage.updateIssues(issues =>
-  graph.addDependency('task-b', 'task-a', 'blocks', issues)
+await storage.updateTasks(tasks =>
+  graph.addDependency('task-b', 'task-a', 'blocks', tasks)
 );
 
-// Get blocked issues
-const blocked = graph.getBlockedIssues(await storage.loadIssues());
+// Get blocked tasks
+const blocked = graph.getBlockedTasks(await storage.loadTasks());
 console.log('Blocked tasks:', blocked.map(t => t.title));
 
 // Get ready work (unblocked)
-const ready = graph.getReadyWork(await storage.loadIssues());
+const ready = graph.getReadyWork(await storage.loadTasks());
 console.log('Ready tasks:', ready.map(t => t.title));
 ```
 
@@ -504,22 +508,22 @@ console.log('Ready tasks:', ready.map(t => t.title));
 The API methods may throw errors in various scenarios:
 
 - **Storage Errors**: File system issues, permission problems, corruption
-- **Validation Errors**: Invalid issue IDs, malformed data
+- **Validation Errors**: Invalid task IDs, malformed data
 - **Concurrency Errors**: File locking timeouts, concurrent modification conflicts
 
 Always wrap API calls in try-catch blocks:
 
 ```typescript
 try {
-  await storage.saveIssue(newIssue);
+  await storage.saveTask(newTask);
 } catch (error) {
-  console.error('Failed to save issue:', error.message);
+  console.error('Failed to save task:', error.message);
 }
 ```
 
 ## Data Persistence
 
-Issues are stored in JSONL format (JSON Lines) in `.cairn/issues.jsonl`:
+Tasks are stored in JSONL format (JSON Lines) in `.cairn/tasks.jsonl`:
 
 ```
 {"id":"task-1","title":"Example Task","status":"open",...}
@@ -527,7 +531,7 @@ Issues are stored in JSONL format (JSON Lines) in `.cairn/issues.jsonl`:
 ```
 
 - Each line is a valid JSON object
-- File is append-only for new issues
+- File is append-only for new tasks
 - Updates rewrite the entire file
 - File locking prevents corruption during concurrent access
 
@@ -542,12 +546,12 @@ The storage service uses file locking and write queuing to ensure thread safety:
 
 ## Performance Considerations
 
-- **Memory Usage**: All issues are loaded into memory
+- **Memory Usage**: All tasks are loaded into memory
 - **File I/O**: Updates require full file rewrites
 - **Graph Operations**: O(n) complexity for graph traversals
 - **Compaction**: Runs on every load operation
 
-For large projects (>1000 issues), consider:
+For large projects (>1000 tasks), consider:
 - Implementing pagination
 - Using database storage instead of JSONL
 - Caching frequently accessed data

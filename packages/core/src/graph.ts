@@ -1,38 +1,38 @@
 import { injectable } from 'inversify';
-import { Issue, DependencyType } from './types';
+import { Task, DependencyType } from './types';
 import { calculateCompletionPercentage } from './utils';
 
 export interface IGraphService {
-  buildGraph(issues: Issue[]): Map<string, Issue>;
-  getReadyWork(issues: Issue[]): Issue[];
-  getBlockedIssues(issues: Issue[]): Issue[];
-  addDependency(fromId: string, toId: string, type: DependencyType, issues: Issue[]): Issue[];
-  removeDependency(fromId: string, toId: string, issues: Issue[]): Issue[];
-  getEpicSubtasks(epicId: string, issues: Issue[]): Issue[];
-  getSubtaskEpic(subtaskId: string, issues: Issue[]): Issue | null;
-  calculateEpicProgress(epicId: string, issues: Issue[]): { completed: number; total: number; percentage: number };
-  shouldCloseEpic(epicId: string, issues: Issue[]): boolean;
-  canCloseIssue(issueId: string, issues: Issue[]): { canClose: boolean; openSubtasks?: Issue[]; reason?: string; completionPercentage?: number };
-  getNonParentedIssues(issues: Issue[]): Issue[];
-  wouldCreateCycle(fromId: string, toId: string, type: DependencyType, issues: Issue[]): boolean;
+  buildGraph(tasks: Task[]): Map<string, Task>;
+  getReadyWork(tasks: Task[]): Task[];
+  getBlockedTasks(tasks: Task[]): Task[];
+  addDependency(fromId: string, toId: string, type: DependencyType, tasks: Task[]): Task[];
+  removeDependency(fromId: string, toId: string, tasks: Task[]): Task[];
+  getEpicSubtasks(epicId: string, tasks: Task[]): Task[];
+  getSubtaskEpic(subtaskId: string, tasks: Task[]): Task | null;
+  calculateEpicProgress(epicId: string, tasks: Task[]): { completed: number; total: number; percentage: number };
+  shouldCloseEpic(epicId: string, tasks: Task[]): boolean;
+  canCloseTask(taskId: string, tasks: Task[]): { canClose: boolean; openSubtasks?: Task[]; reason?: string; completionPercentage?: number };
+  getNonParentedTasks(tasks: Task[]): Task[];
+  wouldCreateCycle(fromId: string, toId: string, type: DependencyType, tasks: Task[]): boolean;
 }
 
 @injectable()
 export class GraphService implements IGraphService {
-  buildGraph(issues: Issue[]): Map<string, Issue> {
-    const graph = new Map<string, Issue>();
-    for (const issue of issues) {
-      graph.set(issue.id, { ...issue });
+  buildGraph(tasks: Task[]): Map<string, Task> {
+    const graph = new Map<string, Task>();
+    for (const task of tasks) {
+      graph.set(task.id, { ...task });
     }
     // Compute dependents
-    for (const issue of issues) {
-      if (issue.dependencies) {
-        for (const dep of issue.dependencies) {
-          const depIssue = graph.get(dep.id);
-          if (depIssue) {
-            if (!depIssue.dependents) depIssue.dependents = [];
-            if (!depIssue.dependents.includes(issue.id)) {
-              depIssue.dependents.push(issue.id);
+    for (const task of tasks) {
+      if (task.dependencies) {
+        for (const dep of task.dependencies) {
+          const depTask = graph.get(dep.id);
+          if (depTask) {
+            if (!depTask.dependents) depTask.dependents = [];
+            if (!depTask.dependents.includes(task.id)) {
+              depTask.dependents.push(task.id);
             }
           }
         }
@@ -41,16 +41,16 @@ export class GraphService implements IGraphService {
     return graph;
   }
 
-  getReadyWork(issues: Issue[]): Issue[] {
-    const graph = this.buildGraph(issues);
-    return issues.filter(issue => {
-      if (issue.status !== 'open') return false;
+  getReadyWork(tasks: Task[]): Task[] {
+    const graph = this.buildGraph(tasks);
+    return tasks.filter(task => {
+      if (task.status !== 'open') return false;
       // Check if blocked
-      if (issue.dependencies) {
-        for (const dep of issue.dependencies) {
+      if (task.dependencies) {
+        for (const dep of task.dependencies) {
           if (dep.type === 'blocked_by' || dep.type === 'blocks') {
-            const depIssue = graph.get(dep.id);
-            if (depIssue && depIssue.status !== 'closed') {
+            const depTask = graph.get(dep.id);
+            if (depTask && depTask.status !== 'closed') {
               return false;
             }
           }
@@ -60,15 +60,15 @@ export class GraphService implements IGraphService {
     });
   }
 
-  getBlockedIssues(issues: Issue[]): Issue[] {
-    const graph = this.buildGraph(issues);
-    return issues.filter(issue => {
-      if (issue.status === 'closed') return false;
-      if (issue.dependencies) {
-        for (const dep of issue.dependencies) {
+  getBlockedTasks(tasks: Task[]): Task[] {
+    const graph = this.buildGraph(tasks);
+    return tasks.filter(task => {
+      if (task.status === 'closed') return false;
+      if (task.dependencies) {
+        for (const dep of task.dependencies) {
           if (dep.type === 'blocked_by' || dep.type === 'blocks') {
-            const depIssue = graph.get(dep.id);
-            if (depIssue && depIssue.status !== 'closed') {
+            const depTask = graph.get(dep.id);
+            if (depTask && depTask.status !== 'closed') {
               return true;
             }
           }
@@ -78,21 +78,21 @@ export class GraphService implements IGraphService {
     });
   }
 
-  addDependency(fromId: string, toId: string, type: DependencyType, issues: Issue[]): Issue[] {
+  addDependency(fromId: string, toId: string, type: DependencyType, tasks: Task[]): Task[] {
     // Check for circular dependencies before adding
-    if (this.wouldCreateCycle(fromId, toId, type, issues)) {
+    if (this.wouldCreateCycle(fromId, toId, type, tasks)) {
       throw new Error(`Adding ${type} dependency from ${fromId} to ${toId} would create a circular dependency`);
     }
 
-    const updated = issues.map(issue => {
-      if (issue.id === fromId) {
-        const deps = issue.dependencies || [];
+    const updated = tasks.map(task => {
+      if (task.id === fromId) {
+        const deps = task.dependencies || [];
         if (!deps.some(d => d.id === toId && d.type === type)) {
           deps.push({ id: toId, type });
         }
-        return { ...issue, dependencies: deps, updated_at: new Date().toISOString() };
+        return { ...task, dependencies: deps, updated_at: new Date().toISOString() };
       }
-      return issue;
+      return task;
     });
     return updated;
   }
@@ -113,7 +113,7 @@ export class GraphService implements IGraphService {
    *          {@code false} otherwise (including when the edge is effectively a no-op
    *          or the IDs do not correspond to existing issues).
    */
-  wouldCreateCycle(fromId: string, toId: string, type: DependencyType, issues: Issue[]): boolean {
+  wouldCreateCycle(fromId: string, toId: string, type: DependencyType, tasks: Task[]): boolean {
     // For now, only check parent-child relationships for cycles
     // Blocks relationships can have cycles in some cases (A blocks B, B blocks A)
     // but we'll be conservative and prevent cycles for blocks too
@@ -133,10 +133,10 @@ export class GraphService implements IGraphService {
         return true; // Found a path from toId to fromId, so adding fromId -> toId would create a cycle
       }
 
-      // Find issues that current depends on with the same type (treat blocks/blocked_by equivalently)
-      const currentIssue = issues.find(issue => issue.id === current);
-      if (currentIssue?.dependencies) {
-        for (const dep of currentIssue.dependencies) {
+      // Find tasks that current depends on with the same type (treat blocks/blocked_by equivalently)
+      const currentTask = tasks.find(task => task.id === current);
+      if (currentTask?.dependencies) {
+        for (const dep of currentTask.dependencies) {
           if (type === 'parent-child' ? dep.type === 'parent-child' : (dep.type === 'blocked_by' || dep.type === 'blocks')) {
             stack.push(dep.id);
           }
@@ -147,34 +147,34 @@ export class GraphService implements IGraphService {
     return false;
   }
 
-  removeDependency(fromId: string, toId: string, issues: Issue[]): Issue[] {
-    return issues.map(issue => {
-      if (issue.id === fromId && issue.dependencies) {
-        const deps = issue.dependencies.filter(d => d.id !== toId);
-        return { ...issue, dependencies: deps, updated_at: new Date().toISOString() };
+  removeDependency(fromId: string, toId: string, tasks: Task[]): Task[] {
+    return tasks.map(task => {
+      if (task.id === fromId && task.dependencies) {
+        const deps = task.dependencies.filter(d => d.id !== toId);
+        return { ...task, dependencies: deps, updated_at: new Date().toISOString() };
       }
-      return issue;
+      return task;
     });
   }
 
-  getEpicSubtasks(epicId: string, issues: Issue[]): Issue[] {
-    return issues.filter(issue =>
-      issue.dependencies?.some(dep => dep.id === epicId && dep.type === 'parent-child')
+  getEpicSubtasks(epicId: string, tasks: Task[]): Task[] {
+    return tasks.filter(task =>
+      task.dependencies?.some(dep => dep.id === epicId && dep.type === 'parent-child')
     );
   }
 
-  getSubtaskEpic(subtaskId: string, issues: Issue[]): Issue | null {
-    const subtask = issues.find(issue => issue.id === subtaskId);
+  getSubtaskEpic(subtaskId: string, tasks: Task[]): Task | null {
+    const subtask = tasks.find(task => task.id === subtaskId);
     if (!subtask?.dependencies) return null;
 
     const epicDep = subtask.dependencies.find(dep => dep.type === 'parent-child');
     if (!epicDep) return null;
 
-    return issues.find(issue => issue.id === epicDep.id) || null;
+    return tasks.find(task => task.id === epicDep.id) || null;
   }
 
-  calculateEpicProgress(epicId: string, issues: Issue[]): { completed: number; total: number; percentage: number } {
-    const subtasks = this.getEpicSubtasks(epicId, issues);
+  calculateEpicProgress(epicId: string, tasks: Task[]): { completed: number; total: number; percentage: number } {
+    const subtasks = this.getEpicSubtasks(epicId, tasks);
     const total = subtasks.length;
     if (total === 0) {
       return { completed: 0, total: 0, percentage: 0 };
@@ -187,24 +187,24 @@ export class GraphService implements IGraphService {
     return { completed, total, percentage };
   }
 
-  shouldCloseEpic(epicId: string, issues: Issue[]): boolean {
-    const subtasks = this.getEpicSubtasks(epicId, issues);
+  shouldCloseEpic(epicId: string, tasks: Task[]): boolean {
+    const subtasks = this.getEpicSubtasks(epicId, tasks);
     return subtasks.length > 0 && subtasks.every(subtask => subtask.status === 'closed');
   }
 
-  canCloseIssue(issueId: string, issues: Issue[]): { canClose: boolean; openSubtasks?: Issue[]; reason?: string; completionPercentage?: number } {
-    // Check if the issue exists
-    const issue = issues.find(issue => issue.id === issueId);
-    if (!issue) {
-      return { canClose: false, openSubtasks: [], reason: 'Issue not found' };
+  canCloseTask(taskId: string, tasks: Task[]): { canClose: boolean; openSubtasks?: Task[]; reason?: string; completionPercentage?: number } {
+    // Check if the task exists
+    const task = tasks.find(task => task.id === taskId);
+    if (!task) {
+      return { canClose: false, openSubtasks: [], reason: 'Task not found' };
     }
 
     // If already closed, it's valid
-    if (issue.status === 'closed') {
+    if (task.status === 'closed') {
       return { canClose: true, completionPercentage: 100 };
     }
 
-    const subtasks = this.getEpicSubtasks(issueId, issues);
+    const subtasks = this.getEpicSubtasks(taskId, tasks);
     const openSubtasks = subtasks.filter(subtask => subtask.status !== 'closed');
 
     // Check for open subtasks first
@@ -217,11 +217,11 @@ export class GraphService implements IGraphService {
     }
 
     // Check acceptance criteria
-    const hasIncompleteAC = issue.acceptance_criteria && issue.acceptance_criteria.length > 0 
-      && !issue.acceptance_criteria.every(ac => ac.completed);
+    const hasIncompleteAC = task.acceptance_criteria && task.acceptance_criteria.length > 0 
+      && !task.acceptance_criteria.every(ac => ac.completed);
     
     if (hasIncompleteAC) {
-      const incompleteCount = issue.acceptance_criteria!.filter(ac => !ac.completed).length;
+      const incompleteCount = task.acceptance_criteria!.filter(ac => !ac.completed).length;
       return {
         canClose: false,
         reason: `has ${incompleteCount} incomplete acceptance criteria`
@@ -229,10 +229,10 @@ export class GraphService implements IGraphService {
     }
 
     // Verify completion percentage would be 100%
-    // Calculate what completion would be if this issue were marked as closed
-    const tempIssue = { ...issue, status: 'closed' as const };
-    const tempIssues = issues.map(i => i.id === issueId ? tempIssue : i);
-    const completionPct = calculateCompletionPercentage(tempIssue, tempIssues);
+    // Calculate what completion would be if this task were marked as closed
+    const tempTask = { ...task, status: 'closed' as const };
+    const tempTasks = tasks.map(i => i.id === taskId ? tempTask : i);
+    const completionPct = calculateCompletionPercentage(tempTask, tempTasks);
     
     if (completionPct < 100) {
       return {
@@ -245,17 +245,17 @@ export class GraphService implements IGraphService {
     return { canClose: true, completionPercentage: 100 };
   }
 
-  getNonParentedIssues(issues: Issue[]): Issue[] {
+  getNonParentedTasks(tasks: Task[]): Task[] {
     const parentedIds = new Set<string>();
-    for (const issue of issues) {
-      if (issue.dependencies) {
-        for (const dep of issue.dependencies) {
+    for (const task of tasks) {
+      if (task.dependencies) {
+        for (const dep of task.dependencies) {
           if (dep.type === 'parent-child') {
-            parentedIds.add(issue.id);
+            parentedIds.add(task.id);
           }
         }
       }
     }
-    return issues.filter(issue => !parentedIds.has(issue.id));
+    return tasks.filter(task => !parentedIds.has(task.id));
   }
 }

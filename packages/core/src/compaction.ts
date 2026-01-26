@@ -1,29 +1,29 @@
 import { injectable } from 'inversify';
-import { Issue } from './types';
+import { Task } from './types';
 
 export interface ICompactionService {
-  compactIssues(issues: Issue[]): Issue[];
+  compactTasks(tasks: Task[]): Task[];
 }
 
 @injectable()
 export class CompactionService implements ICompactionService {
   private readonly COMPACTION_DAYS = 30;
 
-  compactIssues(issues: Issue[]): Issue[] {
+  compactTasks(tasks: Task[]): Task[] {
     const now = new Date();
-    return issues.map(issue => {
-      if (issue.status === 'closed' && issue.closed_at) {
-        const closedDate = new Date(issue.closed_at);
+    return tasks.map(task => {
+      if (task.status === 'closed' && task.closed_at) {
+        const closedDate = new Date(task.closed_at);
         const daysSinceClosed = (now.getTime() - closedDate.getTime()) / (1000 * 60 * 60 * 24);
         if (daysSinceClosed > this.COMPACTION_DAYS) {
           return {
-            ...issue,
-            description: issue.description ? issue.description.substring(0, 200) + '...' : undefined,
+            ...task,
+            description: task.description ? task.description.substring(0, 200) + '...' : undefined,
             acceptance_criteria: undefined, // remove criteria
           };
         }
       }
-      return issue;
+      return task;
     });
   }
 }

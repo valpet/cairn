@@ -14,7 +14,7 @@ This package provides the foundational data structures and business logic for Ca
 
 - JSONL-based storage with file locking
 - Dependency graph management
-- Issue compaction and optimization
+- Task compaction and optimization
 - TypeScript interfaces and types
 
 ## Usage
@@ -37,10 +37,10 @@ const task = {
   updated_at: new Date().toISOString()
 };
 
-await storage.saveIssue(task);
+await storage.saveTask(task);
 
 // Get ready work
-const readyTasks = graph.getReadyWork(await storage.loadIssues());
+const readyTasks = graph.getReadyWork(await storage.loadTasks());
 ```
 
 ## API Reference

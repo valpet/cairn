@@ -1,40 +1,40 @@
-// Utility functions for IssueEdit components
+// Utility functions for TaskEdit components
 
 interface Subtask {
   status: string;
 }
 
-interface Issue {
+interface Task {
   id: string;
   status: string;
   dependencies?: Array<{ id: string; type: string }>;
 }
 
-// Compute if an issue is blocked based on its dependencies
-export const isIssueBlocked = (issue: Issue, allIssues: Issue[]): boolean => {
-  if (!issue.dependencies || issue.dependencies.length === 0) {
+// Compute if a task is blocked based on its dependencies
+export const isTaskBlocked = (task: Task, allTasks: Task[]): boolean => {
+  if (!task.dependencies || task.dependencies.length === 0) {
     return false;
   }
   
   // Check if any blocking dependency is not closed
-  const blockingDeps = issue.dependencies.filter(d => d.type === 'blocks');
+  const blockingDeps = task.dependencies.filter(d => d.type === 'blocks');
   return blockingDeps.some(dep => {
-    const blocker = allIssues.find(i => i.id === dep.id);
+    const blocker = allTasks.find(i => i.id === dep.id);
     return blocker && blocker.status !== 'closed';
   });
 };
 
 // Get the computed status including blocked state
-export const getComputedStatus = (issue: Issue, allIssues: Issue[]): string => {
-  if (issue.status === 'closed') {
+export const getComputedStatus = (task: Task, allTasks: Task[]): string => {
+  if (task.status === 'closed') {
     return 'closed';
   }
   
-  if (isIssueBlocked(issue, allIssues)) {
+  if (isTaskBlocked(task, allTasks)) {
     return 'blocked';
   }
   
-  return issue.status;
+  return task.status;
 };
 
 export const getTypeIcon = (type: string) => {
@@ -103,7 +103,7 @@ export const getStatusLabel = (status: string) => {
   return labels[status] || status;
 };
 
-export const computeSubIssueStatus = (subtasks: Subtask[]) => {
+export const computeSubTaskStatus = (subtasks: Subtask[]) => {
   if (!subtasks || subtasks.length === 0) return null;
 
   const hasInProgress = subtasks.some(subtask => subtask.status === 'in_progress');
@@ -122,7 +122,7 @@ export const computeSubIssueStatus = (subtasks: Subtask[]) => {
 };
 
 export const getComputedStatusClass = (status: string, subtasks: Subtask[]) => {
-  const computedStatus = computeSubIssueStatus(subtasks);
+  const computedStatus = computeSubTaskStatus(subtasks);
   return computedStatus && computedStatus !== status ? computedStatus : status;
 };
 
@@ -158,7 +158,7 @@ export const getStatusDisplayText = (status: string, subtasks: Subtask[]) => {
   };
   const statusText = statusLabels[status] || status;
 
-  const computedStatus = computeSubIssueStatus(subtasks);
+  const computedStatus = computeSubTaskStatus(subtasks);
   if (computedStatus && computedStatus !== status) {
     const computedStatusText = statusLabels[computedStatus] || computedStatus;
     return `${statusText} / ${computedStatusText}`;
@@ -171,7 +171,7 @@ export const getStatusDisplayText = (status: string, subtasks: Subtask[]) => {
 export const showErrorMessage = (error: string, errorCode?: string) => {
   let message = error;
   if (errorCode === 'CANNOT_CLOSE_WITH_OPEN_SUBTASKS') {
-    message = 'Cannot close issue as it has open sub-issues.';
+    message = 'Cannot close task as it has open subtasks.';
   }
 
   // Create temporary error notification

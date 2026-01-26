@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CompactionService } from './compaction';
-import { Issue } from './types';
+import { Task } from './types';
 
 describe('CompactionService', () => {
   let compactionService: CompactionService;
@@ -10,7 +10,7 @@ describe('CompactionService', () => {
   });
 
   it('should not compact open issues', () => {
-    const issues: Issue[] = [
+    const issues: Task[] = [
       {
         id: 'a',
         title: 'A',
@@ -21,7 +21,7 @@ describe('CompactionService', () => {
       },
     ];
 
-    const compacted = compactionService.compactIssues(issues);
+    const compacted = compactionService.compactTasks(issues);
     expect(compacted[0].description).toBe('Long description that should be compacted');
   });
 
@@ -29,7 +29,7 @@ describe('CompactionService', () => {
     const closedDate = new Date();
     closedDate.setDate(closedDate.getDate() - 31); // 31 days ago
 
-    const issues: Issue[] = [
+    const issues: Task[] = [
       {
         id: 'a',
         title: 'A',
@@ -42,7 +42,7 @@ describe('CompactionService', () => {
       },
     ];
 
-    const compacted = compactionService.compactIssues(issues);
+    const compacted = compactionService.compactTasks(issues);
     expect(compacted[0].description?.length).toBeLessThanOrEqual(203); // 200 + '...'
     expect(compacted[0].description?.endsWith('...')).toBe(true);
     expect(compacted[0].acceptance_criteria).toBeUndefined();
@@ -52,7 +52,7 @@ describe('CompactionService', () => {
     const closedDate = new Date();
     closedDate.setDate(closedDate.getDate() - 10); // 10 days ago
 
-    const issues: Issue[] = [
+    const issues: Task[] = [
       {
         id: 'a',
         title: 'A',
@@ -64,7 +64,7 @@ describe('CompactionService', () => {
       },
     ];
 
-    const compacted = compactionService.compactIssues(issues);
+    const compacted = compactionService.compactTasks(issues);
     expect(compacted[0].description).toBe('Short desc');
   });
 
@@ -72,7 +72,7 @@ describe('CompactionService', () => {
     const closedDate = new Date();
     closedDate.setDate(closedDate.getDate() - 31);
 
-    const issues: Issue[] = [
+    const issues: Task[] = [
       {
         id: 'a',
         title: 'A',
@@ -86,7 +86,7 @@ describe('CompactionService', () => {
       } as any,
     ];
 
-    const compacted = compactionService.compactIssues(issues);
+    const compacted = compactionService.compactTasks(issues);
     expect(compacted[0].description?.length).toBeLessThanOrEqual(203); // 200 + '...'
     expect(compacted[0].description?.endsWith('...')).toBe(true);
     // Deprecated fields should be handled gracefully

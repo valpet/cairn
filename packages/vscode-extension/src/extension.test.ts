@@ -110,13 +110,13 @@ describe('VS Code Extension Tools', () => {
 
     // Setup mocks
     mockStorage = {
-      loadIssues: vi.fn().mockResolvedValue([]),
-      saveIssue: vi.fn().mockResolvedValue(undefined),
-      updateIssues: vi.fn().mockImplementation(async (callback) => {
-        // Mock updateIssues to call the callback with current issues and return the result
-        const currentIssues = [{ id: 'existing-1' }];
-        const updatedIssues = callback(currentIssues);
-        return Promise.resolve(updatedIssues);
+      loadTasks: vi.fn().mockResolvedValue([]),
+      saveTask: vi.fn().mockResolvedValue(undefined),
+      updateTasks: vi.fn().mockImplementation(async (callback) => {
+        // Mock updateTasks to call the callback with current tasks and return the result
+        const currentTasks = [{ id: 'existing-1' }];
+        const updatedTasks = callback(currentTasks);
+        return Promise.resolve(updatedTasks);
       }),
       addComment: vi.fn().mockResolvedValue({ id: 'comment-123', author: 'agent', content: 'Test comment', created_at: '2026-01-18T00:00:00.000Z' }),
     };
@@ -125,9 +125,9 @@ describe('VS Code Extension Tools', () => {
       addDependency: vi.fn(),
       getReadyWork: vi.fn(),
       getCascadingStatusUpdates: vi.fn(() => []),
-      canCloseIssue: vi.fn(),
+      canCloseTask: vi.fn(),
       getEpicSubtasks: vi.fn(() => []),
-      getNonParentedIssues: vi.fn(() => []),
+      getNonParentedTasks: vi.fn(() => []),
     };
 
     mockContainer = {
@@ -163,7 +163,7 @@ describe('VS Code Extension Tools', () => {
 
   describe('cairn_create tool', () => {
     it('should create a task with minimal parameters', async () => {
-      mockStorage.loadIssues.mockResolvedValue([]);
+      mockStorage.loadTasks.mockResolvedValue([]);
 
       const toolHandler = registeredTools['cairn_create'];
 
@@ -173,8 +173,8 @@ describe('VS Code Extension Tools', () => {
         }
       }, {});
 
-      expect(mockStorage.loadIssues).toHaveBeenCalled();
-      expect(mockStorage.saveIssue).toHaveBeenCalledWith({
+      expect(mockStorage.loadTasks).toHaveBeenCalled();
+      expect(mockStorage.saveTask).toHaveBeenCalledWith({
         id: 's-test-id-123',
         title: 'Test Task',
         description: '',
@@ -184,15 +184,15 @@ describe('VS Code Extension Tools', () => {
         created_at: expect.any(String),
         updated_at: expect.any(String),
       });
-      expect(result.content[0].text).toContain('Created issue s-test-id-123');
+      expect(result.content[0].text).toContain('Created task s-test-id-123');
     });
 
     it('should create a task with all parameters including parent', async () => {
-      const mockIssues = [{ id: 'epic-123', title: 'Test Epic' }];
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
-      mockStorage.updateIssues.mockImplementation(async (callback) => {
-        const updatedIssues = callback(mockIssues);
-        return updatedIssues;
+      const mockTasks = [{ id: 'epic-123', title: 'Test Epic' }];
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
+      mockStorage.updateTasks.mockImplementation(async (callback) => {
+        const updatedTasks = callback(mockTasks);
+        return updatedTasks;
       });
 
       const toolHandler = registeredTools['cairn_create'];
@@ -208,7 +208,7 @@ describe('VS Code Extension Tools', () => {
         }
       }, {});
 
-      expect(mockStorage.saveIssue).toHaveBeenCalledWith({
+      expect(mockStorage.saveTask).toHaveBeenCalledWith({
         id: 's-test-id-123',
         title: 'Feature Task',
         description: 'A feature description',
@@ -219,14 +219,14 @@ describe('VS Code Extension Tools', () => {
         updated_at: expect.any(String),
       });
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(mockGraph.addDependency).toHaveBeenCalledWith('s-test-id-123', 'epic-123', 'parent-child', mockIssues);
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
+      expect(mockGraph.addDependency).toHaveBeenCalledWith('s-test-id-123', 'epic-123', 'parent-child', mockTasks);
 
-      expect(result.content[0].text).toContain('Created issue s-test-id-123');
+      expect(result.content[0].text).toContain('Created task s-test-id-123');
     });
 
     it('should handle errors gracefully', async () => {
-      mockStorage.loadIssues.mockRejectedValue(new Error('Storage error'));
+      mockStorage.loadTasks.mockRejectedValue(new Error('Storage error'));
 
       const toolHandler = registeredTools['cairn_create'];
 
@@ -236,26 +236,26 @@ describe('VS Code Extension Tools', () => {
         }
       }, {});
 
-      expect(result.content[0].text).toContain('Error creating issue');
+      expect(result.content[0].text).toContain('Error creating task');
       expect(result.content[0].text).toContain('Storage error');
     });
   });
 
   describe('cairn_list_ready tool', () => {
     it('should return ready tasks', async () => {
-      const mockIssues = [
+      const mockTasks = [
         { id: 'task-1', title: 'Ready Task', status: 'open', priority: 'high' },
         { id: 'task-2', title: 'Blocked Task', status: 'open', priority: 'medium' }
       ];
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
-      mockGraph.getReadyWork.mockReturnValue([mockIssues[0]]);
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
+      mockGraph.getReadyWork.mockReturnValue([mockTasks[0]]);
 
       const toolHandler = registeredTools['cairn_list_ready'];
 
       const result = await toolHandler.invoke({}, {});
 
-      expect(mockStorage.loadIssues).toHaveBeenCalled();
-      expect(mockGraph.getReadyWork).toHaveBeenCalledWith(mockIssues);
+      expect(mockStorage.loadTasks).toHaveBeenCalled();
+      expect(mockGraph.getReadyWork).toHaveBeenCalledWith(mockTasks);
       expect(result.content[0].text).toContain('readyTasks');
       expect(result.content[0].text).toContain('Ready Task');
     });
@@ -263,10 +263,10 @@ describe('VS Code Extension Tools', () => {
 
   describe('cairn_update tool', () => {
     it('should update task status', async () => {
-      mockStorage.updateIssues.mockImplementation(async (callback) => {
-        const currentIssues = [{ id: 'task-123', status: 'open' }];
-        const updatedIssues = callback(currentIssues);
-        return updatedIssues;
+      mockStorage.updateTasks.mockImplementation(async (callback) => {
+        const currentTasks = [{ id: 'task-123', status: 'open' }];
+        const updatedTasks = callback(currentTasks);
+        return updatedTasks;
       });
 
       const toolHandler = registeredTools['cairn_update'];
@@ -278,15 +278,15 @@ describe('VS Code Extension Tools', () => {
         }
       }, {});
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(result.content[0].text).toContain('Updated issue task-123');
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
+      expect(result.content[0].text).toContain('Updated task task-123');
     });
 
     it('should ignore notes field and not create comments', async () => {
-      mockStorage.updateIssues.mockImplementation(async (callback) => {
-        const currentIssues = [{ id: 'task-123', status: 'open' }];
-        const updatedIssues = callback(currentIssues);
-        return updatedIssues;
+      mockStorage.updateTasks.mockImplementation(async (callback) => {
+        const currentTasks = [{ id: 'task-123', status: 'open' }];
+        const updatedTasks = callback(currentTasks);
+        return updatedTasks;
       });
 
       const toolHandler = registeredTools['cairn_update'];
@@ -299,16 +299,16 @@ describe('VS Code Extension Tools', () => {
         }
       }, {});
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
       expect(mockStorage.addComment).not.toHaveBeenCalled();
-      expect(result.content[0].text).toContain('Updated issue task-123');
+      expect(result.content[0].text).toContain('Updated task task-123');
     });
 
     it('should ignore acceptance_criteria field and not create comments', async () => {
-      mockStorage.updateIssues.mockImplementation(async (callback) => {
-        const currentIssues = [{ id: 'task-123', status: 'open' }];
-        const updatedIssues = callback(currentIssues);
-        return updatedIssues;
+      mockStorage.updateTasks.mockImplementation(async (callback) => {
+        const currentTasks = [{ id: 'task-123', status: 'open' }];
+        const updatedTasks = callback(currentTasks);
+        return updatedTasks;
       });
 
       const toolHandler = registeredTools['cairn_update'];
@@ -321,19 +321,19 @@ describe('VS Code Extension Tools', () => {
         }
       }, {});
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
       expect(mockStorage.addComment).not.toHaveBeenCalled();
-      expect(result.content[0].text).toContain('Updated issue task-123');
+      expect(result.content[0].text).toContain('Updated task task-123');
     });
 
-    it('should prevent closing an issue with open subtasks', async () => {
-      const mockIssues = [
+    it('should prevent closing a task with open subtasks', async () => {
+      const mockTasks = [
         { id: 'parent-123', title: 'Parent Task', status: 'open' },
         { id: 'subtask-1', title: 'Open Subtask', status: 'open' },
       ];
       
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
-      mockGraph.canCloseIssue.mockReturnValue({
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
+      mockGraph.canCloseTask.mockReturnValue({
         canClose: false,
         openSubtasks: [{ id: 'subtask-1', title: 'Open Subtask', status: 'open' }],
         reason: 'has 1 open subtask(s)'
@@ -348,34 +348,34 @@ describe('VS Code Extension Tools', () => {
         }
       }, {});
 
-      expect(mockStorage.loadIssues).toHaveBeenCalled();
-      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('parent-123', mockIssues);
-      expect(mockStorage.updateIssues).not.toHaveBeenCalled();
+      expect(mockStorage.loadTasks).toHaveBeenCalled();
+      expect(mockGraph.canCloseTask).toHaveBeenCalledWith('parent-123', mockTasks);
+      expect(mockStorage.updateTasks).not.toHaveBeenCalled();
       
       const resultText = result.content[0].text;
       expect(resultText).toContain('success');
       expect(resultText).toContain('false');
-      expect(resultText).toContain('Cannot close issue');
+      expect(resultText).toContain('Cannot close task');
       expect(resultText).toContain('Parent Task');
       expect(resultText).toContain('parent-123');
       expect(resultText).toContain('Open Subtask');
       expect(resultText).toContain('subtask-1');
     });
 
-    it('should allow closing an issue with no subtasks', async () => {
-      const mockIssues = [
+    it('should allow closing a task with no subtasks', async () => {
+      const mockTasks = [
         { id: 'task-123', title: 'Task No Subtasks', status: 'open' },
       ];
       
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
-      mockGraph.canCloseIssue.mockReturnValue({
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
+      mockGraph.canCloseTask.mockReturnValue({
         canClose: true,
         openSubtasks: [],
       });
       
-      mockStorage.updateIssues.mockImplementation(async (callback) => {
-        const updatedIssues = callback(mockIssues);
-        return updatedIssues;
+      mockStorage.updateTasks.mockImplementation(async (callback) => {
+        const updatedTasks = callback(mockTasks);
+        return updatedTasks;
       });
 
       const toolHandler = registeredTools['cairn_update'];
@@ -387,28 +387,28 @@ describe('VS Code Extension Tools', () => {
         }
       }, {});
 
-      expect(mockStorage.loadIssues).toHaveBeenCalled();
-      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('task-123', mockIssues);
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(result.content[0].text).toContain('Updated issue task-123');
+      expect(mockStorage.loadTasks).toHaveBeenCalled();
+      expect(mockGraph.canCloseTask).toHaveBeenCalledWith('task-123', mockTasks);
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
+      expect(result.content[0].text).toContain('Updated task task-123');
     });
 
-    it('should allow closing an issue with all closed subtasks', async () => {
-      const mockIssues = [
+    it('should allow closing a task with all closed subtasks', async () => {
+      const mockTasks = [
         { id: 'parent-123', title: 'Parent Task', status: 'open' },
         { id: 'subtask-1', title: 'Closed Subtask 1', status: 'closed' },
         { id: 'subtask-2', title: 'Closed Subtask 2', status: 'closed' },
       ];
       
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
-      mockGraph.canCloseIssue.mockReturnValue({
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
+      mockGraph.canCloseTask.mockReturnValue({
         canClose: true,
         openSubtasks: [],
       });
       
-      mockStorage.updateIssues.mockImplementation(async (callback) => {
-        const updatedIssues = callback(mockIssues);
-        return updatedIssues;
+      mockStorage.updateTasks.mockImplementation(async (callback) => {
+        const updatedTasks = callback(mockTasks);
+        return updatedTasks;
       });
 
       const toolHandler = registeredTools['cairn_update'];
@@ -420,22 +420,22 @@ describe('VS Code Extension Tools', () => {
         }
       }, {});
 
-      expect(mockStorage.loadIssues).toHaveBeenCalled();
-      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('parent-123', mockIssues);
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(result.content[0].text).toContain('Updated issue parent-123');
+      expect(mockStorage.loadTasks).toHaveBeenCalled();
+      expect(mockGraph.canCloseTask).toHaveBeenCalledWith('parent-123', mockTasks);
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
+      expect(result.content[0].text).toContain('Updated task parent-123');
     });
 
-    it('should prevent closing issue with multiple open subtasks and list all of them', async () => {
-      const mockIssues = [
+    it('should prevent closing task with multiple open subtasks and list all of them', async () => {
+      const mockTasks = [
         { id: 'parent-123', title: 'Parent Epic', status: 'in_progress' },
         { id: 'subtask-1', title: 'Open Subtask 1', status: 'open' },
         { id: 'subtask-2', title: 'Open Subtask 2', status: 'in_progress' },
         { id: 'subtask-3', title: 'Open Subtask 3', status: 'open' },
       ];
       
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
-      mockGraph.canCloseIssue.mockReturnValue({
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
+      mockGraph.canCloseTask.mockReturnValue({
         canClose: false,
         openSubtasks: [
           { id: 'subtask-1', title: 'Open Subtask 1', status: 'open' },
@@ -454,13 +454,13 @@ describe('VS Code Extension Tools', () => {
         }
       }, {});
 
-      expect(mockGraph.canCloseIssue).toHaveBeenCalledWith('parent-123', mockIssues);
-      expect(mockStorage.updateIssues).not.toHaveBeenCalled();
+      expect(mockGraph.canCloseTask).toHaveBeenCalledWith('parent-123', mockTasks);
+      expect(mockStorage.updateTasks).not.toHaveBeenCalled();
       
       const resultText = result.content[0].text;
-      expect(resultText).toContain('Cannot close issue');
+      expect(resultText).toContain('Cannot close task');
       expect(resultText).toContain('Open Subtask 1');
-      expect(resultText).toContain('subtask-1');
+      expect(resultText).toContain('Cannot close task');
       expect(resultText).toContain('Open Subtask 2');
       expect(resultText).toContain('subtask-2');
       expect(resultText).toContain('Open Subtask 3');
@@ -470,11 +470,11 @@ describe('VS Code Extension Tools', () => {
 
   describe('cairn_dep_add tool', () => {
     it('should add dependency between tasks', async () => {
-      const mockIssues = [{ id: 'task-1' }, { id: 'task-2' }];
-      mockStorage.loadIssues.mockResolvedValue(mockIssues);
-      mockStorage.updateIssues.mockImplementation(async (callback) => {
-        const updatedIssues = callback(mockIssues);
-        return updatedIssues;
+      const mockTasks = [{ id: 'task-1' }, { id: 'task-2' }];
+      mockStorage.loadTasks.mockResolvedValue(mockTasks);
+      mockStorage.updateTasks.mockImplementation(async (callback) => {
+        const updatedTasks = callback(mockTasks);
+        return updatedTasks;
       });
 
       const toolHandler = registeredTools['cairn_dep_add'];
@@ -487,8 +487,8 @@ describe('VS Code Extension Tools', () => {
         }
       }, {});
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(mockGraph.addDependency).toHaveBeenCalledWith('task-1', 'task-2', 'blocks', mockIssues);
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
+      expect(mockGraph.addDependency).toHaveBeenCalledWith('task-1', 'task-2', 'blocks', mockTasks);
       expect(result.content[0].text).toContain('Added blocks dependency');
     });
   });
@@ -506,119 +506,119 @@ describe('VS Code Extension Tools', () => {
 
       const result = await toolHandler.invoke({
         input: {
-          issue_id: 'task-123',
+          task_id: 'task-123',
           content: 'Test comment',
         }
       }, {});
 
       expect(mockStorage.addComment).toHaveBeenCalledWith('task-123', 'agent', 'Test comment');
-      expect(result.content[0].text).toContain('Added comment to issue task-123');
+      expect(result.content[0].text).toContain('Added comment to task task-123');
     });
   });
 
   describe('cairn_ac_add tool', () => {
     it('should add acceptance criteria to task', async () => {
-      mockStorage.updateIssues.mockImplementation(async (callback) => {
-        const currentIssues = [{ id: 'task-123', acceptance_criteria: [] }];
-        const updatedIssues = callback(currentIssues);
-        return updatedIssues;
+      mockStorage.updateTasks.mockImplementation(async (callback) => {
+        const currentTasks = [{ id: 'task-123', acceptance_criteria: [] }];
+        const updatedTasks = callback(currentTasks);
+        return updatedTasks;
       });
 
       const toolHandler = registeredTools['cairn_ac_add'];
 
       const result = await toolHandler.invoke({
         input: {
-          issue_id: 'task-123',
+          task_id: 'task-123',
           text: 'New acceptance criteria',
         }
       }, {});
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(result.content[0].text).toContain('Added acceptance criteria to issue task-123');
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
+      expect(result.content[0].text).toContain('Added acceptance criteria to task task-123');
     });
   });
 
   describe('cairn_ac_update tool', () => {
     it('should update acceptance criteria text', async () => {
-      mockStorage.updateIssues.mockImplementation(async (callback) => {
-        const currentIssues = [{ 
+      mockStorage.updateTasks.mockImplementation(async (callback) => {
+        const currentTasks = [{ 
           id: 'task-123', 
           acceptance_criteria: [{ text: 'Old text', completed: false }] 
         }];
-        const updatedIssues = callback(currentIssues);
-        return updatedIssues;
+        const updatedTasks = callback(currentTasks);
+        return updatedTasks;
       });
 
       const toolHandler = registeredTools['cairn_ac_update'];
 
       const result = await toolHandler.invoke({
         input: {
-          issue_id: 'task-123',
+          task_id: 'task-123',
           index: 0,
           text: 'Updated acceptance criteria',
         }
       }, {});
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(result.content[0].text).toContain('Updated acceptance criteria 0 for issue task-123');
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
+      expect(result.content[0].text).toContain('Updated acceptance criteria 0 for task task-123');
     });
   });
 
   describe('cairn_ac_remove tool', () => {
     it('should remove acceptance criteria from task', async () => {
-      mockStorage.updateIssues.mockImplementation(async (callback) => {
-        const currentIssues = [{ 
+      mockStorage.updateTasks.mockImplementation(async (callback) => {
+        const currentTasks = [{ 
           id: 'task-123', 
           acceptance_criteria: [
             { text: 'Criteria 1', completed: false },
             { text: 'Criteria 2', completed: true }
           ] 
         }];
-        const updatedIssues = callback(currentIssues);
-        return updatedIssues;
+        const updatedTasks = callback(currentTasks);
+        return updatedTasks;
       });
 
       const toolHandler = registeredTools['cairn_ac_remove'];
 
       const result = await toolHandler.invoke({
         input: {
-          issue_id: 'task-123',
+          task_id: 'task-123',
           index: 0,
         }
       }, {});
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(result.content[0].text).toContain('Removed acceptance criteria 0 from issue task-123');
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
+      expect(result.content[0].text).toContain('Removed acceptance criteria 0 from task task-123');
     });
   });
 
   describe('cairn_ac_toggle tool', () => {
     it('should toggle acceptance criteria completion status', async () => {
-      mockStorage.updateIssues.mockImplementation(async (callback) => {
-        const currentIssues = [{ 
+      mockStorage.updateTasks.mockImplementation(async (callback) => {
+        const currentTasks = [{ 
           id: 'task-123', 
           acceptance_criteria: [{ text: 'Criteria 1', completed: false }] 
         }];
-        const updatedIssues = callback(currentIssues);
-        return updatedIssues;
+        const updatedTasks = callback(currentTasks);
+        return updatedTasks;
       });
 
       const toolHandler = registeredTools['cairn_ac_toggle'];
 
       const result = await toolHandler.invoke({
         input: {
-          issue_id: 'task-123',
+          task_id: 'task-123',
           index: 0,
         }
       }, {});
 
-      expect(mockStorage.updateIssues).toHaveBeenCalled();
-      expect(result.content[0].text).toContain('Toggled acceptance criteria 0 completion for issue task-123');
+      expect(mockStorage.updateTasks).toHaveBeenCalled();
+      expect(result.content[0].text).toContain('Toggled acceptance criteria 0 completion for task task-123');
     });
   });
 
-  // Note: Webview saveTicket message handler for canCloseIssue validation
-  // The webview command 'cairn.openEditView' contains additional canCloseIssue validation
+  // Note: Webview saveTicket message handler for canCloseTask validation
+  // The webview command 'cairn.openEditView' contains additional canCloseTask validation
   // that prevents closing issues with open subtasks from the UI.
   // This validation logic mirrors the tool validation tested above but is integrated into
   // the webview message flow. Consider adding integration tests for the full webview flow.
@@ -635,20 +635,20 @@ describe('Extension Activation and Service Initialization', () => {
 
     // Setup mocks
     mockStorage = {
-      loadIssues: vi.fn(),
-      saveIssue: vi.fn(),
-      updateIssues: vi.fn(),
+      loadTasks: vi.fn(),
+      saveTask: vi.fn(),
+      updateTasks: vi.fn(),
       addComment: vi.fn(),
-      getIssuesFilePath: vi.fn(() => '/test/workspace/.cairn/issues.jsonl'),
+      getTasksFilePath: vi.fn(() => '/test/workspace/.cairn/tasks.jsonl'),
     };
 
     mockGraph = {
       addDependency: vi.fn(),
       getReadyWork: vi.fn(),
       getCascadingStatusUpdates: vi.fn(() => []),
-      canCloseIssue: vi.fn(),
+      canCloseTask: vi.fn(),
       getEpicSubtasks: vi.fn(() => []),
-      getNonParentedIssues: vi.fn(() => []),
+      getNonParentedTasks: vi.fn(() => []),
     };
 
     mockContainer = {
@@ -684,7 +684,7 @@ describe('Extension Activation and Service Initialization', () => {
       await activate(mockContext);
 
       // Verify container was created with correct parameters
-      expect(createContainer).toHaveBeenCalledWith('/test/workspace/.cairn', '/test/workspace', 'issues.jsonl');
+      expect(createContainer).toHaveBeenCalledWith('/test/workspace/.cairn', '/test/workspace', 'tasks.jsonl');
 
       // Verify services were retrieved from container
       expect(mockContainer.get).toHaveBeenCalledWith(TYPES.IStorageService);

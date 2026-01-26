@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
-  IssueEditIssue,
+  TaskEditTask,
   Comment,
   AvailableItem,
-  LoadTicketMessage,
+  LoadTaskMessage,
   AvailableSubtasksMessage,
   AvailableDependenciesMessage,
   CommentAddedMessage,
@@ -13,11 +13,11 @@ import {
 import { showErrorMessage } from './utils';
 
 interface UseVSCodeMessagingReturn {
-  issue: IssueEditIssue | null;
+  task: TaskEditTask | null;
   comments: Comment[];
-  subtasks: IssueEditIssue['subtasks'];
-  dependencies: IssueEditIssue['dependencies'];
-  acceptanceCriteria: IssueEditIssue['acceptance_criteria'];
+  subtasks: TaskEditTask['subtasks'];
+  dependencies: TaskEditTask['dependencies'];
+  acceptanceCriteria: TaskEditTask['acceptance_criteria'];
   availableSubtasks: AvailableItem[];
   availableDependencies: AvailableItem[];
   currentCommentAuthor: string;
@@ -27,9 +27,9 @@ interface UseVSCodeMessagingReturn {
   subtaskSearch: string;
   dependencySearch: string;
   setComments: React.Dispatch<React.SetStateAction<Comment[]>>;
-  setSubtasks: React.Dispatch<React.SetStateAction<IssueEditIssue['subtasks']>>;
-  setDependencies: React.Dispatch<React.SetStateAction<IssueEditIssue['dependencies']>>;
-  setAcceptanceCriteria: React.Dispatch<React.SetStateAction<IssueEditIssue['acceptance_criteria']>>;
+  setSubtasks: React.Dispatch<React.SetStateAction<TaskEditTask['subtasks']>>;
+  setDependencies: React.Dispatch<React.SetStateAction<TaskEditTask['dependencies']>>;
+  setAcceptanceCriteria: React.Dispatch<React.SetStateAction<TaskEditTask['acceptance_criteria']>>;
   setCurrentCommentAuthor: React.Dispatch<React.SetStateAction<string>>;
   setNewComment: React.Dispatch<React.SetStateAction<string>>;
   setSubtaskModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -39,11 +39,11 @@ interface UseVSCodeMessagingReturn {
 }
 
 export const useVSCodeMessaging = (vscode: any): UseVSCodeMessagingReturn => {
-  const [issue, setIssue] = useState<IssueEditIssue | null>(null);
+  const [task, setTask] = useState<TaskEditTask | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [subtasks, setSubtasks] = useState<IssueEditIssue['subtasks']>([]);
-  const [dependencies, setDependencies] = useState<IssueEditIssue['dependencies']>([]);
-  const [acceptanceCriteria, setAcceptanceCriteria] = useState<IssueEditIssue['acceptance_criteria']>([]);
+  const [subtasks, setSubtasks] = useState<TaskEditTask['subtasks']>([]);
+  const [dependencies, setDependencies] = useState<TaskEditTask['dependencies']>([]);
+  const [acceptanceCriteria, setAcceptanceCriteria] = useState<TaskEditTask['acceptance_criteria']>([]);
   const [currentCommentAuthor, setCurrentCommentAuthor] = useState('user');
   const [newComment, setNewComment] = useState('');
 
@@ -64,14 +64,14 @@ export const useVSCodeMessaging = (vscode: any): UseVSCodeMessagingReturn => {
     const messageHandler = (event: MessageEvent) => {
       const message = event.data;
 
-      if (message.type === 'loadTicket') {
-        const loadMessage = message as LoadTicketMessage;
-        const ticket = loadMessage.ticket;
-        setIssue(ticket);
-        setComments(ticket.comments || []);
-        setSubtasks(ticket.subtasks || []);
-        setDependencies(ticket.dependencies || []);
-        setAcceptanceCriteria(ticket.acceptance_criteria || []);
+      if (message.type === 'loadTask') {
+        const loadMessage = message as LoadTaskMessage;
+        const taskData = loadMessage.task;
+        setTask(taskData);
+        setComments(taskData.comments || []);
+        setSubtasks(taskData.subtasks || []);
+        setDependencies(taskData.dependencies || []);
+        setAcceptanceCriteria(taskData.acceptance_criteria || []);
       } else if (message.type === 'availableSubtasks') {
         const subtasksMessage = message as AvailableSubtasksMessage;
         setAvailableSubtasks(subtasksMessage.subtasks);
@@ -106,7 +106,7 @@ export const useVSCodeMessaging = (vscode: any): UseVSCodeMessagingReturn => {
   }, [vscode]);
 
   return {
-    issue,
+    task,
     comments,
     subtasks,
     dependencies,

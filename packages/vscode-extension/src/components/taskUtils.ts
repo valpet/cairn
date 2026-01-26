@@ -1,4 +1,4 @@
-import { Issue } from './types';
+import { Task } from './types';
 
 export interface BadgeInfo {
   className: string;
@@ -28,7 +28,7 @@ export const createPriorityPill = (priority?: string): BadgeInfo => {
 };
 
 // Function to check if a task is ready (no blocking dependencies)
-export const isReady = (task: Issue, allTasks: Issue[]): boolean => {
+export const isReady = (task: Task, allTasks: Task[]): boolean => {
   if (!task.dependencies) return true;
   const taskMap = new Map(allTasks.map(t => [t.id, t]));
   return task.dependencies.every(dep => {
@@ -39,7 +39,7 @@ export const isReady = (task: Issue, allTasks: Issue[]): boolean => {
 };
 
 // Function to check if a task is blocked
-export const isBlocked = (task: Issue, allTasks: Issue[]): boolean => {
+export const isBlocked = (task: Task, allTasks: Task[]): boolean => {
   if (!task.dependencies || task.status === 'closed') return false;
   const taskMap = new Map(allTasks.map(t => [t.id, t]));
   return task.dependencies.some(dep => {
