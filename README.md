@@ -5,7 +5,7 @@ A CLI tool and Visual Studio Code Extensin for long-term memory through task man
 ## Installation
 
 ```bash
-npm install -g @cairn/cli
+npm install -g @valpet/cairn-cli
 ```
 
 ## Usage

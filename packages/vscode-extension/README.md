@@ -7,7 +7,7 @@
 ## ⚡ Quick Start
 
 1. Install the extension from the VS Code Marketplace
-2. Install the Cairn CLI: `npm install -g @cairn/cli` (or use `npx @cairn/cli init`)
+2. Install the Cairn CLI: `npm install -g @valpet/cairn-cli` (or use `npx @valpet/cairn-cli init`)
 3. Initialize Cairn in your project: `cairn init`
 4. Open a workspace and run `Cairn: Open Task List` from the command palette
 5. Create your first task with `Cairn: Create New Ticket`

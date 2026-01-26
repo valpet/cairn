@@ -2,8 +2,7 @@
 
 import 'reflect-metadata';
 import { Command } from 'commander';
-import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService, findCairnDir, generateId, IssueType, IssueStatus, Priority } from '../../core/dist/index.js';
-import { Issue } from '../../core/dist/types.js';
+import { createContainer, TYPES, IStorageService, IGraphService, ICompactionService, findCairnDir, generateId, IssueType, IssueStatus, Priority, Issue } from '@valpet/cairn-core';
 import * as path from 'path';
 import * as fs from 'fs';
 
