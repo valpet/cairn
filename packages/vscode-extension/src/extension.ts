@@ -11,6 +11,46 @@ let cairnDir: string | undefined;
 let repoRoot: string | undefined;
 let statusBarItem: vscode.StatusBarItem | undefined;
 let configWatcher: vscode.FileSystemWatcher | undefined;
+/**
+ * Persistent file system watcher for the currently active tasks file.
+ *
+ * Unlike the older design where each task list webview panel owned its own
+ * short-lived watcher, this single watcher is managed at the extension level
+ * so it can track changes to the active tasks file across all panels and
+ * extension features. Works in conjunction with tasksFileWatcherDebounceTimer
+ * to coalesce rapid file changes into single update events.
+ */
+let tasksFileWatcher: fs.FSWatcher | undefined;
+/**
+ * Debounce timer for tasks file change events.
+ *
+ * The tasks file can be written to multiple times in quick succession (for example,
+ * by the extension itself or other tools). This timer is used to coalesce bursts of
+ * file system events into a single refresh, reducing redundant work and helping to
+ * prevent race conditions or inconsistent state caused by reading the file while
+ * it is being rapidly updated.
+ */
+let tasksFileWatcherDebounceTimer: NodeJS.Timeout | undefined;
+
+/**
+ * Debounce delay for file watcher events in milliseconds.
+ *
+ * This constant controls how long the extension waits after detecting a file change
+ * before processing it. This helps coalesce rapid successive file writes into a single
+ * update, preventing race conditions and reducing unnecessary processing.
+ */
+const FILE_WATCHER_DEBOUNCE_MS = 250;
+
+/**
+ * Initial delay for file watcher error recovery attempts.
+ */
+const FILE_WATCHER_RETRY_INITIAL_DELAY_MS = 1000;
+
+/**
+ * Maximum number of retry attempts for file watcher recovery.
+ */
+const FILE_WATCHER_MAX_RETRIES = 5;
+
 let lastKnownActiveFile: string = 'default';
 let internalChangeCount: number = 0;
 let lastInternalWriteTime: number = 0;
@@ -45,6 +85,14 @@ export function resetServices() {
   repoRoot = undefined;
   statusBarItem = undefined;
   configWatcher = undefined;
+  if (tasksFileWatcher) {
+    tasksFileWatcher.close();
+    tasksFileWatcher = undefined;
+  }
+  if (tasksFileWatcherDebounceTimer) {
+    clearTimeout(tasksFileWatcherDebounceTimer);
+    tasksFileWatcherDebounceTimer = undefined;
+  }
   lastKnownActiveFile = 'default';
   internalChangeCount = 0;
   lastInternalWriteTime = 0;
@@ -129,12 +177,91 @@ function reinitializeServices(tasksFileName: string) {
   container = createContainer(cairnDir!, repoRoot!, tasksFileName);
   storage = container.get(TYPES.IStorageService);
   graph = container.get(TYPES.IGraphService);
+  setupTasksFileWatcher();
   outputChannel!.appendLine('Services reinitialized successfully');
 }
 
 function updateStatusBar(activeFile: string) {
   statusBarItem!.text = `$(file) Cairn: ${activeFile}`;
   statusBarItem!.tooltip = `Current task file: ${getTaskFileName(activeFile)}\nClick to switch files`;
+}
+
+function setupTasksFileWatcher() {
+  // Clear any pending debounce timer FIRST to prevent race conditions
+  if (tasksFileWatcherDebounceTimer) {
+    clearTimeout(tasksFileWatcherDebounceTimer);
+    tasksFileWatcherDebounceTimer = undefined;
+  }
+
+  // Clean up existing watcher
+  if (tasksFileWatcher) {
+    tasksFileWatcher.close();
+  }
+
+  // Set up new watcher for the current active tasks file
+  const tasksFilePath = getStorage().getTasksFilePath();
+  outputChannel!.appendLine(`Setting up persistent tasks file watcher for: ${tasksFilePath}`);
+
+  try {
+    tasksFileWatcher = fs.watch(tasksFilePath, (eventType) => {
+      if (eventType === 'change') {
+        outputChannel!.appendLine('Tasks file changed externally, debouncing update...');
+
+        // Clear any existing debounce timer
+        if (tasksFileWatcherDebounceTimer) {
+          clearTimeout(tasksFileWatcherDebounceTimer);
+        }
+
+        // Set a new debounce timer to update all panels after a period of inactivity
+        tasksFileWatcherDebounceTimer = setTimeout(async () => {
+          outputChannel!.appendLine('Debounce period elapsed, updating all panels...');
+
+          // Update all open task list panels
+          for (const [panel, updateFn] of taskListPanels) {
+            try {
+              await updateFn();
+            } catch (error) {
+              outputChannel!.appendLine(`Error updating panel after file change: ${error}`);
+            }
+          }
+
+          tasksFileWatcherDebounceTimer = undefined;
+        }, FILE_WATCHER_DEBOUNCE_MS);
+      }
+    });
+
+    // Handle file system watcher errors with automatic recovery
+    let retryCount = 0;
+    tasksFileWatcher.on('error', (error) => {
+      outputChannel!.appendLine(`Tasks file watcher error (attempt ${retryCount + 1}/${FILE_WATCHER_MAX_RETRIES + 1}): ${error}`);
+
+      if (retryCount < FILE_WATCHER_MAX_RETRIES) {
+        retryCount++;
+        const retryDelay = FILE_WATCHER_RETRY_INITIAL_DELAY_MS * Math.pow(2, retryCount - 1); // Exponential backoff
+        outputChannel!.appendLine(`Attempting to recover file watcher in ${retryDelay}ms...`);
+
+        setTimeout(() => {
+          try {
+            outputChannel!.appendLine(`Retrying file watcher setup (attempt ${retryCount})...`);
+            setupTasksFileWatcher();
+            retryCount = 0; // Reset on successful setup
+            outputChannel!.appendLine('File watcher recovery successful');
+          } catch (retryError) {
+            outputChannel!.appendLine(`File watcher recovery failed: ${retryError}`);
+            if (retryCount >= FILE_WATCHER_MAX_RETRIES) {
+              vscode.window.showErrorMessage('Cairn: Tasks file watcher recovery failed. External task updates may not be detected until the extension is reloaded.');
+            }
+          }
+        }, retryDelay);
+      } else {
+        outputChannel!.appendLine('Max retry attempts reached, giving up on file watcher recovery');
+        vscode.window.showErrorMessage('Cairn: Tasks file watcher encountered an error. External task updates may not be detected until the extension is reloaded.');
+      }
+    });
+  } catch (error) {
+    outputChannel!.appendLine(`Failed to set up tasks file watcher: ${error}`);
+    vscode.window.showErrorMessage('Cairn: Failed to start watching the tasks file. External task updates will not be detected.');
+  }
 }
 
 // Webview interfaces
@@ -667,6 +794,9 @@ export async function activate(context: vscode.ExtensionContext) {
     graph = container.get(TYPES.IGraphService);
     outputChannel!.appendLine('Services initialized successfully');
 
+    // Set up persistent tasks file watcher
+    setupTasksFileWatcher();
+
     // Check for and migrate legacy issues.jsonl to tasks.jsonl if it exists
     const legacyIssuesPath = path.join(cairnDir, 'issues.jsonl');
     const defaultTasksPath = path.join(cairnDir, 'tasks.jsonl');
@@ -851,10 +981,6 @@ export async function activate(context: vscode.ExtensionContext) {
           outputChannel!.appendLine('Panel created successfully');
 
           let webviewReady = false;
-          const noopWatcher = { close: () => { /* no-op */ } } as unknown as fs.FSWatcher;
-          let watcher: fs.FSWatcher = noopWatcher;
-
-          // Handle messages from webview
           const disposable = panel.webview.onDidReceiveMessage(async (message) => {
             outputChannel!.appendLine(`=== WEBVIEW MESSAGE RECEIVED ===`);
             outputChannel!.appendLine(`Message type: ${message.type}`);
@@ -951,18 +1077,6 @@ export async function activate(context: vscode.ExtensionContext) {
                 reinitializeServices(newFileName);
                 updateStatusBar(message.file);
                 
-                // Update file watcher to watch the new file
-                watcher.close();
-                const newTasksPath = getStorage().getTasksFilePath();
-                outputChannel!.appendLine(`Switching watcher to: ${newTasksPath}`);
-                watcher = fs.watch(newTasksPath, async (eventType) => {
-                  if (eventType === 'change') {
-                    outputChannel!.appendLine('Tasks file changed, updating tasks...');
-                    await updateTasks();
-                  }
-                });
-                
-                // Update indicators in other panels
                 taskListPanels.forEach((updateFn, otherPanel) => {
                   if (otherPanel !== panel) {
                     otherPanel.webview.postMessage({
@@ -1086,24 +1200,11 @@ export async function activate(context: vscode.ExtensionContext) {
             }
           };
 
-          // Watch for file changes - use the current active file
-          const currentTasksPath = getStorage().getTasksFilePath();
-          outputChannel!.appendLine(`Watching tasks file: ${currentTasksPath}`);
-          watcher = fs.watch(currentTasksPath, async (eventType) => {
-            if (eventType === 'change') {
-              outputChannel!.appendLine('Tasks file changed, updating tasks...');
-              await updateTasks();
-            }
-          });
-
-          // Clean up watcher on panel disposal
+          // Clean up on panel disposal (no longer close watcher since it's persistent)
           panel.onDidDispose(() => {
-            outputChannel!.appendLine('Panel disposed, closing watcher');
-            watcher.close();
+            outputChannel!.appendLine('Panel disposed');
             taskListPanels.delete(panel);
           });
-          
-          // Register this panel and its update function
           taskListPanels.set(panel, updateTasks);
 
           outputChannel!.appendLine('Task list setup complete');
