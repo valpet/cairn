@@ -86,8 +86,14 @@ export function resetServices() {
   statusBarItem = undefined;
   configWatcher = undefined;
   if (tasksFileWatcher) {
-    tasksFileWatcher.close();
-    tasksFileWatcher = undefined;
+    try {
+      tasksFileWatcher.close();
+    } catch {
+      // Swallow errors during watcher cleanup; resetServices is test-only
+      // and should not throw if the watcher is already closed or errored.
+    } finally {
+      tasksFileWatcher = undefined;
+    }
   }
   if (tasksFileWatcherDebounceTimer) {
     clearTimeout(tasksFileWatcherDebounceTimer);
@@ -232,27 +238,32 @@ function setupTasksFileWatcher() {
 
     // Handle file system watcher errors with automatic recovery
     let retryCount = 0;
+    let isRecovering = false;
     tasksFileWatcher.on('error', (error) => {
       outputChannel!.appendLine(`Tasks file watcher error (attempt ${retryCount + 1}/${FILE_WATCHER_MAX_RETRIES + 1}): ${error}`);
 
-      if (retryCount < FILE_WATCHER_MAX_RETRIES) {
+      if (retryCount < FILE_WATCHER_MAX_RETRIES && !isRecovering) {
+        isRecovering = true;
+        const retryDelay = FILE_WATCHER_RETRY_INITIAL_DELAY_MS * Math.pow(2, retryCount); // Exponential backoff
         retryCount++;
-        const retryDelay = FILE_WATCHER_RETRY_INITIAL_DELAY_MS * Math.pow(2, retryCount - 1); // Exponential backoff
         outputChannel!.appendLine(`Attempting to recover file watcher in ${retryDelay}ms...`);
 
         setTimeout(() => {
           try {
             outputChannel!.appendLine(`Retrying file watcher setup (attempt ${retryCount})...`);
             setupTasksFileWatcher();
-            retryCount = 0; // Reset on successful setup
+            isRecovering = false;
             outputChannel!.appendLine('File watcher recovery successful');
           } catch (retryError) {
             outputChannel!.appendLine(`File watcher recovery failed: ${retryError}`);
+            isRecovering = false;
             if (retryCount >= FILE_WATCHER_MAX_RETRIES) {
               vscode.window.showErrorMessage('Cairn: Tasks file watcher recovery failed. External task updates may not be detected until the extension is reloaded.');
             }
           }
         }, retryDelay);
+      } else if (isRecovering) {
+        outputChannel!.appendLine('Recovery already in progress, ignoring additional error events');
       } else {
         outputChannel!.appendLine('Max retry attempts reached, giving up on file watcher recovery');
         vscode.window.showErrorMessage('Cairn: Tasks file watcher encountered an error. External task updates may not be detected until the extension is reloaded.');
