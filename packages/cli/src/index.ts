@@ -108,7 +108,7 @@ program
       fs.mkdirSync(githubDir, { recursive: true });
     }
     const instructionsPath = path.join(githubDir, 'copilot-instructions.md');
-        const cairnInstructions = `<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
+    const cairnInstructions = `<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
 - This is the Cairn project: persistent memory for AI agents and developers. Replace messy markdown plans with a dependency-aware graph that maintains context across long development sessions.
 - Use InversifyJS for dependency injection.
 - Store tasks in .cairn/issues.jsonl, with git integration.
@@ -345,7 +345,7 @@ program
           errorMsg += `\nOpen subtasks: ${subtaskList}`;
         }
         errorMsg += '.\nPlease complete all requirements before closing.';
-        
+
         console.error(errorMsg);
         process.exit(1);
       }
