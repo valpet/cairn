@@ -11,7 +11,7 @@ const program = new Command();
 program
   .name('cairn')
   .description('CLI for Cairn task management')
-  .version('1.0.0');
+  .version(require('../package.json').version);
 
 const cwd = process.cwd();
 

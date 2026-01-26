@@ -1,6 +1,6 @@
 {
   "name": "cairn-monorepo",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "private": true,
   "type": "module",
   "bin": {
@@ -22,6 +22,7 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "cairn": "node packages/cli/dist/index.js",
+    "bump-version": "node scripts/bump-version.js",
     "prepare-publish": "node scripts/prepare-publish.js",
     "publish-npm": "echo 'Publishing core package...' && cd packages/core && npm publish && cd ../.. && echo 'Publishing CLI package...' && cd packages/cli && npm publish && cd ../.. && echo '' && echo '🎉 NPM packages published successfully!'"
   },
