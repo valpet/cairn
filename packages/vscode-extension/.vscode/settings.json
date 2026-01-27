@@ -2,5 +2,10 @@
   "typescript.preferences.includePackageJsonAutoImports": "off",
   "typescript.preferences.tsconfig": {
     "src/components/**/*": "tsconfig.webview.json"
-  }
+  },
+  "vitest.commandLine": "npx vitest --coverage",
+  "coverage-gutters.coverageFileNames": [
+    "lcov.info",
+    "coverage/lcov.info"
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@valpet/cairn-core",
-  "version": "1.2.7",
+  "version": "1.3.0",
   "description": "Core library for Cairn task management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -1,28 +1,32 @@
 import { useMemo } from 'react';
 import { Task } from '../types';
 import { isReady } from '../taskUtils';
+import { isWithinTimeFilter, getDurationInMs, isTaskBlocked, parseValidDate } from './taskFilterUtils';
 
-// Compute if an issue is blocked based on its dependencies
-const isTaskBlocked = (issue: Task, allTasks: Task[]): boolean => {
-  if (!issue.dependencies || issue.dependencies.length === 0) {
-    return false;
-  }
-  
-  // Check if any blocking dependency is not closed
-  const blockingDeps = issue.dependencies.filter(d => d.type === 'blocks');
-  return blockingDeps.some(dep => {
-    const blocker = allTasks.find(i => i.id === dep.id);
-    return blocker && blocker.status !== 'closed';
-  });
-};
-
-export const useTaskFiltering = (allTasks: Task[], selectedStatuses: Set<string>) => {
+export const useTaskFiltering = (allTasks: Task[], selectedStatuses: Set<string>, showRecentlyClosed: boolean, recentlyClosedDuration: string, timeFilter: string) => {
   const filteredTasks = useMemo(() => {
     if (selectedStatuses.size === 0) {
-      return allTasks;
+      // When no status filters are selected, still apply recently closed logic if enabled
+      let tasks = allTasks;
+      if (showRecentlyClosed) {
+        const now = new Date();
+        const durationMs = getDurationInMs(recentlyClosedDuration);
+        tasks = tasks.filter(task => {
+          if (task.status === 'closed' && task.closed_at) {
+            const closedAt = parseValidDate(task.closed_at);
+            if (!closedAt) {
+              return false; // Exclude tasks with invalid closed_at timestamps
+            }
+            return (now.getTime() - closedAt.getTime()) <= durationMs;
+          }
+          return true; // Include all non-closed tasks
+        });
+      }
+      // Apply time filter
+      return tasks.filter(task => isWithinTimeFilter(task, timeFilter));
     }
     const statusArray = Array.from(selectedStatuses);
-    return allTasks.filter(task => {
+    let tasks = allTasks.filter(task => {
       // Check if issue is blocked
       const isBlocked = isTaskBlocked(task, allTasks);
       
@@ -41,9 +45,23 @@ export const useTaskFiltering = (allTasks: Task[], selectedStatuses: Set<string>
         return true;
       }
       
+      // Check recently closed if enabled and not already included
+      if (showRecentlyClosed && task.status === 'closed' && task.closed_at) {
+        const now = new Date();
+        const durationMs = getDurationInMs(recentlyClosedDuration);
+        const closedAt = parseValidDate(task.closed_at);
+        if (!closedAt) {
+          return false; // Exclude tasks with invalid closed_at timestamps
+        }
+        return (now.getTime() - closedAt.getTime()) <= durationMs;
+      }
+      
       return false;
     });
-  }, [allTasks, selectedStatuses]);
+    
+    // Apply time filter to the status-filtered tasks
+    return tasks.filter(task => isWithinTimeFilter(task, timeFilter));
+  }, [allTasks, selectedStatuses, showRecentlyClosed, recentlyClosedDuration, timeFilter]);
 
   return { filteredTasks };
 };

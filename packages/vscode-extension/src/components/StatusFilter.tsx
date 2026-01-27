@@ -1,57 +1,43 @@
 import React, { useState, useEffect } from 'react';
+import { getStatusIcon, getStatusLabel, toggleStatusFilter, removeStatusFilter, clearAllFilters } from './statusFilterUtils';
 
 interface StatusFilterProps {
   selectedStatuses: Set<string>;
   onStatusChange: (statuses: Set<string>) => void;
+  showRecentlyClosed: boolean;
+  onShowRecentlyClosedChange: (show: boolean) => void;
+  recentlyClosedDuration: string;
+  onRecentlyClosedDurationChange: (duration: string) => void;
+  timeFilter: string;
+  onTimeFilterChange: (timeFilter: string) => void;
 }
 
-const StatusFilter: React.FC<StatusFilterProps> = ({ selectedStatuses, onStatusChange }) => {
+const StatusFilter: React.FC<StatusFilterProps> = ({ 
+  selectedStatuses, 
+  onStatusChange,
+  showRecentlyClosed,
+  onShowRecentlyClosedChange,
+  recentlyClosedDuration,
+  onRecentlyClosedDurationChange,
+  timeFilter,
+  onTimeFilterChange
+}) => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const togglePopover = () => {
     setIsPopoverOpen(!isPopoverOpen);
   };
 
-  const toggleStatusFilter = (status: string) => {
-    const newStatuses = new Set(selectedStatuses);
-    if (newStatuses.has(status)) {
-      newStatuses.delete(status);
-    } else {
-      newStatuses.add(status);
-    }
-    onStatusChange(newStatuses);
+  const handleToggleStatus = (status: string) => {
+    onStatusChange(toggleStatusFilter(status, selectedStatuses));
   };
 
-  const removeStatusFilter = (status: string) => {
-    const newStatuses = new Set(selectedStatuses);
-    newStatuses.delete(status);
-    onStatusChange(newStatuses);
+  const handleRemoveStatus = (status: string) => {
+    onStatusChange(removeStatusFilter(status, selectedStatuses));
   };
 
-  const clearAllFilters = () => {
-    onStatusChange(new Set());
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'ready': return '🚀';
-      case 'open': return '📋';
-      case 'in_progress': return '⚡';
-      case 'closed': return '✅';
-      case 'blocked': return '🚫';
-      default: return '📋';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'ready': return 'Ready';
-      case 'open': return 'Open';
-      case 'in_progress': return 'In Progress';
-      case 'closed': return 'Closed';
-      case 'blocked': return 'Blocked';
-      default: return status;
-    }
+  const handleClearAll = () => {
+    onStatusChange(clearAllFilters());
   };
 
   // Close popover when clicking outside
@@ -153,7 +139,7 @@ const StatusFilter: React.FC<StatusFilterProps> = ({ selectedStatuses, onStatusC
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               <div
-                onClick={() => toggleStatusFilter(status)}
+                onClick={() => handleToggleStatus(status)}
                 style={{
                   width: '14px',
                   height: '14px',
@@ -175,7 +161,7 @@ const StatusFilter: React.FC<StatusFilterProps> = ({ selectedStatuses, onStatusC
                   }}>✓</span>
                 )}
               </div>
-              <span onClick={() => toggleStatusFilter(status)}>{getStatusLabel(status)}</span>
+              <span onClick={() => handleToggleStatus(status)}>{getStatusLabel(status)}</span>
             </div>
           ))}
 
@@ -193,7 +179,7 @@ const StatusFilter: React.FC<StatusFilterProps> = ({ selectedStatuses, onStatusC
               opacity: 0.8,
               transition: 'all 0.1s'
             }}
-            onClick={clearAllFilters}
+            onClick={handleClearAll}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'var(--vscode-list-hoverBackground)';
               e.currentTarget.style.opacity = '1';
@@ -237,7 +223,7 @@ const StatusFilter: React.FC<StatusFilterProps> = ({ selectedStatuses, onStatusC
                 padding: '0 0 0 4px',
                 transition: 'opacity 0.15s'
               }}
-              onClick={() => removeStatusFilter(status)}
+              onClick={() => handleRemoveStatus(status)}
               onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
               onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
             >✕</span>
@@ -245,50 +231,74 @@ const StatusFilter: React.FC<StatusFilterProps> = ({ selectedStatuses, onStatusC
         ))}
       </div>
 
-      {selectedStatuses.size > 0 && (
-        <button
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '5px 10px',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--vscode-foreground)',
-            cursor: 'pointer',
-            fontSize: '12px',
-            opacity: 0.6,
-            transition: 'opacity 0.15s',
-            textDecoration: 'underline'
-          }}
-          onClick={clearAllFilters}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
-        >
-          Clear filters
-        </button>
-      )}
+      {/* Time Filter */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+          <span style={{ opacity: 0.9 }}>Time:</span>
+          <select
+            value={timeFilter}
+            onChange={(e) => onTimeFilterChange(e.target.value)}
+            style={{
+              padding: '4px 8px',
+              border: '1px solid var(--vscode-input-border)',
+              borderRadius: '4px',
+              backgroundColor: 'var(--vscode-input-background)',
+              color: 'var(--vscode-input-foreground)',
+              fontSize: '12px',
+              cursor: 'pointer',
+              minWidth: '100px'
+            }}
+          >
+            <option value="all">All time</option>
+            <option value="hour">Last hour</option>
+            <option value="6hours">Last 6 hours</option>
+            <option value="12hours">Last 12 hours</option>
+            <option value="24hours">Last 24 hours</option>
+            <option value="3days">Last 3 days</option>
+            <option value="week">Last week</option>
+            <option value="month">Last month</option>
+          </select>
+        </label>
+      </div>
 
-      <button
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '5px',
-          padding: '6px 10px',
-          background: 'transparent',
-          border: 'none',
-          borderRadius: '4px',
-          color: '#58a6ff',
-          cursor: 'pointer',
-          fontSize: '13px',
-          fontWeight: 500,
-          transition: 'all 0.15s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(88, 166, 255, 0.1)'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-      >
-        <span style={{ fontSize: '16px', lineHeight: 1 }}>+</span>
-        <span>Add Filter</span>
-      </button>
+      {/* Recently Closed Toggle and Duration */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={showRecentlyClosed}
+            onChange={(e) => onShowRecentlyClosedChange(e.target.checked)}
+            style={{
+              margin: 0,
+              cursor: 'pointer'
+            }}
+          />
+          <span style={{ opacity: 0.9 }}>Show recently closed</span>
+        </label>
+        
+        {showRecentlyClosed && (
+          <select
+            value={recentlyClosedDuration}
+            onChange={(e) => onRecentlyClosedDurationChange(e.target.value)}
+            style={{
+              padding: '4px 8px',
+              border: '1px solid var(--vscode-input-border)',
+              borderRadius: '4px',
+              backgroundColor: 'var(--vscode-input-background)',
+              color: 'var(--vscode-input-foreground)',
+              fontSize: '12px',
+              cursor: 'pointer',
+              minWidth: '80px'
+            }}
+          >
+            <option value="5">5 min</option>
+            <option value="60">1 hour</option>
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="week">This week</option>
+          </select>
+        )}
+      </div>
     </div>
   );
 };
