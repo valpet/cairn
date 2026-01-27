@@ -1,7 +1,7 @@
 {
   "name": "cairn-extension",
   "displayName": "Cairn: Context Keeper",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "publisher": "valpet",
   "description": "Prevents AI agent 'dementia' in long development sessions. Maintains persistent, structured context through a dependency-aware graph that survives across conversations.",
   "readme": "README.md",
@@ -49,7 +49,7 @@
     "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {
-    "@valpet/cairn-core": "^1.2.5",
+    "@valpet/cairn-core": "^1.2.6",
     "nanoid": "^5.0.0"
   },
   "engines": {
