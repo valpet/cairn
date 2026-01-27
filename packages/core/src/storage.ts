@@ -16,7 +16,7 @@ export interface IStorageService {
 
 export interface StorageConfig {
   cairnDir: string;
-  issuesFileName?: string;
+  tasksFileName?: string;
   lockMaxRetries?: number;
   lockRetryDelay?: number;
   lockTimeout?: number;
@@ -24,7 +24,7 @@ export interface StorageConfig {
 
 @injectable()
 export class StorageService implements IStorageService {
-  private issuesFilePath: string;
+  private tasksFilePath: string;
   private lockFilePath: string;
   private writeQueue: Promise<void> = Promise.resolve(); // Serialize all write operations within this process
   private lockMaxRetries: number;
@@ -36,13 +36,13 @@ export class StorageService implements IStorageService {
     @inject('config') private config: StorageConfig,
     @inject('ILogger') @optional() logger?: ILogger
   ) {
-    const tasksFileName = config.issuesFileName || 'tasks.jsonl';
+    const tasksFileName = config.tasksFileName || 'tasks.jsonl';
     const tasksFilePath = path.join(config.cairnDir, tasksFileName);
     const tasksFileParsed = path.parse(tasksFilePath);
     if (tasksFileParsed.ext !== '.jsonl') {
       throw new Error(`Invalid tasks file name "${tasksFileName}". Expected extension ".jsonl".`);
     }
-    this.issuesFilePath = tasksFilePath;
+    this.tasksFilePath = tasksFilePath;
     const lockFilePath = path.format({
       ...tasksFileParsed,
       base: undefined,
@@ -71,12 +71,12 @@ export class StorageService implements IStorageService {
 
   private async loadTasksInternal(): Promise<Task[]> {
     // Check if tasks.jsonl exists, if not, try to migrate from issues.jsonl
-    if (!fs.existsSync(this.issuesFilePath)) {
-      const legacyIssuesFilePath = path.join(path.dirname(this.issuesFilePath), 'issues.jsonl');
+    if (!fs.existsSync(this.tasksFilePath)) {
+      const legacyIssuesFilePath = path.join(path.dirname(this.tasksFilePath), 'issues.jsonl');
       if (fs.existsSync(legacyIssuesFilePath)) {
         this.logger.info('Found legacy issues.jsonl file, migrating to tasks.jsonl...');
         try {
-          await fs.promises.copyFile(legacyIssuesFilePath, this.issuesFilePath);
+          await fs.promises.copyFile(legacyIssuesFilePath, this.tasksFilePath);
           this.logger.info('Successfully migrated issues.jsonl to tasks.jsonl');
         } catch (error) {
           this.logger.error('Failed to migrate issues.jsonl to tasks.jsonl:', error);
@@ -86,7 +86,7 @@ export class StorageService implements IStorageService {
         return [];
       }
     }
-    const content = await fs.promises.readFile(this.issuesFilePath, 'utf-8');
+    const content = await fs.promises.readFile(this.tasksFilePath, 'utf-8');
     const lines = content.trim().split('\n').filter(line => line.trim());
 
     const tasks: Task[] = [];
@@ -109,7 +109,7 @@ export class StorageService implements IStorageService {
 
     // Log validation errors but don't fail the load - allow partial recovery
     if (errors.length > 0) {
-      this.logger.error(`Found ${errors.length} validation errors in ${this.issuesFilePath}:`);
+      this.logger.error(`Found ${errors.length} validation errors in ${this.tasksFilePath}:`);
       errors.forEach(error => this.logger.error(`  ${error}`));
       this.logger.error('Invalid tasks were skipped. Consider repairing the data file.');
     }
@@ -120,7 +120,7 @@ export class StorageService implements IStorageService {
     // Persist migrations immediately if any occurred
     if (hasMigrations) {
       const content = migratedTasks.map(i => JSON.stringify(i)).join('\n') + '\n';
-      await fs.promises.writeFile(this.issuesFilePath, content);
+      await fs.promises.writeFile(this.tasksFilePath, content);
       this.logger.info('Migrated tasks persisted to disk');
     }
 
@@ -145,7 +145,7 @@ export class StorageService implements IStorageService {
         }
 
         const line = JSON.stringify(task) + '\n';
-        await fs.promises.appendFile(this.issuesFilePath, line);
+        await fs.promises.appendFile(this.tasksFilePath, line);
       });
     }).catch(err => {
       this.logger.error('saveTask queued operation failed:', err);
@@ -184,8 +184,8 @@ export class StorageService implements IStorageService {
 
         this.logger.debug('Storage updateTasks updated tasks count:', updatedTasks.length);
         const content = updatedTasks.map(i => JSON.stringify(i)).join('\n') + '\n';
-        this.logger.debug('Storage writing to', this.issuesFilePath);
-        await fs.promises.writeFile(this.issuesFilePath, content);
+        this.logger.debug('Storage writing to', this.tasksFilePath);
+        await fs.promises.writeFile(this.tasksFilePath, content);
         this.logger.debug('Storage writeFile done');
       });
     }).catch(err => {
@@ -197,7 +197,7 @@ export class StorageService implements IStorageService {
   }
 
   getTasksFilePath(): string {
-    return this.issuesFilePath;
+    return this.tasksFilePath;
   }
 
   async addComment(taskId: string, author: string, content: string): Promise<Comment> {
