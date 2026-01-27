@@ -20,7 +20,7 @@ let configWatcher: vscode.FileSystemWatcher | undefined;
  * extension features. Works in conjunction with tasksFileWatcherDebounceTimer
  * to coalesce rapid file changes into single update events.
  */
-let tasksFileWatcher: fs.FSWatcher | undefined;
+let tasksFileWatcher: vscode.FileSystemWatcher | undefined;
 /**
  * Debounce timer for tasks file change events.
  *
@@ -87,7 +87,7 @@ export function resetServices() {
   configWatcher = undefined;
   if (tasksFileWatcher) {
     try {
-      tasksFileWatcher.close();
+      tasksFileWatcher.dispose();
     } catch {
       // Swallow errors during watcher cleanup; resetServices is test-only
       // and should not throw if the watcher is already closed or errored.
@@ -199,79 +199,53 @@ function setupTasksFileWatcher() {
     tasksFileWatcherDebounceTimer = undefined;
   }
 
-  // Clean up existing watcher
+  // Clean up existing watcher before creating a new one
   if (tasksFileWatcher) {
-    tasksFileWatcher.close();
+    tasksFileWatcher.dispose();
   }
 
-  // Set up new watcher for the current active tasks file
-  const tasksFilePath = getStorage().getTasksFilePath();
-  outputChannel!.appendLine(`Setting up persistent tasks file watcher for: ${tasksFilePath}`);
+  // Set up new watcher for all .jsonl files in the .cairn directory
+  outputChannel!.appendLine(`Setting up persistent tasks file watcher for directory: ${cairnDir}`);
 
   try {
-    tasksFileWatcher = fs.watch(tasksFilePath, (eventType) => {
-      if (eventType === 'change') {
-        outputChannel!.appendLine('Tasks file changed externally, debouncing update...');
+    // Watch all .jsonl files in the cairn directory using RelativePattern
+    const pattern = new vscode.RelativePattern(cairnDir!, '*.jsonl');
+    tasksFileWatcher = vscode.workspace.createFileSystemWatcher(
+      pattern,
+      false, // ignoreCreateEvents
+      false, // ignoreChangeEvents  
+      false  // ignoreDeleteEvents
+    );
 
-        // Clear any existing debounce timer
-        if (tasksFileWatcherDebounceTimer) {
-          clearTimeout(tasksFileWatcherDebounceTimer);
+    tasksFileWatcher.onDidChange((uri) => {
+      outputChannel!.appendLine(`Tasks file changed: ${uri.fsPath}`);
+
+      // Clear any existing debounce timer
+      if (tasksFileWatcherDebounceTimer) {
+        clearTimeout(tasksFileWatcherDebounceTimer);
+      }
+
+      // Set a new debounce timer to update all panels after a period of inactivity
+      tasksFileWatcherDebounceTimer = setTimeout(async () => {
+        outputChannel!.appendLine('Debounce period elapsed, updating all panels...');
+
+        // Update all open task list panels
+        for (const [panel, updateFn] of taskListPanels) {
+          try {
+            await updateFn();
+          } catch (error) {
+            outputChannel!.appendLine(`Error updating panel after file change: ${error}`);
+          }
         }
 
-        // Set a new debounce timer to update all panels after a period of inactivity
-        tasksFileWatcherDebounceTimer = setTimeout(async () => {
-          outputChannel!.appendLine('Debounce period elapsed, updating all panels...');
-
-          // Update all open task list panels
-          for (const [panel, updateFn] of taskListPanels) {
-            try {
-              await updateFn();
-            } catch (error) {
-              outputChannel!.appendLine(`Error updating panel after file change: ${error}`);
-            }
-          }
-
-          tasksFileWatcherDebounceTimer = undefined;
-        }, FILE_WATCHER_DEBOUNCE_MS);
-      }
+        tasksFileWatcherDebounceTimer = undefined;
+      }, FILE_WATCHER_DEBOUNCE_MS);
     });
 
-    // Handle file system watcher errors with automatic recovery
-    let retryCount = 0;
-    let isRecovering = false;
-    tasksFileWatcher.on('error', (error) => {
-      outputChannel!.appendLine(`Tasks file watcher error (attempt ${retryCount + 1}/${FILE_WATCHER_MAX_RETRIES + 1}): ${error}`);
-
-      if (retryCount < FILE_WATCHER_MAX_RETRIES && !isRecovering) {
-        isRecovering = true;
-        const retryDelay = FILE_WATCHER_RETRY_INITIAL_DELAY_MS * Math.pow(2, retryCount); // Exponential backoff
-        retryCount++;
-        outputChannel!.appendLine(`Attempting to recover file watcher in ${retryDelay}ms...`);
-
-        setTimeout(() => {
-          try {
-            outputChannel!.appendLine(`Retrying file watcher setup (attempt ${retryCount})...`);
-            setupTasksFileWatcher();
-            isRecovering = false;
-            outputChannel!.appendLine('File watcher recovery successful');
-          } catch (retryError) {
-            outputChannel!.appendLine(`File watcher recovery failed: ${retryError}`);
-            isRecovering = false;
-            if (retryCount >= FILE_WATCHER_MAX_RETRIES) {
-              vscode.window.showErrorMessage('Cairn: Tasks file watcher recovery failed. External task updates may not be detected until the extension is reloaded.');
-            }
-          }
-        }, retryDelay);
-      } else if (isRecovering) {
-        outputChannel!.appendLine('Recovery already in progress, ignoring additional error events');
-      } else {
-        outputChannel!.appendLine('Max retry attempts reached, giving up on file watcher recovery');
-        vscode.window.showErrorMessage('Cairn: Tasks file watcher encountered an error. External task updates may not be detected until the extension is reloaded.');
-      }
-    });
+    outputChannel!.appendLine('Tasks directory watcher set up successfully');
   } catch (error) {
-    outputChannel!.appendLine(`Failed to set up tasks file watcher: ${error}`);
-    vscode.window.showErrorMessage('Cairn: Failed to start watching the tasks file. External task updates will not be detected.');
+    outputChannel!.appendLine(`Failed to set up tasks directory watcher: ${error}`);
+    vscode.window.showErrorMessage('Cairn: Failed to start watching the tasks directory. External task updates will not be detected.');
   }
 }
 
@@ -345,7 +319,7 @@ interface AcToggleToolInput {
 
 // Tool implementations
 export class CairnCreateTool implements vscode.LanguageModelTool<CreateToolInput> {
-  constructor(private storageService: IStorageService, private graphService: IGraphService) {}
+  constructor(private storageService: IStorageService, private graphService: IGraphService) { }
 
   async prepareInvocation(
     options: vscode.LanguageModelToolInvocationPrepareOptions<CreateToolInput>,
@@ -395,7 +369,7 @@ export class CairnCreateTool implements vscode.LanguageModelTool<CreateToolInput
 }
 
 export class CairnListReadyTool implements vscode.LanguageModelTool<ListReadyToolInput> {
-  constructor(private storageService: IStorageService, private graphService: IGraphService) {}
+  constructor(private storageService: IStorageService, private graphService: IGraphService) { }
 
   async prepareInvocation(
     _options: vscode.LanguageModelToolInvocationPrepareOptions<ListReadyToolInput>,
@@ -432,7 +406,7 @@ export class CairnListReadyTool implements vscode.LanguageModelTool<ListReadyToo
 }
 
 export class CairnUpdateTool implements vscode.LanguageModelTool<UpdateToolInput> {
-  constructor(private storageService: IStorageService, private graphService: IGraphService) {}
+  constructor(private storageService: IStorageService, private graphService: IGraphService) { }
 
   async prepareInvocation(
     options: vscode.LanguageModelToolInvocationPrepareOptions<UpdateToolInput>,
@@ -452,13 +426,13 @@ export class CairnUpdateTool implements vscode.LanguageModelTool<UpdateToolInput
 
       // Check if trying to close a task with open subtasks
       if (inputs.status === 'closed') {
-const tasks = await this.storageService.loadTasks();
+        const tasks = await this.storageService.loadTasks();
         const validation = this.graphService.canCloseTask(inputs.id, tasks);
 
         if (!validation.canClose) {
           const currentTask = tasks.find(i => i.id === inputs.id);
           let errorMsg = `Cannot close task "${currentTask?.title || inputs.id}" (${inputs.id})`;
-          
+
           if (validation.reason) {
             errorMsg += ` because it ${validation.reason}`;
           }
@@ -513,7 +487,7 @@ const tasks = await this.storageService.loadTasks();
 }
 
 export class CairnDepAddTool implements vscode.LanguageModelTool<DepAddToolInput> {
-  constructor(private storageService: IStorageService, private graphService: IGraphService) {}
+  constructor(private storageService: IStorageService, private graphService: IGraphService) { }
 
   async prepareInvocation(
     options: vscode.LanguageModelToolInvocationPrepareOptions<DepAddToolInput>,
@@ -546,7 +520,7 @@ export class CairnDepAddTool implements vscode.LanguageModelTool<DepAddToolInput
 }
 
 export class CairnCommentTool implements vscode.LanguageModelTool<CommentToolInput> {
-  constructor(private storageService: IStorageService) {}
+  constructor(private storageService: IStorageService) { }
 
   async prepareInvocation(
     options: vscode.LanguageModelToolInvocationPrepareOptions<CommentToolInput>,
@@ -585,7 +559,7 @@ export class CairnCommentTool implements vscode.LanguageModelTool<CommentToolInp
 }
 
 export class CairnAcAddTool implements vscode.LanguageModelTool<AcAddToolInput> {
-  constructor(private storageService: IStorageService) {}
+  constructor(private storageService: IStorageService) { }
 
   async prepareInvocation(
     options: vscode.LanguageModelToolInvocationPrepareOptions<AcAddToolInput>,
@@ -628,7 +602,7 @@ export class CairnAcAddTool implements vscode.LanguageModelTool<AcAddToolInput> 
 }
 
 export class CairnAcUpdateTool implements vscode.LanguageModelTool<AcUpdateToolInput> {
-  constructor(private storageService: IStorageService) {}
+  constructor(private storageService: IStorageService) { }
 
   async prepareInvocation(
     options: vscode.LanguageModelToolInvocationPrepareOptions<AcUpdateToolInput>,
@@ -674,7 +648,7 @@ export class CairnAcUpdateTool implements vscode.LanguageModelTool<AcUpdateToolI
 }
 
 export class CairnAcRemoveTool implements vscode.LanguageModelTool<AcRemoveToolInput> {
-  constructor(private storageService: IStorageService) {}
+  constructor(private storageService: IStorageService) { }
 
   async prepareInvocation(
     options: vscode.LanguageModelToolInvocationPrepareOptions<AcRemoveToolInput>,
@@ -720,7 +694,7 @@ export class CairnAcRemoveTool implements vscode.LanguageModelTool<AcRemoveToolI
 }
 
 export class CairnAcToggleTool implements vscode.LanguageModelTool<AcToggleToolInput> {
-  constructor(private storageService: IStorageService) {}
+  constructor(private storageService: IStorageService) { }
 
   async prepareInvocation(
     options: vscode.LanguageModelToolInvocationPrepareOptions<AcToggleToolInput>,
@@ -894,30 +868,30 @@ export async function activate(context: vscode.ExtensionContext) {
         try {
           const availableFiles = getAvailableTaskFiles(cairnDir!);
           const currentConfig = readConfig(cairnDir!);
-          
+
           const items = availableFiles.map(file => ({
             label: file === currentConfig.activeFile ? `$(check) ${file}` : file,
             description: getTaskFileName(file),
             detail: file === currentConfig.activeFile ? 'Currently active' : undefined,
             file: file
           }));
-          
+
           items.push({
             label: '$(add) Create New Task File',
             description: 'Create a new .jsonl file',
             detail: undefined,
             file: '__new__'
           });
-          
+
           const selected = await vscode.window.showQuickPick(items, {
             placeHolder: 'Select a task file to switch to',
             title: 'Cairn Task Files'
           });
-          
+
           if (!selected) return;
-          
+
           let targetFile = selected.file;
-          
+
           if (targetFile === '__new__') {
             const newFileName = await vscode.window.showInputBox({
               prompt: 'Enter name for new task file (without .jsonl extension)',
@@ -929,10 +903,10 @@ export async function activate(context: vscode.ExtensionContext) {
                 return null;
               }
             });
-            
+
             if (!newFileName) return;
             targetFile = newFileName;
-            
+
             // Create the new file
             const newFilePath = path.join(cairnDir!, getTaskFileName(newFileName));
             if (!fs.existsSync(newFilePath)) {
@@ -940,21 +914,21 @@ export async function activate(context: vscode.ExtensionContext) {
               outputChannel!.appendLine(`Created new task file: ${getTaskFileName(newFileName)}`);
             }
           }
-          
+
           if (targetFile === currentConfig.activeFile) {
             vscode.window.showInformationMessage(`Already using ${targetFile}`);
             return;
           }
-          
+
           // Update config
           writeConfig(cairnDir!, { activeFile: targetFile });
           lastKnownActiveFile = targetFile;
-          
+
           // Reinitialize services
           const newFileName = getTaskFileName(targetFile);
           reinitializeServices(newFileName);
           updateStatusBar(targetFile);
-          
+
           // Update file indicators in all open task list panels (not the tasks themselves)
           taskListPanels.forEach((updateFn, panel) => {
             panel.webview.postMessage({
@@ -963,7 +937,7 @@ export async function activate(context: vscode.ExtensionContext) {
               availableFiles: getAvailableTaskFiles(cairnDir!)
             });
           });
-          
+
           vscode.window.showInformationMessage(`Switched to ${targetFile} (${newFileName})`);
         } catch (error) {
           vscode.window.showErrorMessage(`Failed to switch file: ${error}`);
@@ -1019,7 +993,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
                 if (!validation.canClose) {
                   let errorMsg = `Cannot close task "${message.id}"`;
-                  
+
                   if (validation.reason) {
                     errorMsg += ` because it ${validation.reason}`;
                   }
@@ -1046,17 +1020,17 @@ export async function activate(context: vscode.ExtensionContext) {
                 // Load tasks from the requested file without updating system config
                 const newFileName = getTaskFileName(message.file);
                 const tempTasksPath = path.join(cairnDir!, newFileName);
-                
+
                 try {
                   let viewTasks: Task[] = [];
                   if (fs.existsSync(tempTasksPath)) {
                     const content = fs.readFileSync(tempTasksPath, 'utf-8');
                     viewTasks = content.trim().split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
                   }
-                  
+
                   const currentConfig = readConfig(cairnDir!);
                   const availableFiles = getAvailableTaskFiles(cairnDir!);
-                  
+
                   // Send tasks for viewing, but keep system active file unchanged
                   panel.webview.postMessage({
                     type: 'updateViewTasks',
@@ -1071,23 +1045,23 @@ export async function activate(context: vscode.ExtensionContext) {
               } else if (message.type === 'switchFile') {
                 outputChannel!.appendLine(`Switch file message received: ${message.file}`);
                 const currentConfig = readConfig(cairnDir!);
-                
+
                 if (message.file === currentConfig.activeFile) {
                   outputChannel!.appendLine('File matches system active file');
                   // Just reload tasks from this file
                   await updateTasks();
                   return;
                 }
-                
+
                 // Update config to match what user is viewing
                 writeConfig(cairnDir!, { activeFile: message.file });
                 lastKnownActiveFile = message.file;
-                
+
                 // Reinitialize services
                 const newFileName = getTaskFileName(message.file);
                 reinitializeServices(newFileName);
                 updateStatusBar(message.file);
-                
+
                 taskListPanels.forEach((updateFn, otherPanel) => {
                   if (otherPanel !== panel) {
                     otherPanel.webview.postMessage({
@@ -1097,10 +1071,10 @@ export async function activate(context: vscode.ExtensionContext) {
                     });
                   }
                 });
-                
+
                 // Reload tasks in THIS webview
                 await updateTasks();
-                
+
                 vscode.window.showInformationMessage(`Switched to ${message.file} (${newFileName})`);
               } else if (message.type === 'editTask') {
                 outputChannel!.appendLine(`Edit task message received for: ${message.id}`);
@@ -1164,7 +1138,7 @@ export async function activate(context: vscode.ExtensionContext) {
               const tasks = await getStorage().loadTasks();
               outputChannel!.appendLine(`Loaded ${tasks.length} tasks`);
               outputChannel!.appendLine(`Task IDs: ${tasks.map(t => t.id).join(', ')}`);
-              
+
               // IMPORTANT: Map tasks to the format expected by the webview
               const allTasks = tasks.map(task => ({
                 id: task.id,
@@ -1188,14 +1162,14 @@ export async function activate(context: vscode.ExtensionContext) {
               outputChannel!.appendLine(`Mapped to ${allTasks.length} tasks for webview`);
               outputChannel!.appendLine(`Sending updateTasks with ${allTasks.length} tasks`);
               outputChannel!.appendLine(`First task: ${JSON.stringify(allTasks[0])}`);
-              
+
               // Get file context info
               const currentConfig = readConfig(cairnDir!);
               const availableFiles = getAvailableTaskFiles(cairnDir!);
-              
+
               outputChannel!.appendLine(`Current file from config: ${currentConfig.activeFile}`);
               outputChannel!.appendLine(`Available files: ${availableFiles.join(', ')}`);
-              
+
               const messageResult = panel.webview.postMessage({
                 type: 'updateTasks',
                 tasks: allTasks,
@@ -1330,9 +1304,9 @@ export async function activate(context: vscode.ExtensionContext) {
                     });
                   }
                 }
-                
+
                 // Get tasks that this task blocks (blocking) - COMPUTED from other tasks' 'blocked_by' dependencies
-                const blockedByTasks = tasks.filter(t => 
+                const blockedByTasks = tasks.filter(t =>
                   t.dependencies?.some((d: Dependency) => d.id === taskId && (d.type === 'blocked_by' || d.type === 'blocks'))
                 );
                 for (const blocked of blockedByTasks) {
@@ -1462,7 +1436,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
                       // Update main task
                       const originalTask = updatedTasks.find(i => i.id === taskData.id);
-                      
+
                       // Check if trying to CHANGE status to closed (not just saving an already-closed task)
                       const isChangingToClosed = taskData.status === 'closed' && originalTask?.status !== 'closed';
                       if (isChangingToClosed) {
@@ -1478,7 +1452,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
                           const currentTask = updatedTasks.find(i => i.id === taskData.id);
                           let errorMsg = `Cannot close task "${currentTask?.title || taskData.id}" (${taskData.id})`;
-                          
+
                           if (validation.reason) {
                             errorMsg += ` because it ${validation.reason}`;
                           }
@@ -1545,7 +1519,7 @@ export async function activate(context: vscode.ExtensionContext) {
                         const currentBlockers = originalTask.dependencies?.filter((d: Dependency) => d.type === 'blocked_by' || d.type === 'blocks').map((d: Dependency) => d.id) || [];
                         // Get new blockers from UI (only 'blocked_by' direction is stored)
                         const newBlockers = taskData.dependencies.filter((d: WebviewDependency) => d.direction === 'blocked_by').map((d: WebviewDependency) => d.id);
-                        
+
                         // Note: We ignore 'blocks' direction from UI since that's computed
                         // The 'blocks' list in the UI shows tasks that this one blocks,
                         // but we never modify those relationships from this task's save
