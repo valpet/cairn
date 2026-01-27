@@ -5,6 +5,17 @@ All notable changes to the Cairn VS Code extension will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.7] - 2026-01-27
+
+### Fixed
+- Task list now properly updates when .jsonl files are edited externally or in VS Code
+- Default filename inconsistency resolved - core library now consistently defaults to 'tasks.jsonl' instead of 'issues.jsonl'
+
+## [1.2.6] - 2026-01-27
+
+### Fixed
+- Bug fixes and technical improvements
+
 ## [1.2.5] - 2026-01-26
 
 ### Changed
