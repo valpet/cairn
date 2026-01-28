@@ -27,8 +27,8 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Test',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 1000 * 60 * 60 * 25, // 25 hours ago
+        updated_at: new Date(Date.now() - 1000 * 60 * 60 * 25).toISOString(), // 25 hours ago
+        children: [],
       };
       expect(isWithinTimeFilter(task, 'all')).toBe(true);
     });
@@ -38,15 +38,15 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Recent',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 30 * 60 * 1000, // 30 minutes ago
+        updated_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
+        children: [],
       };
       const taskOlderThanHour: Task = {
         id: '2',
         title: 'Old',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 90 * 60 * 1000, // 90 minutes ago
+        updated_at: new Date(Date.now() - 90 * 60 * 1000).toISOString(), // 90 minutes ago
+        children: [],
       };
       
       expect(isWithinTimeFilter(taskWithinHour, 'hour')).toBe(true);
@@ -58,15 +58,15 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Recent',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 5 * 60 * 60 * 1000, // 5 hours ago
+        updated_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
+        children: [],
       };
       const taskOlderThan6Hours: Task = {
         id: '2',
         title: 'Old',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 7 * 60 * 60 * 1000, // 7 hours ago
+        updated_at: new Date(Date.now() - 7 * 60 * 60 * 1000).toISOString(), // 7 hours ago
+        children: [],
       };
       
       expect(isWithinTimeFilter(taskWithin6Hours, '6hours')).toBe(true);
@@ -78,15 +78,15 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Recent',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 10 * 60 * 60 * 1000, // 10 hours ago
+        updated_at: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(), // 10 hours ago
+        children: [],
       };
       const taskOlderThan12Hours: Task = {
         id: '2',
         title: 'Old',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 13 * 60 * 60 * 1000, // 13 hours ago
+        updated_at: new Date(Date.now() - 13 * 60 * 60 * 1000).toISOString(), // 13 hours ago
+        children: [],
       };
       
       expect(isWithinTimeFilter(taskWithin12Hours, '12hours')).toBe(true);
@@ -98,15 +98,15 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Recent',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 20 * 60 * 60 * 1000, // 20 hours ago
+        updated_at: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(), // 20 hours ago
+        children: [],
       };
       const taskOlderThan24Hours: Task = {
         id: '2',
         title: 'Old',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 25 * 60 * 60 * 1000, // 25 hours ago
+        updated_at: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(), // 25 hours ago
+        children: [],
       };
       
       expect(isWithinTimeFilter(taskWithin24Hours, '24hours')).toBe(true);
@@ -118,15 +118,15 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Recent',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 2 * 24 * 60 * 60 * 1000, // 2 days ago
+        updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+        children: [],
       };
       const taskOlderThan3Days: Task = {
         id: '2',
         title: 'Old',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 4 * 24 * 60 * 60 * 1000, // 4 days ago
+        updated_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
+        children: [],
       };
       
       expect(isWithinTimeFilter(taskWithin3Days, '3days')).toBe(true);
@@ -141,15 +141,15 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Today',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: startOfToday + 1000, // Just after midnight
+        updated_at: new Date(startOfToday + 1000).toISOString(), // Just after midnight
+        children: [],
       };
       const taskYesterday: Task = {
         id: '2',
         title: 'Yesterday',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: startOfToday - 1000, // Just before midnight
+        updated_at: new Date(startOfToday - 1000).toISOString(), // Just before midnight
+        children: [],
       };
       
       expect(isWithinTimeFilter(taskToday, 'today')).toBe(true);
@@ -165,22 +165,22 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Yesterday',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: startOfYesterday + 1000, // During yesterday
+        updated_at: new Date(startOfYesterday + 1000).toISOString(), // During yesterday
+        children: [],
       };
       const taskToday: Task = {
         id: '2',
         title: 'Today',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: startOfToday + 1000, // Today
+        updated_at: new Date(startOfToday + 1000).toISOString(), // Today
+        children: [],
       };
       const taskTwoDaysAgo: Task = {
         id: '3',
         title: 'Two days ago',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: startOfYesterday - 1000, // Before yesterday
+        updated_at: new Date(startOfYesterday - 1000).toISOString(), // Before yesterday
+        children: [],
       };
       
       expect(isWithinTimeFilter(taskYesterday, 'yesterday')).toBe(true);
@@ -193,15 +193,15 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Recent',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 5 * 24 * 60 * 60 * 1000, // 5 days ago
+        updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+        children: [],
       };
       const taskOlderThanWeek: Task = {
         id: '2',
         title: 'Old',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 8 * 24 * 60 * 60 * 1000, // 8 days ago
+        updated_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), // 8 days ago
+        children: [],
       };
       
       expect(isWithinTimeFilter(taskWithinWeek, 'week')).toBe(true);
@@ -213,15 +213,15 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Recent',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 25 * 24 * 60 * 60 * 1000, // 25 days ago
+        updated_at: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), // 25 days ago
+        children: [],
       };
       const taskOlderThanMonth: Task = {
         id: '2',
         title: 'Old',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 31 * 24 * 60 * 60 * 1000, // 31 days ago
+        updated_at: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString(), // 31 days ago
+        children: [],
       };
       
       expect(isWithinTimeFilter(taskWithinMonth, 'month')).toBe(true);
@@ -233,8 +233,8 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Invalid',
         status: 'open',
-        created_at: Date.now(),
         updated_at: 'invalid-date' as any,
+        children: [],
       };
       
       expect(isWithinTimeFilter(invalidTask, 'hour')).toBe(false);
@@ -246,8 +246,8 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Test',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now() - 1000 * 60 * 60 * 100, // Very old
+        updated_at: new Date(Date.now() - 1000 * 60 * 60 * 100).toISOString(), // Very old
+        children: [],
       };
       
       expect(isWithinTimeFilter(task, 'unknown-filter' as any)).toBe(true);
@@ -289,8 +289,8 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Test',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        updated_at: new Date(Date.now()).toISOString(),
+        children: [],
       };
       
       expect(isTaskBlocked(task, [])).toBe(false);
@@ -301,9 +301,9 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Test',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        updated_at: new Date(Date.now()).toISOString(),
         dependencies: [],
+        children: [],
       };
       
       expect(isTaskBlocked(task, [])).toBe(false);
@@ -314,17 +314,17 @@ describe('Task Filtering Utilities', () => {
         id: '2',
         title: 'Blocker',
         status: 'in_progress',
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        updated_at: new Date(Date.now()).toISOString(),
+        children: [],
       };
       
       const blocked: Task = {
         id: '1',
         title: 'Blocked',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        updated_at: new Date(Date.now()).toISOString(),
         dependencies: [{ id: '2', type: 'blocks' }],
+        children: [],
       };
       
       expect(isTaskBlocked(blocked, [blocker, blocked])).toBe(true);
@@ -335,17 +335,17 @@ describe('Task Filtering Utilities', () => {
         id: '2',
         title: 'Blocker',
         status: 'closed',
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        updated_at: new Date(Date.now()).toISOString(),
+        children: [],
       };
       
       const task: Task = {
         id: '1',
         title: 'Task',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        updated_at: new Date(Date.now()).toISOString(),
         dependencies: [{ id: '2', type: 'blocks' }],
+        children: [],
       };
       
       expect(isTaskBlocked(task, [blocker, task])).toBe(false);
@@ -356,17 +356,17 @@ describe('Task Filtering Utilities', () => {
         id: '2',
         title: 'Related',
         status: 'in_progress',
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        updated_at: new Date(Date.now()).toISOString(),
+        children: [],
       };
       
       const task: Task = {
         id: '1',
         title: 'Task',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        updated_at: new Date(Date.now()).toISOString(),
         dependencies: [{ id: '2', type: 'related' }],
+        children: [],
       };
       
       expect(isTaskBlocked(task, [relatedTask, task])).toBe(false);
@@ -377,9 +377,9 @@ describe('Task Filtering Utilities', () => {
         id: '1',
         title: 'Task',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        updated_at: new Date(Date.now()).toISOString(),
         dependencies: [{ id: '999', type: 'blocks' }],
+        children: [],
       };
       
       expect(isTaskBlocked(task, [task])).toBe(false);
@@ -390,28 +390,28 @@ describe('Task Filtering Utilities', () => {
         id: '2',
         title: 'Closed Blocker',
         status: 'closed',
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        updated_at: new Date(Date.now()).toISOString(),
+        children: [],
       };
       
       const openBlocker: Task = {
         id: '3',
         title: 'Open Blocker',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        updated_at: new Date(Date.now()).toISOString(),
+        children: [],
       };
       
       const blocked: Task = {
         id: '1',
         title: 'Blocked',
         status: 'open',
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        updated_at: new Date(Date.now()).toISOString(),
         dependencies: [
           { id: '2', type: 'blocks' },
           { id: '3', type: 'blocks' },
         ],
+        children: [],
       };
       
       expect(isTaskBlocked(blocked, [closedBlocker, openBlocker, blocked])).toBe(true);
