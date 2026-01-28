@@ -107,10 +107,11 @@ const TaskGrid: React.FC<TaskGridProps> = ({
           <col />
           <col />
           <col />
+          <col />
         </colgroup>
         <thead>
           <tr>
-            <th colSpan={7} style={{
+            <th colSpan={8} style={{
               backgroundColor: 'var(--vscode-editor-background)',
               color: 'var(--vscode-foreground)',
               padding: '12px 16px',
@@ -214,6 +215,7 @@ const TaskGrid: React.FC<TaskGridProps> = ({
           backgroundColor: 'var(--vscode-editor-background)'
         }}>
           <colgroup>
+            <col />
             <col />
             <col />
             <col />

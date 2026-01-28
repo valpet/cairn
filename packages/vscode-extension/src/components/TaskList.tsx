@@ -9,9 +9,13 @@ import { useTaskState } from './hooks/useTaskState';
 import { useTaskInteractions } from './hooks/useTaskInteractions';
 import { useTaskFiltering } from './hooks/useTaskFiltering';
 import { useTaskHierarchy } from './hooks/useTaskHierarchy';
+import { useAutoRefresh } from './hooks/useAutoRefresh';
 
 const TaskList: React.FC<TaskListProps> = () => {
   const { postMessage } = useVSCodeMessaging();
+  
+  // Auto-refresh every 10 seconds to keep relative times current
+  useAutoRefresh(10000);
   const {
     allTasks,
     viewingFile,
@@ -23,6 +27,12 @@ const TaskList: React.FC<TaskListProps> = () => {
     expandedDescriptions,
     toggleExpand,
     toggleDescription,
+    showRecentlyClosed,
+    setShowRecentlyClosed,
+    recentlyClosedDuration,
+    setRecentlyClosedDuration,
+    timeFilter,
+    setTimeFilter,
   } = useTaskState();
 
   console.log('TaskList rendering, allTasks:', allTasks.length);
@@ -39,7 +49,7 @@ const TaskList: React.FC<TaskListProps> = () => {
     showDeleteConfirmation,
   } = useTaskInteractions(postMessage);
 
-  const { filteredTasks } = useTaskFiltering(allTasks, selectedStatuses);
+  const { filteredTasks } = useTaskFiltering(allTasks, selectedStatuses, showRecentlyClosed, recentlyClosedDuration, timeFilter);
   const { taskTree } = useTaskHierarchy(filteredTasks);
 
   console.log('TaskList: filteredTasks:', filteredTasks.length, 'taskTree:', taskTree.length);
@@ -78,6 +88,12 @@ const TaskList: React.FC<TaskListProps> = () => {
       <StatusFilter
         selectedStatuses={selectedStatuses}
         onStatusChange={setSelectedStatuses}
+        showRecentlyClosed={showRecentlyClosed}
+        onShowRecentlyClosedChange={setShowRecentlyClosed}
+        recentlyClosedDuration={recentlyClosedDuration}
+        onRecentlyClosedDurationChange={setRecentlyClosedDuration}
+        timeFilter={timeFilter}
+        onTimeFilterChange={setTimeFilter}
       />
 
       {/* Task Container - This will be populated with the task grid */}
