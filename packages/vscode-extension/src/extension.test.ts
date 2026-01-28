@@ -9,60 +9,7 @@ interface MockContext {
   subscriptions: unknown[];
 }
 
-// Mock VS Code API
-const registeredTools: Record<string, MockTool> = {};
-
-vi.mock('vscode', () => ({
-  lm: {
-    registerTool: vi.fn().mockImplementation((name, tool) => {
-      // Store tools for testing
-      registeredTools[name] = tool;
-      return { dispose: vi.fn() };
-    }),
-  },
-  commands: {
-    registerCommand: vi.fn(),
-  },
-  window: {
-    createWebviewPanel: vi.fn(),
-    createOutputChannel: vi.fn(() => ({
-      appendLine: vi.fn(),
-      dispose: vi.fn(),
-    })),
-    createStatusBarItem: vi.fn(() => ({
-      text: '',
-      tooltip: '',
-      command: '',
-      show: vi.fn(),
-      dispose: vi.fn(),
-    })),
-    showErrorMessage: vi.fn(),
-    showInformationMessage: vi.fn(),
-  },
-  ViewColumn: {
-    One: 1,
-    Beside: 2,
-  },
-  Uri: {
-    file: vi.fn(),
-  },
-  workspace: {
-    workspaceFolders: [{ uri: { fsPath: '/test/workspace' } }],
-  },
-  ExtensionContext: class implements MockContext {
-    subscriptions: any[] = [];
-  },
-  LanguageModelToolResult: class {
-    constructor(parts: unknown[]) {
-      return { content: parts };
-    }
-  },
-  LanguageModelTextPart: class {
-    constructor(text: string) {
-      return { text };
-    }
-  },
-}));
+// Mock VS Code API - registered tools are tracked  in the vscode mock
 
 // Mock file system
 vi.mock('fs', () => ({
@@ -88,13 +35,14 @@ vi.mock('../../core/dist/index.js', () => ({
     IStorageService: 'IStorageService',
     IGraphService: 'IGraphService',
   },
+  createContainer: vi.fn(),
   findCairnDir: vi.fn().mockReturnValue({ cairnDir: '/test/workspace/.cairn', repoRoot: '/test/workspace' }),
   generateId: vi.fn().mockReturnValue('s-test-id-123'),
 }));
 
 // Import after mocking
 import * as vscode from 'vscode';
-import { lm } from 'vscode';
+import { lm, registeredTools } from 'vscode';
 import { createContainer, TYPES, findCairnDir, generateId, IStorageService, IGraphService } from '../../core/dist/index.js';
 import { Container } from 'inversify';
 import { activate, CairnCreateTool, CairnListReadyTool, CairnUpdateTool, CairnDepAddTool, CairnCommentTool, CairnAcAddTool, CairnAcUpdateTool, CairnAcRemoveTool, CairnAcToggleTool, getStorage, getGraph, resetServices } from './extension';
@@ -142,12 +90,11 @@ describe('VS Code Extension Tools', () => {
 
     mockContext = new vscode.ExtensionContext();
 
-    // Mock createContainer
-    const mockCreateContainer = vi.fn().mockReturnValue(mockContainer);
-    (createContainer as any) = mockCreateContainer;
+    // Setup createContainer mock to return our mockContainer
+    vi.mocked(createContainer).mockReturnValue(mockContainer as any);
 
-    (findCairnDir as any).mockReturnValue({ cairnDir: '/test/workspace/.cairn', repoRoot: '/test/workspace' });
-    (generateId as any).mockReturnValue('s-test-id-123');
+    vi.mocked(findCairnDir).mockReturnValue({ cairnDir: '/test/workspace/.cairn', repoRoot: '/test/workspace' });
+    vi.mocked(generateId).mockReturnValue('s-test-id-123');
 
     // Manually register tools for testing
     registeredTools['cairn_create'] = new CairnCreateTool(mockStorage, mockGraph);
@@ -663,12 +610,11 @@ describe('Extension Activation and Service Initialization', () => {
 
     mockContext = new vscode.ExtensionContext();
 
-    // Mock createContainer
-    const mockCreateContainer = vi.fn().mockReturnValue(mockContainer);
-    (createContainer as any) = mockCreateContainer;
+    // Setup createContainer mock to return our mockContainer
+    vi.mocked(createContainer).mockReturnValue(mockContainer as any);
 
-    (findCairnDir as any).mockReturnValue({ cairnDir: '/test/workspace/.cairn', repoRoot: '/test/workspace' });
-    (generateId as any).mockReturnValue('s-test-id-123');
+    vi.mocked(findCairnDir).mockReturnValue({ cairnDir: '/test/workspace/.cairn', repoRoot: '/test/workspace' });
+    vi.mocked(generateId).mockReturnValue('s-test-id-123');
   });
 
   describe('activate() function', () => {
