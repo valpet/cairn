@@ -278,7 +278,7 @@ describe('VS Code Extension Tools', () => {
         { id: 'parent-123', title: 'Parent Task', status: 'open' },
         { id: 'subtask-1', title: 'Open Subtask', status: 'open' },
       ];
-      
+
       mockStorage.loadTasks.mockResolvedValue(mockTasks);
       mockGraph.canCloseTask.mockReturnValue({
         canClose: false,
@@ -298,7 +298,7 @@ describe('VS Code Extension Tools', () => {
       expect(mockStorage.loadTasks).toHaveBeenCalled();
       expect(mockGraph.canCloseTask).toHaveBeenCalledWith('parent-123', mockTasks);
       expect(mockStorage.updateTasks).not.toHaveBeenCalled();
-      
+
       const resultText = result.content[0].text;
       expect(resultText).toContain('success');
       expect(resultText).toContain('false');
@@ -313,13 +313,13 @@ describe('VS Code Extension Tools', () => {
       const mockTasks = [
         { id: 'task-123', title: 'Task No Subtasks', status: 'open' },
       ];
-      
+
       mockStorage.loadTasks.mockResolvedValue(mockTasks);
       mockGraph.canCloseTask.mockReturnValue({
         canClose: true,
         openSubtasks: [],
       });
-      
+
       mockStorage.updateTasks.mockImplementation(async (callback) => {
         const updatedTasks = callback(mockTasks);
         return updatedTasks;
@@ -346,13 +346,13 @@ describe('VS Code Extension Tools', () => {
         { id: 'subtask-1', title: 'Closed Subtask 1', status: 'closed' },
         { id: 'subtask-2', title: 'Closed Subtask 2', status: 'closed' },
       ];
-      
+
       mockStorage.loadTasks.mockResolvedValue(mockTasks);
       mockGraph.canCloseTask.mockReturnValue({
         canClose: true,
         openSubtasks: [],
       });
-      
+
       mockStorage.updateTasks.mockImplementation(async (callback) => {
         const updatedTasks = callback(mockTasks);
         return updatedTasks;
@@ -380,7 +380,7 @@ describe('VS Code Extension Tools', () => {
         { id: 'subtask-2', title: 'Open Subtask 2', status: 'in_progress' },
         { id: 'subtask-3', title: 'Open Subtask 3', status: 'open' },
       ];
-      
+
       mockStorage.loadTasks.mockResolvedValue(mockTasks);
       mockGraph.canCloseTask.mockReturnValue({
         canClose: false,
@@ -403,7 +403,7 @@ describe('VS Code Extension Tools', () => {
 
       expect(mockGraph.canCloseTask).toHaveBeenCalledWith('parent-123', mockTasks);
       expect(mockStorage.updateTasks).not.toHaveBeenCalled();
-      
+
       const resultText = result.content[0].text;
       expect(resultText).toContain('Cannot close task');
       expect(resultText).toContain('Open Subtask 1');
@@ -488,9 +488,9 @@ describe('VS Code Extension Tools', () => {
   describe('cairn_ac_update tool', () => {
     it('should update acceptance criteria text', async () => {
       mockStorage.updateTasks.mockImplementation(async (callback) => {
-        const currentTasks = [{ 
-          id: 'task-123', 
-          acceptance_criteria: [{ text: 'Old text', completed: false }] 
+        const currentTasks = [{
+          id: 'task-123',
+          acceptance_criteria: [{ text: 'Old text', completed: false }]
         }];
         const updatedTasks = callback(currentTasks);
         return updatedTasks;
@@ -514,12 +514,12 @@ describe('VS Code Extension Tools', () => {
   describe('cairn_ac_remove tool', () => {
     it('should remove acceptance criteria from task', async () => {
       mockStorage.updateTasks.mockImplementation(async (callback) => {
-        const currentTasks = [{ 
-          id: 'task-123', 
+        const currentTasks = [{
+          id: 'task-123',
           acceptance_criteria: [
             { text: 'Criteria 1', completed: false },
             { text: 'Criteria 2', completed: true }
-          ] 
+          ]
         }];
         const updatedTasks = callback(currentTasks);
         return updatedTasks;
@@ -542,9 +542,9 @@ describe('VS Code Extension Tools', () => {
   describe('cairn_ac_toggle tool', () => {
     it('should toggle acceptance criteria completion status', async () => {
       mockStorage.updateTasks.mockImplementation(async (callback) => {
-        const currentTasks = [{ 
-          id: 'task-123', 
-          acceptance_criteria: [{ text: 'Criteria 1', completed: false }] 
+        const currentTasks = [{
+          id: 'task-123',
+          acceptance_criteria: [{ text: 'Criteria 1', completed: false }]
         }];
         const updatedTasks = callback(currentTasks);
         return updatedTasks;
