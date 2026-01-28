@@ -1,4 +1,13 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python-envs.pythonProjects": []
+    "python-envs.pythonProjects": [],
+    "vitest.commandLine": "npx vitest --coverage",
+    "coverage-gutters.coverageFileNames": [
+        "lcov.info",
+        "coverage/lcov.info",
+        "packages/*/coverage/lcov.info"
+    ],
+    "coverage-gutters.showGutterCoverage": true,
+    "coverage-gutters.showLineCoverage": true,
+    "coverage-gutters.showRulerCoverage": true
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ProgressPie } from './Icons';
+import { formatRelativeTime, formatFullTimestamp } from './timeUtils';
 
 interface Task {
   id: string;
@@ -8,6 +9,7 @@ interface Task {
   type?: string;
   status: string;
   priority?: string;
+  updated_at: string;
   completion_percentage?: number;
   acceptance_criteria?: Array<{
     text: string;
@@ -315,6 +317,25 @@ const TaskRow: React.FC<TaskRowProps> = ({
         <td style={{ padding: '12px 16px', textAlign: 'center', verticalAlign: 'top' }}>
           <span className={`pill priority-${task.priority || 'medium'}`}>
             {(task.priority || 'medium').charAt(0).toUpperCase() + (task.priority || 'medium').slice(1)}
+          </span>
+        </td>
+
+        {/* Updated cell */}
+        <td 
+          style={{ 
+            padding: '12px 16px', 
+            textAlign: 'center', 
+            verticalAlign: 'top',
+            cursor: 'help'
+          }}
+          title={formatFullTimestamp(task.updated_at)}
+        >
+          <span style={{ 
+            fontSize: '12px', 
+            color: 'var(--vscode-descriptionForeground)',
+            whiteSpace: 'nowrap'
+          }}>
+            {formatRelativeTime(task.updated_at)}
           </span>
         </td>
 

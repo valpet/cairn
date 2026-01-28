@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Task } from '../types';
+import { useVSCodeMessaging } from './useVSCodeMessaging';
 
 export const useTaskState = () => {
   const [allTasks, setAllTasks] = useState<Task[]>([]);
@@ -9,6 +10,11 @@ export const useTaskState = () => {
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set(['ready', 'open', 'in_progress']));
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
+  const [showRecentlyClosed, setShowRecentlyClosed] = useState<boolean>(false);
+  const [recentlyClosedDuration, setRecentlyClosedDuration] = useState<string>('60');
+  const [timeFilter, setTimeFilter] = useState<string>('all');
+
+  const { postMessage } = useVSCodeMessaging();
 
   // Listen for messages from extension
   useEffect(() => {
@@ -45,6 +51,20 @@ export const useTaskState = () => {
         if (message.availableFiles) {
           setAvailableFiles(message.availableFiles);
         }
+      } else if (message.type === 'filterState') {
+        // Load saved filter state
+        if (message.selectedStatuses) {
+          setSelectedStatuses(new Set(message.selectedStatuses));
+        }
+        if (message.showRecentlyClosed !== undefined) {
+          setShowRecentlyClosed(message.showRecentlyClosed);
+        }
+        if (message.recentlyClosedDuration) {
+          setRecentlyClosedDuration(message.recentlyClosedDuration);
+        }
+        if (message.timeFilter) {
+          setTimeFilter(message.timeFilter);
+        }
       }
     };
 
@@ -54,6 +74,17 @@ export const useTaskState = () => {
       window.removeEventListener('message', messageHandler);
     };
   }, []);
+
+  // Save filter state whenever it changes
+  useEffect(() => {
+    postMessage({
+      type: 'filterStateChanged',
+      selectedStatuses: Array.from(selectedStatuses),
+      showRecentlyClosed,
+      recentlyClosedDuration,
+      timeFilter
+    });
+  }, [selectedStatuses, showRecentlyClosed, recentlyClosedDuration, timeFilter]);
 
   const toggleExpand = (taskId: string) => {
     setExpandedTasks(prev => {
@@ -90,5 +121,11 @@ export const useTaskState = () => {
     expandedDescriptions,
     toggleExpand,
     toggleDescription,
+    showRecentlyClosed,
+    setShowRecentlyClosed,
+    recentlyClosedDuration,
+    setRecentlyClosedDuration,
+    timeFilter,
+    setTimeFilter,
   };
 };

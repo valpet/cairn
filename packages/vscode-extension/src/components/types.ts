@@ -15,6 +15,37 @@ export interface Task {
     type: string;
   }>;
   children: Task[];
+  closed_at?: string;
+  updated_at: string;
+}
+
+// Webview-specific task format
+export interface WebviewTask {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  description: string;
+  type: string;
+  completion_percentage: number | null;
+  acceptance_criteria: Array<{
+    text: string;
+    completed: boolean;
+  }>;
+  dependencies: Array<{
+    id: string;
+    type: string;
+  }>;
+  closed_at: string | undefined;
+  updated_at: string;
+  subtasks: Array<{
+    id: string;
+    title: string;
+    type: string;
+    status: string;
+    priority: string;
+    completion_percentage: number | null;
+  }>;
 }
 
 export interface TaskListProps {

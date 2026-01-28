@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createContainer, TYPES, IStorageService, IGraphService, Container, AcceptanceCriteria, Task, Dependency, findCairnDir, generateId, validateTask } from '../../core/dist/index.js';
+import type { WebviewTask } from './components/types';
 
 let container: Container | undefined;
 let storage: IStorageService | undefined;
@@ -55,6 +56,9 @@ let lastKnownActiveFile: string = 'default';
 let internalChangeCount: number = 0;
 let lastInternalWriteTime: number = 0;
 let taskListPanels: Map<vscode.WebviewPanel, () => Promise<void>> = new Map();
+
+// Filter state persistence keys
+const FILTER_STATE_KEY = 'cairn.taskListFilters';
 
 export function getStorage(): IStorageService {
   if (!storage) {
@@ -176,6 +180,203 @@ function getAvailableTaskFiles(cairnDir: string): string[] {
       if (b === 'default') return 1;
       return a.localeCompare(b);
     });
+}
+
+/**
+ * Safely serialize a value for logging, with truncation to prevent overly long messages.
+ * 
+ * @param value - The value to serialize
+ * @param maxLength - Maximum length before truncation (default 200 characters)
+ * @returns A serialized string representation, or a fallback message if serialization fails
+ */
+function safeSerializeForLog(value: unknown, maxLength: number = 200): string {
+  try {
+    const serialized = JSON.stringify(value);
+    if (serialized.length > maxLength) {
+      return serialized.substring(0, maxLength) + '... (truncated)';
+    }
+    return serialized;
+  } catch {
+    // JSON.stringify failed (e.g., circular reference, BigInt, Symbol)
+    return `[${typeof value}] (could not serialize)`;
+  }
+}
+
+export function loadFilterState(context: vscode.ExtensionContext): FilterState {
+  const saved = context.workspaceState.get(FILTER_STATE_KEY);
+
+  // Validate that saved data is a proper object with expected FilterState structure
+  if (saved && typeof saved === 'object' && !Array.isArray(saved)) {
+    try {
+      const state = saved as Record<string, unknown>;
+
+      // Safely validate each property with proper type checking protected by try-catch
+      let isValidSelectedStatuses = false;
+      let isValidShowRecentlyClosed = false;
+      let isValidRecentlyClosedDuration = false;
+      let isValidTimeFilter = false;
+
+      try {
+        isValidSelectedStatuses = Array.isArray(state.selectedStatuses) &&
+          state.selectedStatuses.every(status => typeof status === 'string');
+      } catch {
+        // Accessing selectedStatuses threw an error (e.g., getter that throws)
+        isValidSelectedStatuses = false;
+      }
+
+      try {
+        isValidShowRecentlyClosed = typeof state.showRecentlyClosed === 'boolean';
+      } catch {
+        isValidShowRecentlyClosed = false;
+      }
+
+      try {
+        isValidRecentlyClosedDuration = typeof state.recentlyClosedDuration === 'string';
+      } catch {
+        isValidRecentlyClosedDuration = false;
+      }
+
+      try {
+        isValidTimeFilter = typeof state.timeFilter === 'string';
+      } catch {
+        isValidTimeFilter = false;
+      }
+
+      // Log warnings for invalid properties (with safe serialization)
+      if (!isValidSelectedStatuses && state.selectedStatuses !== undefined) {
+        const serialized = safeSerializeForLog(state.selectedStatuses);
+        const warning = `WARNING: Invalid selectedStatuses in saved filter state (expected array of strings): ${serialized}`;
+        if (outputChannel) {
+          outputChannel.appendLine(warning);
+        } else {
+          console.error(warning);
+        }
+      }
+      if (!isValidShowRecentlyClosed && state.showRecentlyClosed !== undefined) {
+        const serialized = safeSerializeForLog(state.showRecentlyClosed);
+        const warning = `WARNING: Invalid showRecentlyClosed in saved filter state (expected boolean): ${serialized}`;
+        if (outputChannel) {
+          outputChannel.appendLine(warning);
+        } else {
+          console.error(warning);
+        }
+      }
+      if (!isValidRecentlyClosedDuration && state.recentlyClosedDuration !== undefined) {
+        const serialized = safeSerializeForLog(state.recentlyClosedDuration);
+        const warning = `WARNING: Invalid recentlyClosedDuration in saved filter state (expected string like '5', '60', 'today', 'yesterday', or 'week'): ${serialized}`;
+        if (outputChannel) {
+          outputChannel.appendLine(warning);
+        } else {
+          console.error(warning);
+        }
+      }
+      if (!isValidTimeFilter && state.timeFilter !== undefined) {
+        const serialized = safeSerializeForLog(state.timeFilter);
+        const warning = `WARNING: Invalid timeFilter in saved filter state (expected string like 'all', 'hour', '6hours', '12hours', '24hours', '3days', 'week', or 'month'): ${serialized}`;
+        if (outputChannel) {
+          outputChannel.appendLine(warning);
+        } else {
+          console.error(warning);
+        }
+      }
+
+      // Use validated values or fall back to defaults
+      return {
+        selectedStatuses: isValidSelectedStatuses ? state.selectedStatuses as string[] : ['ready', 'open', 'in_progress'],
+        showRecentlyClosed: isValidShowRecentlyClosed ? state.showRecentlyClosed as boolean : false,
+        recentlyClosedDuration: isValidRecentlyClosedDuration ? state.recentlyClosedDuration as string : '60',
+        timeFilter: isValidTimeFilter ? state.timeFilter as string : 'all'
+      };
+    } catch (error) {
+      // Catastrophic error while processing state (e.g., getter threw, circular reference during validation)
+      const warning = `WARNING: Error processing filter state, falling back to defaults: ${error instanceof Error ? error.message : 'unknown error'}`;
+      if (outputChannel) {
+        outputChannel.appendLine(warning);
+      } else {
+        console.error(warning);
+      }
+
+      return {
+        selectedStatuses: ['ready', 'open', 'in_progress'],
+        showRecentlyClosed: false,
+        recentlyClosedDuration: '60',
+        timeFilter: 'all'
+      };
+    }
+  }
+
+  // Log when saved data is completely invalid
+  if (saved !== undefined) {
+    const serialized = safeSerializeForLog(saved);
+    const warning = `WARNING: Invalid filter state data structure, falling back to defaults: ${serialized}`;
+    if (outputChannel) {
+      outputChannel.appendLine(warning);
+    } else {
+      console.error(warning);
+    }
+  }
+
+  return {
+    selectedStatuses: ['ready', 'open', 'in_progress'],
+    showRecentlyClosed: false,
+    recentlyClosedDuration: '60',
+    timeFilter: 'all'
+  };
+}
+
+function saveFilterState(context: vscode.ExtensionContext, state: FilterState): void {
+  context.workspaceState.update(FILTER_STATE_KEY, state);
+}
+
+/**
+ * Transforms a core {@link Task} into the {@link WebviewTask} shape expected by the webview.
+ *
+ * In addition to copying basic task fields, this function computes the list of subtasks for
+ * epic-style tasks by querying the dependency graph service and mapping those results into
+ * the lightweight structure used by the webview.
+ *
+ * **Key transformations:**
+ * - Optional fields are converted to required fields with defaults:
+ *   - `priority` defaults to `'medium'` if not set
+ *   - `description` defaults to `''` (empty string) if not set
+ *   - `type` defaults to `'task'` if not set
+ * - Optional arrays become required empty arrays:
+ *   - `acceptance_criteria` defaults to `[]`
+ *   - `dependencies` defaults to `[]`
+ * - The `children` field is removed from Task and replaced with a computed `subtasks` field
+ *   that includes only essential subtask information (with the same default transformations)
+ * - `completion_percentage` becomes nullable: `number | undefined` → `number | null`
+ *   (undefined is converted to null)
+ * - `closed_at` and `updated_at` are passed through as-is from the source task
+ *
+ * @param task The core task to transform into a webview-friendly representation.
+ * @param graph The graph service used to resolve and compute subtasks for epic tasks.
+ * @param allTasks The collection of all known tasks, used by the graph service when
+ *                 determining subtasks for the provided task.
+ * @returns A {@link WebviewTask} object containing the task data and any computed subtasks.
+ */
+function mapTaskForWebview(task: Task, graph: IGraphService, allTasks: Task[]): WebviewTask {
+  return {
+    id: task.id,
+    title: task.title,
+    status: task.status,
+    priority: task.priority || 'medium',
+    description: task.description || '',
+    type: task.type || 'task',
+    completion_percentage: task.completion_percentage ?? null,
+    acceptance_criteria: task.acceptance_criteria || [],
+    dependencies: task.dependencies || [],
+    closed_at: task.closed_at,
+    updated_at: task.updated_at,
+    subtasks: graph.getEpicSubtasks(task.id, allTasks).map(s => ({
+      id: s.id,
+      title: s.title,
+      type: s.type || 'task',
+      status: s.status,
+      priority: s.priority || 'medium',
+      completion_percentage: s.completion_percentage ?? null
+    }))
+  };
 }
 
 function reinitializeServices(tasksFileName: string) {
@@ -315,6 +516,14 @@ interface AcRemoveToolInput {
 interface AcToggleToolInput {
   task_id: string;
   index: number;
+}
+
+// Filter state interface for persistence
+interface FilterState {
+  selectedStatuses: string[];
+  showRecentlyClosed: boolean;
+  recentlyClosedDuration: string;
+  timeFilter: string;
 }
 
 // Tool implementations
@@ -974,7 +1183,26 @@ export async function activate(context: vscode.ExtensionContext) {
               if (message.type === 'webviewReady') {
                 outputChannel!.appendLine('Task list webview ready');
                 webviewReady = true;
+                // Load saved filter state and send it to the webview
+                const savedFilters = loadFilterState(context);
+                panel.webview.postMessage({
+                  type: 'filterState',
+                  selectedStatuses: savedFilters.selectedStatuses,
+                  showRecentlyClosed: savedFilters.showRecentlyClosed,
+                  recentlyClosedDuration: savedFilters.recentlyClosedDuration,
+                  timeFilter: savedFilters.timeFilter
+                });
                 await updateTasks();
+              } else if (message.type === 'filterStateChanged') {
+                // Save filter state when it changes
+                const filterState: FilterState = {
+                  selectedStatuses: message.selectedStatuses || [],
+                  showRecentlyClosed: message.showRecentlyClosed || false,
+                  recentlyClosedDuration: message.recentlyClosedDuration || '60',
+                  timeFilter: message.timeFilter || 'all'
+                };
+                saveFilterState(context, filterState);
+                outputChannel!.appendLine('Filter state saved');
               } else if (message.type === 'startTask') {
                 outputChannel!.appendLine(`Starting task: ${message.id}`);
                 await getStorage().updateTasks(tasks => {
@@ -1140,25 +1368,7 @@ export async function activate(context: vscode.ExtensionContext) {
               outputChannel!.appendLine(`Task IDs: ${tasks.map(t => t.id).join(', ')}`);
 
               // IMPORTANT: Map tasks to the format expected by the webview
-              const allTasks = tasks.map(task => ({
-                id: task.id,
-                title: task.title,
-                status: task.status,
-                priority: task.priority || 'medium',
-                description: task.description || '',
-                type: task.type || 'task',
-                completion_percentage: task.completion_percentage,
-                acceptance_criteria: task.acceptance_criteria || [],
-                dependencies: task.dependencies || [],
-                subtasks: getGraph().getEpicSubtasks(task.id, tasks).map(s => ({
-                  id: s.id,
-                  title: s.title,
-                  type: s.type,
-                  status: s.status,
-                  priority: s.priority,
-                  completion_percentage: s.completion_percentage
-                }))
-              }));
+              const allTasks = tasks.map(task => mapTaskForWebview(task, getGraph(), tasks));
               outputChannel!.appendLine(`Mapped to ${allTasks.length} tasks for webview`);
               outputChannel!.appendLine(`Sending updateTasks with ${allTasks.length} tasks`);
               outputChannel!.appendLine(`First task: ${JSON.stringify(allTasks[0])}`);
